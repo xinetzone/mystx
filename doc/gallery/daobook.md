@@ -1,5 +1,7 @@
 # DaoBook 库
 
+[DaoBook 库](https://github.com/daobook)：
+
 ```{gallery-grid}
 :grid-columns: 1 2 2 3
 
