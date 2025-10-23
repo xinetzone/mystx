@@ -5,7 +5,7 @@
 
 readme
 gallery/index
-test
+tests/index
 ```
 
 ## 📊 索引与搜索

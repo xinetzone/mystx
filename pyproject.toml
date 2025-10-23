@@ -49,6 +49,7 @@ doc = [
     "sphinx-autoapi>=3.4",
     "graphviz",
     "sphinx-tippy",
+    "sphinx-pyscript",
 ]
 
 dev = [

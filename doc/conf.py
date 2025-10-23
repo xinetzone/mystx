@@ -209,3 +209,6 @@ extlinks = {
     'daobook': ('https://daobook.github.io/%s', 'Daobook %s'),
     'xinetzone': ('https://xinetzone.github.io/%s', 'xinetzone %s'),
 }
+
+# PyScript 插件
+extensions.append("sphinx_pyscript")
