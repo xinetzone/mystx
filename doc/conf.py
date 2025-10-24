@@ -210,5 +210,9 @@ extlinks = {
     'xinetzone': ('https://xinetzone.github.io/%s', 'xinetzone %s'),
 }
 
+# ========================== 可选功能配置
 # PyScript 插件
 extensions.append("sphinx_pyscript")
+
+# GitHub 统计卡片插件
+extensions.append("mystx.ext.github_stats")

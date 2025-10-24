@@ -1,5 +1,24 @@
 # 📖欢迎使用 MySTX 主题文档
 
+
+```{github-stats}
+:username: xinetzone
+:theme: tokyonight
+:show_icons:
+```
+
+```{github-top-langs}
+:username: xinetzone
+:layout: compact
+:theme: gruvbox
+```
+
+```{github-pinned-repo}
+:username: xinetzone
+:repo: xinetzone.github.io
+:theme: dark
+```
+
 ```{toctree}
 :hidden:
 
