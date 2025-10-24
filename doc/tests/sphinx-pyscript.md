@@ -78,7 +78,7 @@ plt.gcf()
 ```{py-terminal}
 ```
 
-## `py-script` application
+## `py-script` 应用
 
 下面是使用 `py-script` 指令将“a”替换为“b”的简单应用：
 

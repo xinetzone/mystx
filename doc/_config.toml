@@ -1,7 +1,7 @@
 # 主题选项配置
 [html_theme_options]
 # 公告栏设置
-announcement = "欢迎使用 mystx 主题！它是基于 sphinx-book-theme 的现代文档主题。"
+announcement = "欢迎使用 mystx 主题！它是现代化文档主题。"
 
 # 仓库相关设置
 repository_url = "https://github.com/xinetzone/mystx"  # 仓库地址
