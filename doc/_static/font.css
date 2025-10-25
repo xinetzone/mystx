@@ -1,0 +1,17 @@
+:root {
+  --code-font-stack: 'Maple Mono','Maple Mono CN','Maple Mono NF','Noto Color Emoji',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@font-face {
+  font-family: 'MapleMono';
+  src: url('/fonts/NF-CN/MapleMono-NF-CN-Regular.woff2') format('woff2'),
+       url('/fonts/MapleMono-NF-CN-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+code, pre, .highlight code, .highlight pre {
+  font-family: var(--code-font-stack);
+  font-feature-settings: "calt" 1, "liga" 1, "zero" 1;
+  line-height: 1.7;
+}
+

@@ -21,7 +21,13 @@ def get_project_root() -> Path:
 
 ROOT = get_project_root()
 sys.path.extend([str(ROOT/'doc')])
+from taolib.plot.configs.matplotlib_font import configure_matplotlib_fonts
 from taolib import get_version  # 引入获取版本号的函数
+# 配置中文字体
+configure_matplotlib_fonts(
+    font_directory=ROOT/'doc/_static/fonts', 
+    target_fonts=['Maple Mono NF CN', 'Noto Color Emoji']
+)
 # ================================= 项目基本信息 =================================
 project = "mystx"  # 文档项目名称
 author = "xinetzone"    # 文档作者
@@ -44,7 +50,7 @@ exclude_patterns = [
 
 # 静态资源目录，用于存放CSS、JavaScript、图片等
 html_static_path = ["_static"]
-html_css_files = ["local.css"]
+html_css_files = ["local.css", "font.css"]
 # 文档的最后更新时间格式
 html_last_updated_fmt = '%Y-%m-%d, %H:%M:%S'
 
@@ -134,7 +140,7 @@ ogp_site_url = f"https://{project}.readthedocs.io/zh-cn/latest/"
 ogp_social_cards = {
     "site_url": f"{project}.readthedocs.io",
     "image": "_static/images/logo.jpg",
-    "font": "Noto Sans CJK JP",  # 支持中文字体
+    "font": "Maple Mono NF CN",  # 支持中文字体
     "line_colors": "#4078c0",
 }
 

@@ -1,13 +1,14 @@
-"""
-mystx.ext.github_stats — GitHub Readme Stats 指令入口
+"""mystx.ext.github_stats — GitHub Readme Stats 指令入口
 
-该子包提供三条指令，用于在 Sphinx 文档中嵌入 GitHub Readme Stats 卡片::
-- `github-stats`：用户统计卡片；
-- `github-top-langs`：常用语言占比卡片；
-- `github-pinned-repo`：置顶仓库卡片。
+该子包提供三条指令，用于在 Sphinx 文档中嵌入 GitHub Readme Stats 卡片:
 
-此模块导出指令类，并提供 `setup(app)` 以便 Sphinx 自动注册。
-注意：卡片由外部服务 `https://github-readme-stats.vercel.app/` 渲染，选项与主题取值以该服务为准。
+- ``github-stats``：用户统计卡片；
+- ``github-top-langs``：常用语言占比卡片；
+- ``github-pinned-repo``：置顶仓库卡片。
+
+此模块导出指令类，并提供 ``setup(app)`` 以便 Sphinx 自动注册。
+
+注意：卡片由外部服务 ``https://github-readme-stats.vercel.app/`` 渲染，选项与主题取值以该服务为准。
 """
 
 from .stats import GitHubStatsDirective
