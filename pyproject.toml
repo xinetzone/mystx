@@ -1,11 +1,11 @@
 [project]
 name = "mystx"
 version = "0.3.1"
-description = "mystx 主题 - 基于 sphinx-book-theme 的现代 Sphinx 文档主题"
+description = "mystx 主题 - 现代化 Sphinx 文档主题"
 authors = [
     {name = "xinetzone", email = "735613050@qq.com"},
 ]
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 readme = "README.md"
 license = {file = "LICENSE"}
 maintainers = [

@@ -215,4 +215,4 @@ extlinks = {
 extensions.append("sphinx_pyscript")
 
 # GitHub 统计卡片插件
-extensions.append("mystx.ext.github_stats")
+extensions.append("mystx.ext.github_readme_stats")

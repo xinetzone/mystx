@@ -1,5 +1,9 @@
 # Sphinx 插件
 
+```{toctree}
+sphinx-pyscript/index
+```
+
 ```{gallery-grid}
 :grid-columns: 1 2 2 3
 
