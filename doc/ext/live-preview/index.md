@@ -8,9 +8,10 @@ py-config:
     - pygments
 ---
 
-# ⚡ 实时预览
+# ⚡ MyST Markdown 实时预览
 
-这是 MyST Markdown [docutils 渲染器](docutils.md) 的实时预览。
+这是 [MyST Markdown `docutils` 渲染器的实时预览](https://daobook.github.io/MyST-Parser/live-preview.html)。
+
 你可以在下方编辑文本/配置，并查看实时输出。
 
 ```{py-script}
