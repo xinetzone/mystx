@@ -44,7 +44,7 @@ exclude_patterns = [
 
 # 静态资源目录，用于存放CSS、JavaScript、图片等
 html_static_path = ["_static"]
-
+html_css_files = ["local.css"]
 # 文档的最后更新时间格式
 html_last_updated_fmt = '%Y-%m-%d, %H:%M:%S'
 

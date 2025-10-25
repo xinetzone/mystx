@@ -3,21 +3,18 @@ py-config:
   splashscreen:
     autoclose: true
   packages:
-    - myst-docutils
-    - docutils
+    - myst-docutils==4.0
+    - docutils==0.20
     - pygments
-    - mystx
 ---
 
 # ⚡ 实时预览
 
-This is a live preview of the MyST Markdown [docutils renderer](docutils.md).
-You can edit the text/configuration below and see the live output.
+这是 MyST Markdown [docutils 渲染器](docutils.md) 的实时预览。
+你可以在下方编辑文本/配置，并查看实时输出。
 
 ```{py-script}
-from mystx.ext.live_preview import setup_dom
-# 执行初始化封装
-setup_dom()
+:file: live_preview.py
 ```
 
 ::::::::{grid} 1 1 2 2
@@ -32,65 +29,66 @@ setup_dom()
 :::::{tab-set}
 :class: preview-input-tabs
 
-::::{tab-item} Input text
+::::{tab-item} 输入文本
 :class-container: sd-h-100
 :class-content: sd-h-100
 
 ````{raw} html
 <textarea class="pyscript input" id="input_myst">
-# Heading 1
+(heading-1)=
+# 标题 1
 
-Hallo world!
+哈喽，世界！
 
 ```{note}
-An admonition note!
+一个提示性注释！
 ```
 
-[Link to the heading](#heading-1)
+[链接到该标题](#heading-1)
 
-## Code
+## 代码
 
 ```python
 from package import module
 module.call("string")
 ```
 
-## Definition list
+## 定义列表
 
-term
-: definition
+术语
+: 定义
 
-## Math
+## 数学
 
 $$\pi = 3.14159$$
 
-## Figures
+## 图像
 
 ```{figure} https://via.placeholder.com/150
 :width: 100px
 :align: center
 
-Figure caption
+图像说明
 ```
 
-## Tables
+## 表格
 
 ```{list-table}
 :header-rows: 1
 :align: center
 
-* - Header 1
-  - Header 2
-* - Item 1 a
-  - Item 2 a
-* - Item 1 b
-  - Item 2 b
+* - 表头 1
+  - 表头 2
+* - 条目 1 a
+  - 条目 2 a
+* - 条目 1 b
+  - 条目 2 b
 ```
 </textarea>
 ````
 
 ::::
-::::{tab-item} Configuration (YAML)
+::::{tab-item} 配置（YAML）
 :class-container: sd-h-100
 :class-content: sd-h-100
 
@@ -111,7 +109,7 @@ myst_highlight_code_blocks: true
 
 ```{raw} html
 <div class="display-flex">
-<label for="output_format" class="display-inline-block">Output Format:</label>
+<label for="output_format" class="display-inline-block">输出格式：</label>
 <select id="output_format" class="display-inline-block">
   <option value="pseudoxml">AST</option>
   <option value="html5" selected>HTML</option>
@@ -121,13 +119,13 @@ myst_highlight_code_blocks: true
 ```
 
 ::::{tab-set}
-:::{tab-item} HTML Render
+:::{tab-item} HTML 渲染
 <div class="pyscript" id="output_html"></div>
 :::
-:::{tab-item} Raw Output
+:::{tab-item} 原始输出
 <textarea class="pyscript output" id="output_raw" readonly="true"></textarea>
 :::
-:::{tab-item} Warnings
+:::{tab-item} 警告
 <textarea class="pyscript output" id="output_warnings" readonly="true"></textarea>
 :::
 ::::

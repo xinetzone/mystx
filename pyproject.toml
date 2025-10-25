@@ -16,6 +16,8 @@ dependencies = [
     "sphinx>=8.0.0",
     "myst-nb",
     "myst-parser",
+    "myst-docutils>=4.0",
+    "docutils>=0.20",
 ]
 
 [project.urls]

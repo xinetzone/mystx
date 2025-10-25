@@ -14,7 +14,7 @@ import yaml
 from docutils.core import publish_string
 from docutils.frontend import filter_settings_spec
 from docutils.writers.html5_polyglot import HTMLTranslator, Writer
-
+from js import window, document
 from dataclasses import dataclass
 from myst_parser import __version__
 from myst_parser.parsers.docutils_ import Parser
@@ -142,7 +142,6 @@ def do_convert(event=None):
     - 否则提示切换到 HTML 以查看渲染结果；
     - 同步展示转换产生的警告信息。
     """
-    from js import window
     global _last_run_ms, _last_config, _last_input, _last_format
     # Ensure required DOM elements exist
     if not all([DOM.config_textarea, DOM.input_textarea, DOM.output_raw, DOM.output_iframe, DOM.warnings_textarea, DOM.oformat_select]):
@@ -178,7 +177,6 @@ def do_convert(event=None):
 
 def setup_dom():
     """初始化浏览器端的 DOM 引用与事件绑定，并进行首轮转换。"""
-    from js import document
     # 通过 document 查询并缓存需要的元素到 DOM 容器
     DOM.version_label = document.querySelector("span#myst-version")
     DOM.config_textarea = document.querySelector("textarea#input_config")
@@ -200,3 +198,6 @@ def setup_dom():
 
     # 首次渲染
     do_convert()
+
+# 执行初始化封装
+setup_dom()
