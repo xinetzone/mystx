@@ -12,8 +12,8 @@ maintainers = [
   {name = "xinetzone", email = "735613050@qq.com"},
 ]
 dependencies = [
-    "sphinx-book-theme>=1.1.4",
-    "sphinx>=8.0.0",
+    "sphinx-book-theme",
+    "sphinx",
     "myst-nb",
     "myst-parser",
     "myst-docutils>=4.0",
