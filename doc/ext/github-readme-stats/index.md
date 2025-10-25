@@ -15,46 +15,41 @@ extension = ["mystx.ext.github_readme_stats"]
 
 ## 用法示例
 
-```{github-stats}
+::::{myst-example}
+:::{github-stats}
 :username: xinetzone
 :theme: dark
 :show_icons:
 :hide: issues,contribs
-```
+:::
+::::
 
+::::{myst-example}
 ```{github-top-langs}
 :username: xinetzone
 :layout: compact
 :theme: dark
 :langs_count: 8
 ```
+::::
 
+::::{myst-example}
 ```{github-pinned-repo}
 :username: xinetzone
 :repo: mystx
 :theme: dark
 ```
+::::
 
-## 用法示例（reStructuredText）
-
-```rst
-.. github-stats::
-   :username: octocat
-   :theme: dark
-   :show_icons:
-   :hide: issues,contribs
-
-.. github-top-langs::
-   :username: octocat
-   :layout: compact
-   :theme: dark
-   :langs_count: 8
-
-.. github-pinned-repo::
-   :username: octocat
-   :repo: hello-world
-   :theme: dark
+::::{myst-example}
+```{github-pinned-repo}
+:link: https://xinetzone.github.io/tao
+:username: xinetzone
+:repo: tao
+:theme: dark
 ```
+::::
+
 
 ## 指令与选项说明
 
@@ -74,6 +69,7 @@ extension = ["mystx.ext.github_readme_stats"]
 - `username`（必填）：GitHub 用户名。
 - `repo`（必填）：仓库名。
 - `theme`（可选）：主题名称，默认 `default`。
+- `link`（可选）：点击卡片跳转的链接地址。
 
 ## 注意事项
 - 这些指令依赖外部服务 `https://github-readme-stats.vercel.app/`，渲染结果与可选参数由该服务决定。

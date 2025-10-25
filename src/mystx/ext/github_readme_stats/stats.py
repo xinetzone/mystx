@@ -10,7 +10,8 @@ from docutils.parsers.rst import directives
 class GitHubStatsDirective(BaseGitHubCardDirective):
     """渲染 GitHub 用户基础统计卡片。
 
-    选项：
+    选项::
+    
     - `username`（必填）：GitHub 用户名；
     - `theme`（可选）：主题名称，默认为 `default`；
     - `show_icons`（可选 flag）：出现该选项即开启图标显示；

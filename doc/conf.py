@@ -77,7 +77,7 @@ extensions.extend([
     "sphinx.ext.intersphinx",       # 链接到其他文档
     "sphinx_copybutton",            # 为代码块添加复制按钮
     "sphinx_comments",              # 添加评论和注释功能
-    "_ext.gallery_directive",  # 自定义画廊指令
+    "_ext.gallery_directive",       # 自定义画廊指令
 ])
 # =============================================================================
 # 可选功能配置
@@ -210,9 +210,35 @@ extlinks = {
     'xinetzone': ('https://xinetzone.github.io/%s', 'xinetzone %s'),
 }
 
-# ========================== 可选功能配置
+# ========================== 可选功能配置 ==========================
 # PyScript 插件
 extensions.append("sphinx_pyscript")
 
 # GitHub 统计卡片插件
 extensions.append("mystx.ext.github_readme_stats")
+
+def setup(app: Sphinx):
+    """Add functions to the Sphinx setup."""
+    from myst_parser._docs import (
+        DirectiveDoc,
+        DocutilsCliHelpDirective,
+        MystAdmonitionDirective,
+        MystConfigDirective,
+        MystExampleDirective,
+        MystLexer,
+        MystToHTMLDirective,
+        MystWarningsDirective,
+        NumberSections,
+        StripUnsupportedLatex,
+    )
+
+    app.add_directive("myst-config", MystConfigDirective)
+    app.add_directive("docutils-cli-help", DocutilsCliHelpDirective)
+    app.add_directive("doc-directive", DirectiveDoc)
+    app.add_directive("myst-warnings", MystWarningsDirective)
+    app.add_directive("myst-example", MystExampleDirective)
+    app.add_directive("myst-admonitions", MystAdmonitionDirective)
+    app.add_directive("myst-to-html", MystToHTMLDirective)
+    app.add_post_transform(StripUnsupportedLatex)
+    app.add_post_transform(NumberSections)
+    app.add_lexer("myst", MystLexer)
