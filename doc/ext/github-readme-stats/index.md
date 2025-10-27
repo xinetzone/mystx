@@ -59,17 +59,46 @@ extension = ["mystx.ext.github_readme_stats"]
 - `show_icons`（可选 flag）：出现该选项即显示图标。
 - `hide`（可选）：以逗号分隔的统计项列表，例如 `issues,contribs`。
 
+上游可选项（需扩展）：
+- `commits_year`：指定年份统计提交数（格式 `YYYY`）。
+- `show`：展示额外统计项（逗号分隔）：`reviews`、`discussions_started`、`discussions_answered`、`prs_merged`、`prs_merged_percentage`。
+- `include_all_commits`：包含所有历史提交。
+- `count_private`：包含私有贡献统计。
+- `hide_rank`：隐藏等级环形标识。
+- `rank_icon`：等级图标样式（如 `percentile`）。
+- `custom_title`：自定义卡片标题。
+- `hide_border`：隐藏卡片边框。
+- `card_width`：卡片宽度（像素）。
+- `locale`：界面语言（如 `zh-CN`）。
+- 颜色与背景：`text_color`、`title_color`、`icon_color`、`border_color`、`ring_color`、`bg_color`（支持渐变：`DEG,hex1,hex2`）。
+- `disable_animations`：禁用卡片动画。
+
 ### github-top-langs（常用语言卡片）
 - `username`（必填）：GitHub 用户名。
 - `layout`（可选）：布局样式，默认 `compact`。
 - `theme`（可选）：主题名称，默认 `default`。
 - `langs_count`（可选）：展示语言数量，默认 `6`。
 
+上游可选项（需扩展）：
+- `hide`：隐藏指定语言（逗号分隔）。
+- `exclude_repo`：排除指定仓库（逗号分隔）。
+- `card_width`：卡片宽度（像素）。
+- `hide_progress`：隐藏进度条。
+- 统计格式：切换显示格式（如百分比/字节大小）。
+- 扩展布局：`donut`、`donut-vertical`、`pie` 等。
+
 ### github-pinned-repo（置顶仓库卡片）
 - `username`（必填）：GitHub 用户名。
 - `repo`（必填）：仓库名。
 - `theme`（可选）：主题名称，默认 `default`。
 - `link`（可选）：点击卡片跳转的链接地址。
+
+上游可选项（需扩展）：
+- `show_owner`：显示仓库所有者。
+- `custom_title`：自定义标题。
+- `hide_border`：隐藏边框。
+- `disable_animations`：禁用动画。
+- 颜色与背景：`title_color`、`text_color`、`icon_color`、`border_color`、`bg_color`。
 
 ## 注意事项
 - 这些指令依赖外部服务 `https://github-readme-stats.vercel.app/`，渲染结果与可选参数由该服务决定。

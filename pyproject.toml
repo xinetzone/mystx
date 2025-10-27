@@ -1,6 +1,6 @@
 [project]
 name = "mystx"
-version = "0.3.1"
+version = "0.3.2"
 description = "mystx 主题 - 现代化 Sphinx 文档主题"
 authors = [
     {name = "xinetzone", email = "735613050@qq.com"},
