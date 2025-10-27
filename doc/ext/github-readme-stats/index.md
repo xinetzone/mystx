@@ -43,11 +43,20 @@ extension = ["mystx.ext.github_readme_stats"]
 
 ::::{myst-example}
 ```{github-pinned-repo}
-:link: https://xinetzone.github.io/tao
 :username: xinetzone
 :repo: tao
 :theme: dark
+:link: https://xinetzone.github.io/tao
 ```
+::::
+
+::::{myst-example}
+:::{github-wakatime}
+:username: xinetzone
+:layout: compact
+:theme: tokyonight
+:range: all_time
+:::
 ::::
 
 
@@ -100,11 +109,159 @@ extension = ["mystx.ext.github_readme_stats"]
 - `disable_animations`：禁用动画。
 - 颜色与背景：`title_color`、`text_color`、`icon_color`、`border_color`、`bg_color`。
 
+### github-wakatime（WakaTime 统计卡片）
+- `username`（必填）：WakaTime 用户名。
+- `theme`（可选）：主题名称，默认 `default`。
+- `layout`（可选）：布局样式，示例 `compact`。
+- `range`（可选）：统计范围（如 `last_7_days`、`last_30_days`、`last_6_months`、`last_year`、`all_time`）。
+- `api_domain`（可选）：自定义 API 域名（如 Hakatime/Wakapi）。
+- `custom_title`（可选）：自定义标题。
+- `hide_title`（可选 flag）：隐藏标题。
+- `hide_border`（可选 flag）：隐藏边框。
+
+注意：仅公开的 WakaTime 资料会显示统计数据；更多细节与演示参见[项目主页的 “WakaTime Stats Card” 章节](https://github.com/anuraghazra/github-readme-stats/tree/master#wakatime-stats-card)。
 ## 注意事项
 - 这些指令依赖外部服务 `https://github-readme-stats.vercel.app/`，渲染结果与可选参数由该服务决定。
 - 仅支持上述列出的选项；若需更多定制（如 `commits_year`、`show` 等），请参考上游项目并扩展指令的 `option_spec`。
-- 主题示例（由上游项目内置）：`dark`、`radical`、`merko`、`gruvbox`、`tokyonight`、`onedark`、`cobalt`、`synthwave`、`highcontrast`、`dracula` 等。
+- 可用主题（适用于 Stats/Repo/Gist/Top Languages/WakaTime）：`default`、`transparent`、`shadow_red`、`shadow_green`、`shadow_blue`、`dark`、`radical`、`merko`、`gruvbox`、`gruvbox_light`、`tokyonight`、`onedark`、`cobalt`、`synthwave`、`highcontrast`、`dracula`、`prussian`、`monokai`、`vue`、`vue-dark`、`shades-of-purple`、`nightowl`、`buefy`、`blue-green`、`algolia`、`great-gatsby`、`darcula`、`bear`、`solarized-dark`、`solarized-light`、`chartreuse-dark`、`nord`、`gotham`、`material-palenight`、`graywhite`、`vision-friendly-dark`、`ayu-mirage`、`midnight-purple`、`calm`、`flag-india`、`omni`、`react`、`jolly`、`maroongold`、`yeblu`、`blueberry`、`slateorange`、`kacho_ga`、`outrun`、`ocean_dark`、`city_lights`、`github_dark`、`github_dark_dimmed`、`discord_old_blurple`、`aura_dark`、`panda`、`noctis_minimus`、`cobalt2`、`swift`、`aura`、`apprentice`、`moltack`、`codeSTACKr`、`rose_pine`、`catppuccin_latte`、`catppuccin_mocha`、`date_night`、`one_dark_pro`、`rose`、`holi`、`neon`、`blue_navy`、`calm_pink`、`ambient_gradient`。
+- Repo 卡片专属：`default_repocard`。
+- 完整主题列表与预览：[Themes README](https://github.com/anuraghazra/github-readme-stats/blob/master/themes/README.md)
 - 如需显示私有统计或提升速率限制，请考虑按照上游说明在自己的平台部署该服务并配置令牌。
+
+## 更多主题示例
+
+为便于对比，以下示例仅更换 `:theme:` 选项。
+
+### Stats 主题示例
+
+::::{myst-example}
+:::{github-stats}
+:username: xinetzone
+:theme: dark
+:show_icons:
+:::
+::::
+
+::::{myst-example}
+:::{github-stats}
+:username: xinetzone
+:theme: tokyonight
+:show_icons:
+:::
+::::
+
+::::{myst-example}
+:::{github-stats}
+:username: xinetzone
+:theme: gruvbox
+:show_icons:
+:::
+::::
+
+::::{myst-example}
+:::{github-stats}
+:username: xinetzone
+:theme: dracula
+:show_icons:
+:::
+::::
+
+::::{myst-example}
+:::{github-stats}
+:username: xinetzone
+:theme: github_dark
+:show_icons:
+:::
+::::
+
+::::{myst-example}
+:::{github-stats}
+:username: xinetzone
+:theme: catppuccin_mocha
+:show_icons:
+:::
+::::
+
+::::{myst-example}
+:::{github-stats}
+:username: xinetzone
+:theme: nord
+:show_icons:
+:::
+::::
+
+::::{myst-example}
+:::{github-stats}
+:username: xinetzone
+:theme: aura_dark
+:show_icons:
+:::
+::::
+
+### Top Languages 主题示例
+
+::::{myst-example}
+```{github-top-langs}
+:username: xinetzone
+:layout: compact
+:theme: radical
+:langs_count: 8
+```
+::::
+
+::::{myst-example}
+```{github-top-langs}
+:username: xinetzone
+:layout: compact
+:theme: monokai
+:langs_count: 8
+```
+::::
+
+::::{myst-example}
+```{github-top-langs}
+:username: xinetzone
+:layout: compact
+:theme: prussian
+:langs_count: 8
+```
+::::
+
+::::{myst-example}
+```{github-top-langs}
+:username: xinetzone
+:layout: compact
+:theme: calm
+:langs_count: 8
+```
+::::
+
+### Repo 卡片主题示例
+
+::::{myst-example}
+```{github-pinned-repo}
+:username: xinetzone
+:repo: mystx
+:theme: default_repocard
+```
+::::
+
+::::{myst-example}
+```{github-pinned-repo}
+:username: xinetzone
+:repo: tao
+:theme: cobalt2
+:link: https://xinetzone.github.io/tao
+```
+::::
+
+::::{myst-example}
+```{github-pinned-repo}
+:username: xinetzone
+:repo: mystx
+:theme: moltack
+```
+::::
 
 ## 相关链接
 
@@ -112,3 +269,4 @@ extension = ["mystx.ext.github_readme_stats"]
 - Stats 卡片文档：详见项目页面的 “GitHub Stats Card” 章节
 - Top Languages 卡片文档：详见项目页面的 “Top Languages Card” 章节
 - Extra Pins（置顶仓库）文档：详见项目页面的 “GitHub Extra Pins” 章节
+- WakaTime 卡片文档：详见项目页面的 “WakaTime Stats Card” 章节
