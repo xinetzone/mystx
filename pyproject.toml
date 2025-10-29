@@ -1,6 +1,6 @@
 [project]
 name = "mystx"
-version = "0.3.2"
+version = "0.3.3"
 description = "mystx 主题 - 现代化 Sphinx 文档主题"
 authors = [
     {name = "xinetzone", email = "735613050@qq.com"},
@@ -23,7 +23,6 @@ mystx = "mystx"
 
 [project.optional-dependencies]
 doc = [
-    "taolib",
     "ablog",
     "ipywidgets",
     "numpy",
@@ -48,6 +47,7 @@ doc = [
 ]
 
 dev = [
+    "taolib",
     "invoke",
     "sphinx-book-theme",
     "sphinx",
