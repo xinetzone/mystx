@@ -11,14 +11,7 @@ license = {file = "LICENSE"}
 maintainers = [
   {name = "xinetzone", email = "735613050@qq.com"},
 ]
-dependencies = [
-    "sphinx-book-theme",
-    "sphinx",
-    "myst-nb",
-    "myst-parser",
-    "myst-docutils>=4.0",
-    "docutils>=0.20",
-]
+dependencies = []
 
 [project.urls]
 Repository = "https://github.com/xinetzone/mystx"
@@ -56,6 +49,12 @@ doc = [
 
 dev = [
     "invoke",
+    "sphinx-book-theme",
+    "sphinx",
+    "myst-nb",
+    "myst-parser",
+    "myst-docutils>=4.0",
+    "docutils>=0.20",
 ]
 
 [build-system]
