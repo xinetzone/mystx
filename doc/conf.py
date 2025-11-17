@@ -20,25 +20,34 @@ def get_project_root() -> Path:
     return Path(__file__).resolve().parents[1]
 
 ROOT = get_project_root()
-sys.path.extend([str(ROOT/'doc')])
-from taolib.plot.configs.matplotlib_font import configure_matplotlib_fonts
-from taolib import get_version  # 引入获取版本号的函数
-# 配置中文字体
-configure_matplotlib_fonts(
-    font_directory=ROOT/'doc/_static/fonts', 
-    target_fonts=['Maple Mono NF CN', 'Noto Color Emoji']
-)
+try:
+    from importlib.metadata import version as _pkg_version
+    release = _pkg_version("mystx")
+except Exception:
+    release = os.environ.get("MYSTX_VERSION", "0.0.0")
+_ENABLE_FONTS = os.environ.get("CONFIGURE_FONTS", "").lower() in {"1", "true", "yes"}
+if _ENABLE_FONTS:
+    try:
+        from taolib.plot.configs.matplotlib_font import configure_matplotlib_fonts
+        configure_matplotlib_fonts(
+            font_directory=ROOT/'doc/_static/fonts',
+            target_fonts=['Maple Mono NF CN', 'Noto Color Emoji']
+        )
+    except Exception:
+        pass
 # ================================= 项目基本信息 =================================
-project = "mystx"  # 文档项目名称
-author = "xinetzone"    # 文档作者
-release = get_version("mystx")  # 获取mystx主题的版本号
+project = "mystx"
+author = "xinetzone"
 # ================================= 国际化与本地化设置 ==============================
 language = 'zh_CN'       # 文档语言（中文简体）
 locale_dirs = ['../locales/']  # 翻译文件存放目录
 gettext_compact = False  # 是否合并子目录的PO文件（False表示不合并）
 
 # ================================= 扩展插件配置 =================================
-extensions = ['mystx']
+import importlib.util as _ilut
+def _has(mod: str) -> bool:
+    return _ilut.find_spec(mod) is not None
+extensions = [e for e in ['mystx'] if _has(e)]
 
 # ================================= 文档构建配置 =================================
 # 排除文件和目录模式
@@ -55,7 +64,12 @@ html_css_files = ["local.css", "font.css"]
 html_last_updated_fmt = '%Y-%m-%d, %H:%M:%S'
 
 # ================================= 主题与外观配置 ================================
-html_theme = 'mystx'            # 使用的主题名称
+if _has('mystx'):
+    html_theme = 'mystx'
+elif _has('sphinx_book_theme'):
+    html_theme = 'sphinx_book_theme'
+else:
+    html_theme = 'alabaster'
 html_title = "Sphinx mystx Theme"  # 文档标题
 html_logo = "_static/images/logo.jpg"  # 文档logo
 html_favicon = "_static/images/favicon.jpg"  # 文档favicon
@@ -103,12 +117,12 @@ comments_config = {
 
 # ReadTheDocs has its own way of generating sitemaps, etc.
 sitemap_url_scheme = "{lang}{version}{link}"
-if not os.environ.get("READTHEDOCS"):
+if os.environ.get("GITHUB_ACTIONS"):
+    html_baseurl = os.environ.get("SITEMAP_URL_BASE", "https://xinetzone.github.io/")
+elif not os.environ.get("READTHEDOCS"):
     extensions += ["sphinx_sitemap"]
     html_baseurl = os.environ.get("SITEMAP_URL_BASE", "http://127.0.0.1:8000/")
     sitemap_url_scheme = "{link}"
-elif os.environ.get("GITHUB_ACTIONS"):
-    html_baseurl = os.environ.get("SITEMAP_URL_BASE", "https://xinetzone.github.io/")
 
 sitemap_locales = [None]  # 语言列表
 
@@ -118,7 +132,7 @@ bibtex_bibfiles = ['refs.bib']  # BibTeX 文件路径
 
 # 4. API 文档自动生成
 extensions.append("autoapi.extension")
-autoapi_dirs = [f"../src/"]  # 源代码目录
+autoapi_dirs = [str(ROOT/"src")]  # 源代码目录
 autoapi_root = "autoapi"  # API 文档输出目录
 autoapi_generate_api_docs = True  # 启用 API 文档生成
 
@@ -248,3 +262,5 @@ def setup(app: Sphinx):
     app.add_post_transform(StripUnsupportedLatex)
     app.add_post_transform(NumberSections)
     app.add_lexer("myst", MystLexer)
+nitpicky = os.environ.get("SPHINX_NITPICK", "").lower() in {"1", "true", "yes"}
+templates_path = ["_templates"]
