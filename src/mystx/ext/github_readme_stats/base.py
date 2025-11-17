@@ -5,6 +5,8 @@
 - 将选项字典转换为查询字符串；
 - 生成原始 HTML ``<img>`` 节点用于嵌入卡片。
 """
+from urllib.parse import urlencode
+from html import escape
 from docutils import nodes
 from docutils.parsers.rst import Directive
 
@@ -16,7 +18,7 @@ class BaseGitHubCardDirective(Directive):
     """
     has_content = False
 
-    def build_url(self, base_url, options):
+    def build_url(self, base_url: str, options: dict) -> str:
         """根据基础地址和选项构建完整查询 URL。
 
         Args:
@@ -28,16 +30,13 @@ class BaseGitHubCardDirective(Directive):
         Returns:
             完整的查询 URL 字符串。
         """
-        params = []
-        for key, value in options.items():
-            if isinstance(value, bool):
-                if value:
-                    params.append(f"{key}=true")
-            else:
-                params.append(f"{key}={value}")
-        return f"{base_url}?{'&'.join(params)}"
+        cleaned = {k: v for k, v in options.items() if v not in (None, "")}
+        flags = {k: True for k, v in cleaned.items() if isinstance(v, bool) and v}
+        scalars = {k: v for k, v in cleaned.items() if not isinstance(v, bool)}
+        query = urlencode({**scalars, **flags})
+        return f"{base_url}?{query}"
 
-    def create_image_node(self, url, alt="GitHub Card"):
+    def create_image_node(self, url: str, alt: str = "GitHub Card"):
         """创建原始 HTML 节点，以 ``<img>`` 标签插入卡片图片。
 
         Args:
@@ -47,5 +46,5 @@ class BaseGitHubCardDirective(Directive):
         Returns:
             ``docutils.nodes.raw`` 节点，可直接嵌入到最终 HTML。
         """
-        html = f'<img src="{url}" alt="{alt}">'
+        html = f'<img src="{escape(url)}" alt="{escape(alt)}">'
         return nodes.raw('', html, format='html')

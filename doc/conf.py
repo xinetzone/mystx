@@ -20,6 +20,7 @@ def get_project_root() -> Path:
     return Path(__file__).resolve().parents[1]
 
 ROOT = get_project_root()
+sys.path.insert(0, str(ROOT / 'doc'))
 try:
     from importlib.metadata import version as _pkg_version
     release = _pkg_version("mystx")
@@ -91,14 +92,16 @@ html_copy_source = True  # 是否在文档中包含源文件链接
 # ================================= 版本切换器配置 =================================
 version_switcher_json_url = "https://mystx.readthedocs.io/zh-cn/latest/_static/switcher.json"
 # ================================= 可选插件 =================================
-extensions.extend([
-    "sphinx_design",                # 增强设计元素
-    "sphinx.ext.viewcode",          # 添加到高亮源代码的链接
-    "sphinx.ext.intersphinx",       # 链接到其他文档
-    "sphinx_copybutton",            # 为代码块添加复制按钮
-    "sphinx_comments",              # 添加评论和注释功能
-    "_ext.gallery_directive",       # 自定义画廊指令
-])
+for _mod in [
+    "sphinx_design",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.intersphinx",
+    "sphinx_copybutton",
+    "sphinx_comments",
+    "_ext.gallery_directive",
+]:
+    if _has(_mod):
+        extensions.append(_mod)
 # =============================================================================
 # 可选功能配置
 # =============================================================================
