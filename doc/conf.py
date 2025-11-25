@@ -26,16 +26,17 @@ try:
     release = _pkg_version("mystx")
 except Exception:
     release = os.environ.get("MYSTX_VERSION", "0.0.0")
-_ENABLE_FONTS = os.environ.get("CONFIGURE_FONTS", "").lower() in {"1", "true", "yes"}
-if _ENABLE_FONTS:
-    try:
-        from taolib.plot.configs.matplotlib_font import configure_matplotlib_fonts
-        configure_matplotlib_fonts(
-            font_directory=ROOT/'doc/_static/fonts',
-            target_fonts=['Maple Mono NF CN', 'Noto Color Emoji']
-        )
-    except Exception:
-        pass
+# 启用字体配置
+try:
+    from taolib.plot.configs.matplotlib_font import configure_matplotlib_fonts
+    configure_matplotlib_fonts(
+        font_directory=ROOT/'doc/_static/fonts',
+        target_fonts=['Maple Mono NF CN', 'Noto Color Emoji']
+    )
+except Exception as e:
+    print(f"字体配置失败: {e}")
+    import traceback
+    traceback.print_exc()
 # ================================= 项目基本信息 =================================
 project = "mystx"
 author = "xinetzone"
@@ -157,7 +158,7 @@ ogp_site_url = f"https://{project}.readthedocs.io/zh-cn/latest/"
 ogp_social_cards = {
     "site_url": f"{project}.readthedocs.io",
     "image": "_static/images/logo.jpg",
-    "font": "Maple Mono NF CN",  # 支持中文字体
+    "font": "Maple Mono NF CN, SimHei, Microsoft YaHei",  # 支持中文字体，添加备选字体
     "line_colors": "#4078c0",
 }
 
