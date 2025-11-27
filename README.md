@@ -4,6 +4,7 @@
 [![PyPI][pypi-badge]][pypi-link]
 [![GitHub issues][issue-badge]][issue-link]
 [![GitHub forks][fork-badge]][fork-link]
+![atom star](https://gitcode.com/flexloop/mystx/star/badge.svg)
 [![GitHub stars][star-badge]][star-link]
 [![GitHub license][license-badge]][license-link]
 [![contributors][contributor-badge]][contributor-link]
