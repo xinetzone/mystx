@@ -1,0 +1,66 @@
+[project]
+name = "mystx"
+version = "0.3.6"
+description = "mystx 主题 - 现代化 Sphinx 文档主题"
+authors = [
+    {name = "xinetzone", email = "735613050@qq.com"},
+]
+requires-python = ">=3.14"
+readme = "README.md"
+license = {file = "LICENSE"}
+maintainers = [
+  {name = "xinetzone", email = "735613050@qq.com"},
+]
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/xinetzone/mystx"
+Documentation = "https://mystx.readthedocs.io/"
+Issues = "https://github.com/xinetzone/mystx/issues"
+
+[project.entry-points."sphinx.html_themes"]
+mystx = "mystx"
+
+[project.optional-dependencies]
+doc = [
+    "ablog",
+    "ipywidgets",
+    "numpy",
+    "matplotlib",
+    "sphinx-comments",
+    "myst-nb",
+    "nbclient",
+    "pandas",
+    "plotly",
+    "sphinx-design",
+    "sphinx-examples",
+    "sphinx-copybutton",
+    "sphinx-contributors",
+    "sphinx-thebe",
+    "sphinxcontrib-bibtex",
+    "sphinxext-opengraph",
+    "sphinx-sitemap",
+    "sphinx-autoapi>=3.4",
+    "graphviz",
+    "sphinx-tippy",
+    "sphinx-pyscript",
+]
+
+dev = [
+    "taolib",
+    "invoke",
+    "sphinx-book-theme",
+    "sphinx",
+    "sphinx-intl",
+    "myst-nb",
+    "myst-parser",
+    "myst-docutils>=4.0",
+    "docutils>=0.20",
+]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm]
+distribution = true

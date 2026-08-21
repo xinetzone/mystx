@@ -1,0 +1,68 @@
+[theme] # 主题的设置
+# 要继承设置、选项、模板和静态文件的基主题的名称。主题的“祖先”中的所有静态文件都将被使用。
+# 主题将使用继承主题中定义的所有选项。
+# 最后，继承的主题将用于定位缺失的模板（例如，如果使用 "basic" 作为基主题，大多数模板已经定义）。
+inherit = "sphinx_book_theme"
+
+# 在生成的 HTML 头部中将包含的 CSS 文件名列表。设置 `html_style` 配置值将覆盖此设置。
+# 包含多个样式表的其他机制包括在 CSS 中使用 `@import`，
+# 或者使用带有适当 `<link rel="stylesheet">` 标签的自定义 HTML 模板。
+# HTML 元素及其类的结构目前并不是定义良好的公共 API。
+# 请通过检查生成的 HTML 页面来推断它们。虽然无法保证完全的稳定性，但它们通常是比较稳定的。
+stylesheets = [
+    "css/custom.css",
+    "css/tippy.css",
+    "css/try_examples.css",
+    "styles/sphinx-book-theme.css", # 继承 sphinx_book_theme 主题的样式表
+]
+
+# 侧边栏模板的列表。用户可以通过 `html_sidebars` 配置值来覆盖此设置。
+sidebars = [
+    "navbar-logo.html",
+    "icon-links.html",
+    "search-button-field.html",
+    "sbt-sidebar-nav.html",
+]
+
+# Pygments: https://pygments.org/styles/)。
+# 用于定义用于语法高亮的 Pygments 样式名称。
+# 该表有两个识别的键：`default` 和 `dark`。
+# 在 CSS 媒体查询 `(prefers-color-scheme: dark)` 的计算结果为 `true` 时，
+# 将使用 `dark` 键中定义的样式。
+# `[theme.pygments_style.default]` 可以通过用户的 `pygments_style` 配置值来覆盖。
+# pygments_style = { default = "style_name", dark = "dark_style" }
+# tango, manni, friendly, perldoc
+pygments_style = { default = "perldoc" }
+
+# `[options]` 表定义了主题的选项。它的结构是每个键值对对应一个变量名及其默认值。
+# 用户可以通过 `html_theme_options` 覆盖这些选项，并且在所有模板中可以通过 `theme_<name>` 访问这些选项。
+[options]
+announcement = ""
+secondary_sidebar_items = "page-toc.html"
+toc_title = "Contents"
+article_header_start = "toggle-primary-sidebar.html"
+article_header_end = "article-header-buttons.html"
+use_download_button = "True"
+use_fullscreen_button = "True"
+use_issues_button = "False"
+use_source_button = "False"
+use_repository_button = "False"
+path_to_docs = "doc"
+repository_url = ""
+repository_branch = "main"
+repository_provider = ""
+launch_buttons = "{}"
+navbar_start = ""
+navbar_center = ""
+navbar_end = ""
+navbar_persistent = ""
+home_page_in_toc = "False"
+show_navbar_depth = "1"
+max_navbar_depth = "7"
+collapse_navbar = "False"
+extra_footer = ""
+footer_content_items = "author.html, copyright.html, last-updated.html, extra-footer.html"
+footer_start = ""
+footer_end = ""
+use_sidenotes = "True"
+expand_toc_sections = "[]"

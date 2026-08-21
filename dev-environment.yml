@@ -1,0 +1,16 @@
+# 开发环境配置
+name: mystx-dev
+
+channels:
+  - conda-forge
+
+# 指定 Python 版本确保环境一致性
+dependencies:
+  # 基础依赖
+  - python
+  - pip
+  # 使用 pip 安装的包
+  - pip:
+      # 安装当前项目及其文档依赖
+      - .[doc]
+

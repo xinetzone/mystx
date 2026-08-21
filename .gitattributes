@@ -1,0 +1,39 @@
+# 通用文本文件设置
+* text=auto
+
+# 特定文件类型的文本设置
+*.py text eol=lf
+*.toml text eol=lf
+*.md text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.html text eol=lf
+*.conf text eol=lf
+
+# 二进制文件设置
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.woff binary
+*.woff2 binary
+
+# 脚本可执行权限
+*.sh text eol=lf executable
+*.py text eol=lf executable
+
+# 文档文件
+*.rst text eol=lf
+*.txt text eol=lf
+
+# 配置文件
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# 其他
+.gitignore text eol=lf
+.gitattributes text eol=lf
