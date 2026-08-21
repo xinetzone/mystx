@@ -59,8 +59,12 @@ dev = [
 ]
 
 [build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+requires = ["scikit-build-core[pyproject]>=0.12"]
+build-backend = "scikit_build_core.build"
 
-[tool.pdm]
-distribution = true
+[tool.scikit-build]
+sdist.include = ["README.md", "LICENSE", "pyproject.toml", "src/mystx"]
+sdist.exclude = ["src/mystx/**/__pycache__/**", "src/mystx/**/*.pyc", "src/mystx/**/*.pyo"]
+sdist.cmake = false
+wheel.packages = ["src/mystx"]
+wheel.cmake = false
