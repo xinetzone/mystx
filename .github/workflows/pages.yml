@@ -8,7 +8,7 @@ on:
     branches: ["main"]
     # 只在文档相关文件变更时触发
     paths:
-      - 'docs/**'
+      - 'doc/**'
       - 'src/**'
       - 'pyproject.toml'
       - '.github/workflows/pages.yml'
@@ -82,7 +82,7 @@ jobs:
       # 验证构建结果
       - name: 验证构建结果
         run: |
-          if [ ! -f "docs/_build/html/index.html" ]; then
+          if [ ! -f "doc/_build/html/index.html" ]; then
             echo "构建失败：index.html 未生成"
             exit 1
           fi
@@ -95,7 +95,7 @@ jobs:
       - name: 上传构建产物
         uses: actions/upload-pages-artifact@v3
         with:
-          path: 'docs/_build/html/'
+          path: 'doc/_build/html/'
       
       # 部署到 GitHub Pages
       - name: 🚀 部署到 GitHub Pages

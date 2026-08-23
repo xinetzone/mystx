@@ -19,7 +19,7 @@ build:
 conda:
   environment: dev-environment.yml
 
-# Build documentation in the docs/ directory with Sphinx
+# Build documentation in the doc/ directory with Sphinx
 sphinx:
    configuration: doc/conf.py
 
