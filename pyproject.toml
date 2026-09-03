@@ -68,3 +68,6 @@ sdist.exclude = ["src/mystx/**/__pycache__/**", "src/mystx/**/*.pyc", "src/mystx
 sdist.cmake = false
 wheel.packages = ["src/mystx"]
 wheel.cmake = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
