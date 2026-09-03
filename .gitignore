@@ -156,3 +156,6 @@ _contents/
 autoapi/
 _tmp_sphinx/
 _temp/
+
+# setuptools-scm generated version file (do not track)
+src/mystx/_version.py

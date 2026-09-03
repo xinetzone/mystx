@@ -3,12 +3,21 @@
 This module provides a custom Sphinx theme for creating beautiful, modern documentation.
 The theme includes configuration management, styling, and integration with Sphinx.
 """
+try:
+    from ._version import __version__
+except ImportError:  # pragma: no cover - setuptools-scm 生成文件缺失时回退
+    try:
+        from importlib.metadata import version as _pkg_version
+        __version__ = _pkg_version("mystx")
+    except Exception:  # pragma: no cover - 开发环境无安装元数据时的最终回退
+        __version__ = "0.0.0.dev0"
+
 from sphinx.application import Sphinx
 from sphinx.util import logging
 from sphinx.util.typing import ExtensionMetadata
 
 from .utils import deep_merge, has_module
-from .theme import MySTX
+from .themes import MySTX
 from .config import config_inited_handler
 from .configs import (DEFAULT_MYST_CONFIG, DEFAULT_BUILD_CONFIG, DEFAULT_EXT_CONFIG, DEFAULT_HTML_CONFIG, build_base_config)
 from .extensions import (DEFAULT_OPTIONAL_EXTENSIONS, DEFAULT_CONDITIONAL, resolve_extensions)
@@ -16,8 +25,9 @@ from .themes import (DEFAULT_BOOK_THEME_OPTIONS, DEFAULT_THEME_PRIORITY, resolve
 from .myst_compat import register_hooks as register_myst_compat_hooks
 from . import presets
 from .presets import build_minimal_myst_config
+from . import tasks
 
-__all__ = ["deep_merge", "has_module", "MySTX", "config_inited_handler", "setup", "logger", "DEFAULT_MYST_CONFIG", "DEFAULT_BUILD_CONFIG", "DEFAULT_EXT_CONFIG", "DEFAULT_HTML_CONFIG", "build_base_config", "DEFAULT_OPTIONAL_EXTENSIONS", "DEFAULT_CONDITIONAL", "resolve_extensions", "DEFAULT_BOOK_THEME_OPTIONS", "DEFAULT_THEME_PRIORITY", "resolve_theme", "resolve_theme_options", "register_myst_compat_hooks", "presets", "build_minimal_myst_config"]
+__all__ = ["__version__", "deep_merge", "has_module", "MySTX", "config_inited_handler", "setup", "logger", "DEFAULT_MYST_CONFIG", "DEFAULT_BUILD_CONFIG", "DEFAULT_EXT_CONFIG", "DEFAULT_HTML_CONFIG", "build_base_config", "DEFAULT_OPTIONAL_EXTENSIONS", "DEFAULT_CONDITIONAL", "resolve_extensions", "DEFAULT_BOOK_THEME_OPTIONS", "DEFAULT_THEME_PRIORITY", "resolve_theme", "resolve_theme_options", "register_myst_compat_hooks", "presets", "build_minimal_myst_config", "tasks"]
 
 logger = logging.getLogger(__name__)
 
