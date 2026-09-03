@@ -250,6 +250,21 @@ def setup(app: Sphinx):
     app.add_post_transform(NumberSections)
     app.add_lexer("myst", MystLexer)
 
+    # P1-A 审计结论：新增第三方扩展时，如果其上游 setup() 未显式声明
+    # parallel_{read,write}_safe=True，Sphinx 会将其视为 None 并退化为串行。
+    # 此处提供中心化覆写表，只需补充 extension_name 即可启用并行，
+    # 不再需要逐个去上游提 PR。
+    # 审计参考: docs/retrospective/reports/documentation-governance/
+    #           sphinx-parallel-build-5k-scale-20260903/index.md
+    _PARALLEL_SAFE_OVERRIDES: dict[str, tuple[bool, bool]] = {
+        # "autoapi.extension":   (True, True),   # 需要时取消注释
+        # "_ext.gallery_directive": (True, True),  # 需要时取消注释
+    }
+    for ext_name, (pr, pw) in _PARALLEL_SAFE_OVERRIDES.items():
+        if ext_name in app.extensions:
+            setattr(app.extensions[ext_name], "parallel_read_safe", bool(pr))
+            setattr(app.extensions[ext_name], "parallel_write_safe", bool(pw))
+
     def _assert_parallel_ready(app, env):
         """Fail fast if any extension silently disabled parallel read.
 
