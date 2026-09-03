@@ -9,7 +9,7 @@ from sphinx.config import Config
 
 
 def test_entrypoint_imports():
-    from mystx.theme import MySTX
+    from mystx.themes import MySTX
     from mystx.config import ConfigManager, config_inited_handler
     from mystx.version_switcher import sphinx_setup as _vss
     from mystx import setup as _mystx_setup
@@ -19,7 +19,7 @@ def test_entrypoint_imports():
 
 def test_setup_returns_parallel_safe_schema():
     from mystx import setup as _mystx_setup
-    from mystx.theme import MySTX
+    from mystx.themes import MySTX
     from mystx.config import ConfigManager
     from mystx.version_switcher import sphinx_setup as version_switcher_setup
     from mystx import _setup_myst_nb

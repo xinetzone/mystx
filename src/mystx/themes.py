@@ -1,4 +1,9 @@
-from typing import Sequence
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Optional, Sequence
+
+from sphinx.application import Sphinx
+from sphinx.util import logging as sphinx_logging
 
 from .utils import deep_merge, has_module
 
@@ -73,3 +78,39 @@ def resolve_theme_options(
     if theme in ("sphinx_book_theme", "mystx"):
         base = dict(book_defaults)
     return deep_merge(base, override or {})
+
+
+# ---------------------------------------------------------------------------
+# 主题注册器：将 mystx/theme/<name> 目录注册为 Sphinx HTML 主题
+# ---------------------------------------------------------------------------
+
+_theme_logger = sphinx_logging.getLogger(__name__)
+
+
+@dataclass(slots=True)
+class MySTX:
+    """mystx 主题注册器：定位主题目录并调用 app.add_html_theme()。
+
+    Attributes:
+        app: Sphinx 应用实例，用于注册主题。
+        name: 主题名称，默认为 ``"mystx"``，对应 ``theme/<name>/`` 子目录。
+        theme_dir: 解析后的主题目录绝对路径，``__post_init__`` 中自动设置。
+    """
+
+    app: Sphinx
+    name: str = "mystx"
+    theme_dir: Optional[str] = field(init=False)
+
+    def __post_init__(self) -> None:
+        parent = Path(__file__).parent.resolve()
+        theme_dir = parent / "theme" / self.name
+        if not theme_dir.exists():
+            _theme_logger.error(f"主题目录未找到: {theme_dir}")
+            raise FileNotFoundError(f"主题目录未找到: {theme_dir}")
+        self.theme_dir = str(theme_dir)
+        try:
+            self.app.add_html_theme(self.name, self.theme_dir)
+        except Exception as e:
+            _theme_logger.error(f"注册 {self.name} 主题时发生错误: {e}", exc_info=True)
+            raise
+        _theme_logger.info(f"{self.name} 主题已成功注册")
