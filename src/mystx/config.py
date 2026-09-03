@@ -15,6 +15,7 @@ from sphinx.util import logging
 from sphinx.config import Config
 from sphinx.errors import ExtensionError
 from .version_switcher import sphinx_setup as version_switcher_setup
+from .utils import deep_merge
 
 # 获取Sphinx日志记录器
 logger = logging.getLogger(__name__)
@@ -80,17 +81,7 @@ class ConfigManager:
         if not hasattr(self.config, "html_theme_options"):
             self.config.html_theme_options = {}
         
-        # 合并自定义配置到html_theme_options
-        for key, value in custom_config["html_theme_options"].items():
-            if key not in self.config.html_theme_options:
-                self.config.html_theme_options[key] = value
-                self.logger.debug(f"应用自定义配置: {key} = {value}")
-            # 对二级字典进行递归合并
-            elif isinstance(value, dict) and isinstance(self.config.html_theme_options[key], dict):
-                for sub_key, sub_value in value.items():
-                    if sub_key not in self.config.html_theme_options[key]:
-                        self.config.html_theme_options[key][sub_key] = sub_value
-                        self.logger.debug(f"应用嵌套自定义配置: {key}.{sub_key} = {sub_value}")
+        self.config.html_theme_options = deep_merge(self.config.html_theme_options, custom_config["html_theme_options"], remove_marker=None)
         
         self.logger.info("已成功更新html_theme_options配置")
 
