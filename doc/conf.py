@@ -249,5 +249,26 @@ def setup(app: Sphinx):
     app.add_post_transform(StripUnsupportedLatex)
     app.add_post_transform(NumberSections)
     app.add_lexer("myst", MystLexer)
+
+    def _assert_parallel_ready(app, env):
+        """Fail fast if any extension silently disabled parallel read.
+
+        Gate: only fire when the caller actually requested parallelism
+        via -j / $SPHINX_BUILD_JOBS so pure serial builds are not bothered.
+        """
+        if app.parallel > 0 and not app.is_parallel_allowed("read"):
+            raise RuntimeError(
+                "Parallel read disabled. Check extensions missing "
+                "parallel_read_safe=True. Re-run with -v to see per-extension "
+                "warnings from Sphinx.is_parallel_allowed()."
+            )
+
+    app.connect("env-before-read-docs", _assert_parallel_ready)
+
+    return {
+        "version": release,
+        "parallel_read_safe": True,
+        "parallel_write_safe": True,
+    }
 nitpicky = os.environ.get("SPHINX_NITPICK", "").lower() in {"1", "true", "yes"}
 templates_path = ["_templates"]
