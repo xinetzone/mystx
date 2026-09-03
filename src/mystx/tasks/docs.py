@@ -27,6 +27,7 @@ import socket
 import subprocess
 import sys
 import webbrowser
+from multiprocessing import cpu_count
 from pathlib import Path
 from typing import Literal
 
@@ -38,6 +39,35 @@ try:
 except ImportError:  # pragma: no cover - invocations 为可选依赖
     _inv_docs = None  # type: ignore[assignment]
     _HAVE_INVOCATIONS = False
+
+
+# ---------------------------------------------------------------------------
+# 并行构建策略（W-A2 · P1）
+#   I-3 根因：串行 Read+Write 阶段总耗时 ~13.4h；-j auto 被 Sphinx fork 语义吞掉
+#   分流规则：
+#     CI (GITHUB_ACTIONS)          → -j min(cpu_count, 8)   稳定优先，避免 IPC 爆炸
+#     本地 POSIX (非 win32)         → -j max(1, cpu_count-1)  留 1 核给桌面响应
+#     本地 Windows                  → 空串（不自加 -j）Sphinx 会天然串行，避免告警风暴
+# ---------------------------------------------------------------------------
+
+def _parallel_flag() -> str:
+    """按运行环境返回 ``-j N`` 字符串；Windows 返回空串（Sphinx 无 fork 只能串行）。"""
+    if os.environ.get("GITHUB_ACTIONS"):
+        try:
+            n = max(1, min(cpu_count() or 1, 8))
+        except NotImplementedError:
+            n = 4
+        return f"-j {n}"
+    if sys.platform == "win32":
+        return ""
+    try:
+        n = max(1, (cpu_count() or 2) - 1)
+    except NotImplementedError:
+        n = 1
+    return f"-j {n}"
+
+
+_PARALLEL_FLAG_DEFAULT = _parallel_flag()
 
 
 # ---------------------------------------------------------------------------
@@ -123,20 +153,29 @@ def build(
     clean: bool = False,
     browse: bool = False,
     nitpick: bool = False,
-    opts: str = "-b html -j auto",
+    opts: str | None = None,
     source: str | None = None,
     target: str | None = None,
 ) -> None:
-    """构建 Sphinx 文档（builder-mode：默认 ``-b html -j auto`` 增量构建）。
+    """构建 Sphinx 文档（builder-mode：默认 ``-b html`` + 按环境分流并行度）。
+
+    并行策略（``_PARALLEL_FLAG_DEFAULT``）：
+      - CI (``GITHUB_ACTIONS=1``) → ``-j min(cpu_count, 8)`` 稳定优先，防 IPC 爆炸
+      - 本地 POSIX (非 win32)   → ``-j max(1, cpu_count-1)``  留 1 核给桌面
+      - 本地 Windows           → 不加 ``-j``（Sphinx 依赖 POSIX fork，天然串行）
 
     便利开关：``clean`` 构建前清理；``browse`` 完成后自动打开预览；``nitpick`` 附加 ``-n -W -T`` 把警告当错误。
+    调用者显式传入 ``opts``（非 None）时完全尊重，不自动注入并行 flag。
     """
     if clean:
         globals()["clean"](c)
     src = _resolve(c, "source", source, "docs")
     tgt = _resolve(c, "target", target, "_build/html")
     if opts is None:
-        opts = ""
+        # 默认：builder=html + 环境分流的并行 flag
+        opts = "-b html"
+        if _PARALLEL_FLAG_DEFAULT:
+            opts = f"{opts} {_PARALLEL_FLAG_DEFAULT}"
     extra: list[str] = ["-n", "-W", "-T"] if nitpick else []
     rebuilt = ["sphinx-build", *_collect_sphinx_opts(opts), *extra, src, tgt]
     _run_cmd(c, rebuilt)
