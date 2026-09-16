@@ -1,5 +1,5 @@
 [build-system]
-requires = ["scikit-build-core>=0.10", "ninja>=1.11", "setuptools-scm>=8.0"]
+requires = ["scikit-build-core>=0.10", "setuptools-scm>=8.0"]
 build-backend = "scikit_build_core.build"
 
 [project]
@@ -86,8 +86,6 @@ lint = [
 build = [
     "build>=1.2",
     "scikit-build-core>=0.10",
-    "cmake>=3.26",
-    "ninja",
 ]
 tasks = [
     "invoke>=2.0",
@@ -115,8 +113,6 @@ dev = [
     "isort>=5.13",
     "build>=1.2",
     "scikit-build-core>=0.10",
-    "cmake>=3.26",
-    "ninja",
 ]
 
 [dependency-groups]
@@ -174,8 +170,6 @@ lint = [
 build = [
     "build>=1.2",
     "scikit-build-core>=0.10",
-    "cmake>=3.26",
-    "ninja",
 ]
 tasks = [
     "invoke>=2.0",
@@ -183,18 +177,18 @@ tasks = [
 ]
 
 # ── scikit-build-core：mystx 纯 Python Sphinx 主题包 ──
-# 根模板约定的 4 键在前，叠加 mystx 原有的 sdist/wheel 包装配置。
+# wheel.cmake=false/sdist.cmake=false 禁用 CMake（仓库无 CMakeLists.txt），
+# 纯 Python 主题包构建全程无需 cmake/ninja，wheel 产出 py3-none-any。
 [tool.scikit-build]
 minimum-version = "0.10"
 metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
-cmake.build-type = "Release"
-ninja.make-fallback = false
-build.verbose = true
 sdist.include = ["README.md", "LICENSE", "pyproject.toml", "src/mystx"]
 sdist.exclude = ["src/mystx/**/__pycache__/**", "src/mystx/**/*.pyc", "src/mystx/**/*.pyo"]
 sdist.cmake = false
-wheel.packages = ["src/mystx"]
-wheel.cmake = false
+
+[tool.scikit-build.wheel]
+cmake = false
+packages = ["src/mystx"]
 
 [tool.setuptools_scm]
 version_file = "src/mystx/_version.py"
