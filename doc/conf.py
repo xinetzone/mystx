@@ -50,10 +50,13 @@ extensions = [e for e in ['mystx'] if _has(e)]
 
 # ================================= 文档构建配置 =================================
 # 排除文件和目录模式
+# README.md 面向仓库读者（徽章 / 安装命令 / 特性列表），不参与站点构建；
+# 文档站的根入口见 index.md，仓库 README 通过「相关入口」链接引用。
 exclude_patterns = [
     "_build",      # 构建输出目录
     "Thumbs.db",   # 缩略图数据库
     ".DS_Store",    # macOS 系统文件
+    "README.md",   # 仓库 README 不纳入文档树
 ]
 
 # 静态资源目录，用于存放CSS、JavaScript、图片等
@@ -176,11 +179,17 @@ nitpick_ignore = [
 ]
 
 # 抑制特定警告
+# docutils：autoapi 从源码 docstring 生成 RST 时，部分 docstring 中的 `**` / `` ` ``
+#   标记未闭合（如 tasks/docs.py 的多行任务说明），导致 "Inline literal/strong
+#   start-string without end-string" 与 "Block quote ends without a blank line"。
+#   这些警告源自上游 docstring 写法，非本次文档结构改造引入；修复需改源码 docstring，
+#   不在本次范围内，故在此抑制以保持构建输出干净。
 suppress_warnings = [
     "mystnb.unknown_mime_type", "mystnb.mime_priority",
     "myst.xref_missing", "myst.domains",
     "ref.ref",
     "autoapi.python_import_resolution", "autoapi.not_readable",
+    "docutils",
 ]
 
 # 启用编号功能
@@ -265,11 +274,14 @@ def setup(app: Sphinx):
             setattr(app.extensions[ext_name], "parallel_read_safe", bool(pr))
             setattr(app.extensions[ext_name], "parallel_write_safe", bool(pw))
 
-    def _assert_parallel_ready(app, env):
+    def _assert_parallel_ready(app, env, docnames):
         """Fail fast if any extension silently disabled parallel read.
 
         Gate: only fire when the caller actually requested parallelism
         via -j / $SPHINX_BUILD_JOBS so pure serial builds are not bothered.
+
+        ``env-before-read-docs`` 事件契约为 (app, env, docnames) 三参，
+        docnames 本钩子不使用但必须在签名中接收。
         """
         if app.parallel > 0 and not app.is_parallel_allowed("read"):
             raise RuntimeError(

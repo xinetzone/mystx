@@ -14,10 +14,12 @@ from pathlib import Path
 import pytest
 
 # 需要的 20 项扩展（mystx 文档真实启用 + 自动注入项）
+# 注意：myst_parser 与 myst_nb 互斥（5.x/1.x 共用非幂等 setup_sphinx，
+# 同时加载必炸），mystx 在检测到 myst_nb 在场时仅加载 myst_nb。
 TARGET_EXTS: tuple[str, ...] = (
     "mystx",
     "mystx.ext.github_readme_stats",
-    "myst_parser",
+    "myst_nb",
     "sphinx_design",
     "sphinx.ext.viewcode",
     "sphinx.ext.intersphinx",
@@ -105,6 +107,11 @@ project = "mystx-p1-parallel-check"
 def test_all_target_extensions_loaded(sphinx_app_parallel4):
     missing = [e for e in TARGET_EXTS if e not in sphinx_app_parallel4.extensions]
     assert missing == [], f"存在未加载的预期扩展（请同步更新本清单与 conf.py）：{missing}"
+    # 互斥契约：二者同时加载会重复执行非幂等 setup_sphinx（list.remove + .md 后缀）
+    assert not (
+        "myst_parser" in sphinx_app_parallel4.extensions
+        and "myst_nb" in sphinx_app_parallel4.extensions
+    ), "myst_parser 与 myst_nb 不得同时加载（上游 setup_sphinx 非幂等）"
 
 
 def test_is_parallel_allowed_read_and_write(sphinx_app_parallel4):
