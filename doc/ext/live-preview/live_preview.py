@@ -8,16 +8,17 @@
 - 通过页面输入与选择器，实时触发转换并更新预览区域。
 """
 import traceback
+from dataclasses import dataclass
 from io import StringIO
 
 import yaml
 from docutils.core import publish_string
 from docutils.frontend import filter_settings_spec
 from docutils.writers.html5_polyglot import HTMLTranslator, Writer
-from js import window, document
-from dataclasses import dataclass
+from js import document, window
 from myst_parser import __version__
 from myst_parser.parsers.docutils_ import Parser
+
 HTML_FORMATS = {"html", "html4", "html5", "html5_polyglot"}
 
 def is_html_format(name: str) -> bool:

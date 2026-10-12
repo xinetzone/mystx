@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Sphinx 文档配置文件
 
@@ -10,6 +9,7 @@ import sys
 from pathlib import Path
 
 from sphinx.application import Sphinx
+
 
 # 设置路径
 def get_project_root() -> Path:
@@ -43,7 +43,10 @@ locale_dirs = ['../locales/']  # 翻译文件存放目录
 gettext_compact = False  # 是否合并子目录的PO文件（False表示不合并）
 
 # ================================= 扩展插件配置 =================================
-import importlib.util as _ilut
+# conf.py 需先完成 sys.path 引导与项目元信息配置，此导入有意置于其后
+import importlib.util as _ilut  # noqa: E402
+
+
 def _has(mod: str) -> bool:
     return _ilut.find_spec(mod) is not None
 extensions = [e for e in ['mystx'] if _has(e)]

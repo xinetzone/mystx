@@ -1,41 +1,42 @@
+import logging
 import sys
+
+from docutils import nodes, writers
+from docx import Document
+from docx.enum.style import WD_STYLE_TYPE
 
 # noinspection PyUnresolvedReferences
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.enum.style import WD_STYLE_TYPE
 from docx.shared import Cm
+
 # noinspection PyProtectedMember
 from docx.table import _Cell
-from docx import Document
-
-from docutils import nodes, writers
-import logging
 
 logger = logging.getLogger('docx')
 
 
 def dprint(_func=None, **kw):
     """调试信息打印工具函数
-    
+
     功能：
         - 自动捕获调用者函数名和局部变量
         - 支持关键字参数和自动变量收集两种模式
         - 生成格式化的调试日志信息
-    
+
     参数：
         _func  手动指定的函数名（通常自动获取调用者名称）
         **kw   需要特殊展示的关键字参数对
-    
+
     日志级别：
         - 关键字参数模式使用 INFO 级别
         - 自动变量模式使用 DEBUG 级别（当前实现暂未完全支持）
     """
     # 获取调用栈中上一帧的上下文
     f = sys._getframe(1)
-    
+
     # 处理两种参数模式
     if kw:
-        text = ', '.join('%s = %s' % (k, v) for k, v in kw.items())
+        text = ', '.join(f"{k} = {v}" for k, v in kw.items())
     else:
         # 自动收集调用者局部变量（排除self）
         text = dict((k, repr(v)) for k, v in f.f_locals.items() if k != 'self')
@@ -90,7 +91,7 @@ class DocxWriter(writers.Writer):
         dotx = self.builder.config['docx_template']
         print(dotx)  # 控制台输出模板路径
         if dotx:
-            logger.info("MK using template {}".format(dotx))
+            logger.info(f"MK using template {dotx}")
             self.template_dir = dotx  # 更新模板路径
 
     def save(self, filename):
@@ -502,7 +503,7 @@ class DocxTranslator(nodes.NodeVisitor):
         dprint()
         # TODO: properly implement this!!
         spec = node['spec']
-        widths = [float(l.split('cm')[0]) for l in spec.split("{")[1:]]
+        widths = [float(part.split('cm')[0]) for part in spec.split("{")[1:]]
         self.current_state.column_widths = widths
         raise nodes.SkipNode
 
@@ -521,10 +522,10 @@ class DocxTranslator(nodes.NodeVisitor):
         if self.current_state.column_widths:
             width = self.current_state.column_widths[0]
             self.current_state.column_widths = self.current_state.column_widths[1:]
-            col = self.current_state.table.add_column(Cm(width))
+            self.current_state.table.add_column(Cm(width))
         else:
             # noinspection PyProtectedMember
-            col = self.current_state.table.add_column(self.docx_container._block_width // self.current_state.ncolumns)
+            self.current_state.table.add_column(self.docx_container._block_width // self.current_state.ncolumns)
 
         raise nodes.SkipNode
 
@@ -604,7 +605,7 @@ class DocxTranslator(nodes.NodeVisitor):
             # Check whether the style is part of the document.
             self.docx_container.styles.get_style_id(style, WD_STYLE_TYPE.TABLE)
         except KeyError as exc:
-            msg = 'looks like style "{}" is missing\n{}\n using no style'.format(style, repr(exc))
+            msg = f'looks like style "{style}" is missing\n{repr(exc)}\n using no style'
             logger.warning(msg)
             style = None
 
@@ -691,14 +692,14 @@ class DocxTranslator(nodes.NodeVisitor):
         try:
             # 验证文档是否包含指定列表样式
             self.docx_container.styles.get_style_id(style, WD_STYLE_TYPE.PARAGRAPH)
-        except KeyError as exc:
+        except KeyError:
             # 样式缺失时的处理（降级为无样式）
             logger.warning(f'列表样式 {style} 缺失，使用默认格式')
             style = None
 
         # 获取当前操作位置（可能是文档主体或表格单元格）
         curloc = self.current_state.location
-        
+
         # 特殊处理表格单元格中的列表项
         if isinstance(curloc, _Cell):
             # 重用单元格的初始空段落（避免产生多余段落）
@@ -863,7 +864,7 @@ class DocxTranslator(nodes.NodeVisitor):
             # Check whether the style is part of the document.
             self.docx_container.styles.get_style_id(style, WD_STYLE_TYPE.PARAGRAPH)
         except KeyError as exc:
-            msg = 'looks like style "{}" is missing\n{}\n using no style'.format(style, repr(exc))
+            msg = f'looks like style "{style}" is missing\n{repr(exc)}\n using no style'
             logger.warning(msg)
             style = None
 

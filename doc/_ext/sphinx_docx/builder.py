@@ -3,16 +3,18 @@
 该模块实现了 Sphinx 的 DOCX 文档构建器，能够将 reStructuredText 转换为符合 OpenXML 标准的 Word 文档。
 主要包含 DocxBuilder 类，负责协调整个文档生成流程，并整合各种变换组件。
 """
-from collections.abc import Iterable, Sequence
-from typing import Literal
+from collections.abc import Iterable
 from pathlib import Path
+from typing import Literal
+
 from docutils import nodes
 from docutils.io import StringOutput
 from sphinx.builders import Builder
-from sphinx.util.osutil import os_path
-from sphinx.util.nodes import inline_all_toctrees
 from sphinx.util import logging
-from sphinx.util.console import bold, darkgreen, brown
+from sphinx.util.console import bold, darkgreen
+from sphinx.util.nodes import inline_all_toctrees
+from sphinx.util.osutil import os_path
+
 from .writer import DocxWriter
 
 logger = logging.getLogger(__name__)
@@ -48,22 +50,22 @@ class DocxBuilder(Builder):
 
     def write_doc(self, docname: str, doctree: nodes.document) -> None:
         """最终将内容写入文件系统的地方。
-        
+
         输出文件名必须在此方法中确定，通常通过调用 get_target_uri() 或 get_relative_uri() 。
         """
         destination = StringOutput(encoding='utf-8')
         self.writer.write(doctree, destination)
-        
+
         outfilename = f"{self.outdir}/{os_path(docname) + self.file_suffix}"
         Path(outfilename).parent.mkdir(parents=True, exist_ok=True)
         try:
             self.writer.save(outfilename)
-        except (IOError, OSError) as err:
+        except OSError as err:
             logger.warning(f"error writing file {outfilename}: {err}")
 
     def fix_refuris(self, tree):
         """修复文档树中的双重锚点引用问题。
-        
+
         处理流程：
         1. 生成根文档文件名（root_doc + 文件后缀）
         2. 遍历文档树中所有 reference 节点
@@ -71,7 +73,7 @@ class DocxBuilder(Builder):
            - 查找 URI 中的第一个 # 锚点符号
            - 在第一个锚点后继续查找第二个 # 符号
            - 如果存在双重锚点，则替换为根文档文件名 + 第二个锚点后的内容
-        
+
         参数:
             tree (nodes.document): 需要修复的文档树对象
         """
@@ -89,7 +91,7 @@ class DocxBuilder(Builder):
 
     def assemble_doctree(self):
         """组装完整的文档树结构。
-        
+
         该方法执行以下操作：
         1. 从配置中获取根文档名称
         2. 从环境中获取根文档的文档树
@@ -97,7 +99,7 @@ class DocxBuilder(Builder):
         4. 设置文档树的根文档名称属性
         5. 解析文档树中的所有交叉引用
         6. 修复文档中的双重锚点引用
-        
+
         返回:
             nodes.document: 整合后的完整文档树对象
         """
@@ -113,12 +115,12 @@ class DocxBuilder(Builder):
         updated_docnames: Iterable[str],
         method: Literal['all', 'specific', 'update'] = 'update',):
         """执行完整的文档生成流程，包含三个阶段：
-        
+
         1. 准备阶段：初始化文档写入器
         2. 组装阶段：构建完整的文档树结构
         3. 写入阶段：将最终文档树输出为 DOCX 文件
-        
-            
+
+
         日志输出：
             - 准备阶段耗时状态
             - 文档组装进度提示
@@ -134,6 +136,6 @@ class DocxBuilder(Builder):
         doctree = self.assemble_doctree()
         logger.info('')
         logger.info(bold('writing... '), nonl=True)
-        docname = "%s-%s" % (self.config.project, self.config.version)
+        docname = f"{self.config.project}-{self.config.version}"
         self.write_doc(docname, doctree)
         logger.info('done')
