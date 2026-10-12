@@ -87,6 +87,35 @@ class ConfigManager:
         self.logger.info("已成功更新html_theme_options配置")
 
 
+# 书系主题（mystx 及其父主题 sphinx_book_theme）的结构性默认选项。
+# pydata-sphinx-theme 0.16+ 在 builder-inited 阶段会向未声明
+# ``navbar_persistent`` 的项目自动注入 ``["search-button-field"]``，
+# 使顶栏出现搜索按钮；而书系主题的主侧边栏已内置同一搜索按钮
+# （theme.toml sidebars 中的 search-button-field.html），两者叠加即
+# 产生双搜索框。书系主题的设计意图是只保留侧边栏搜索，故在
+# config-inited（早于 builder-inited）补齐空列表默认；仅在用户未
+# 显式声明时生效，用户配置（conf.py / _config.toml）优先。
+BOOK_THEME_NAMES = ("mystx", "sphinx_book_theme")
+
+BOOK_THEME_OPTION_DEFAULTS: dict[str, object] = {
+    "navbar_persistent": [],
+}
+
+
+def apply_book_theme_option_defaults(config: Config) -> None:
+    """为书系主题补齐结构性 ``html_theme_options`` 默认项。
+
+    采用 ``setdefault`` 语义：键缺失时才注入，绝不覆盖用户在
+    conf.py 或 ``_config.toml`` 中的显式配置。非书系主题不做处理。
+    """
+    if config.html_theme not in BOOK_THEME_NAMES:
+        return
+    options = getattr(config, "html_theme_options", None) or {}
+    for key, value in BOOK_THEME_OPTION_DEFAULTS.items():
+        options.setdefault(key, value)
+    config.html_theme_options = options
+
+
 def thebe_setup(app: Sphinx, config: Config) -> None:
     """配置Sphinx文档的Thebe交互式代码块功能。
 
@@ -142,6 +171,10 @@ def config_inited_handler(app: Sphinx, config: Config) -> None:
         # 加载并应用自定义配置
         config_manager = ConfigManager(app=app, config=config)
         config_manager.apply_config()
+
+        # 用户配置（conf.py / _config.toml）合并完成后再补齐书系主题
+        # 结构性默认，避免覆盖用户的显式声明（如顶栏搜索按钮）
+        apply_book_theme_option_defaults(config)
 
         # 设置Thebe功能开关
         app.add_config_value("use_thebe", False, "html")  # 默认禁用
