@@ -12,5 +12,5 @@ dependencies:
   # 使用 pip 安装的包
   - pip:
       # 安装当前项目及其文档依赖
-      - .[doc]
+      - .[docs]
 

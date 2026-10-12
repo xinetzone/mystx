@@ -10,6 +10,7 @@ on:
     paths:
       - 'doc/**'
       - 'src/**'
+      - 'tasks.py'
       - 'pyproject.toml'
       - '.github/workflows/pages.yml'
 
@@ -70,14 +71,16 @@ jobs:
           done
       
       # 安装项目依赖
+      # 注意 extras 名为 docs（非 doc）：拼错时 pip 仅警告不失败，
+      # 会静默漏装全部文档扩展，导致 invoke build 在扩展导入阶段失败。
       - name: 安装项目依赖
         run: |
           python -m pip install --upgrade pip
-          pip install .[doc,dev]
+          pip install .[docs,dev]
       
-      # 构建 HTML 文档
+      # 构建 HTML 文档（根 tasks.py 注册的默认任务，产物 doc/_build/html）
       - name: 🔧 构建 HTML 文档
-        run: invoke doc
+        run: invoke build
       
       # 验证构建结果
       - name: 验证构建结果
