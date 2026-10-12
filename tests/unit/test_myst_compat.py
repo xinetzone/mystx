@@ -1,3 +1,5 @@
+import logging
+
 import pytest
 from docutils import nodes
 
@@ -59,9 +61,22 @@ def test_env_turnoff_quote(monkeypatch):
 
 
 def test_sw_alias_works_and_emits_deprecation_log(monkeypatch, caplog):
-    monkeypatch.setenv("SW_MYST_COMPAT_DEDUPE_H1", "0")
-    with caplog.at_level("INFO"):
-        _reload_env_settings()
+    # sphinx.util.logging 会给第三方 logger 加 "sphinx." 命名空间前缀；
+    # Sphinx app 一旦初始化（如本测试在全套件中晚于真实 app 用例执行），
+    # 中间的 "sphinx" logger 会被 dictConfig 设为 propagate=False 且
+    # level=WARNING，挂在 root 上的 caplog 既被层级挡住、又被级别挡住。
+    # 对策：从适配器实体取真实 logger 名，直接把 caplog handler 挂到该
+    # logger 并就地放级别，不依赖传播链，保证测试不受执行顺序影响。
+    from mystx import myst_compat as _compat_mod
+
+    target_logger = logging.getLogger(_compat_mod._logger.logger.name)
+    target_logger.addHandler(caplog.handler)
+    try:
+        monkeypatch.setenv("SW_MYST_COMPAT_DEDUPE_H1", "0")
+        with caplog.at_level("INFO", logger=target_logger.name):
+            _reload_env_settings()
+    finally:
+        target_logger.removeHandler(caplog.handler)
     deprecation_records = [r for r in caplog.records if "Deprecated" in r.getMessage()]
     assert len(deprecation_records) >= 1
 
