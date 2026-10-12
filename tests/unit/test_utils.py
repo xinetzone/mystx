@@ -1,8 +1,6 @@
 import copy
 import importlib.util
 
-import pytest
-
 from mystx.utils import deep_merge, has_module
 
 
