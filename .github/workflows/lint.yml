@@ -1,0 +1,25 @@
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ruff:
+    name: ruff check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install ruff
+        # 固定版本：ruff 可能在既有规则码下新增检查，浮动版本会让 main 意外变红；
+        # 升级 ruff 时在本地验证后同步修改此版本号
+        run: python -m pip install --upgrade pip "ruff==0.16.3"
+      # 规则集与行长取自 pyproject.toml 的 [tool.ruff] 配置（E/W/F/I/UP）
+      - name: Run ruff
+        run: ruff check .
