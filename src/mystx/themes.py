@@ -1,6 +1,6 @@
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, Sequence
 
 from sphinx.application import Sphinx
 from sphinx.util import logging as sphinx_logging
@@ -99,7 +99,7 @@ class MySTX:
 
     app: Sphinx
     name: str = "mystx"
-    theme_dir: Optional[str] = field(init=False)
+    theme_dir: str | None = field(init=False)
 
     def __post_init__(self) -> None:
         parent = Path(__file__).parent.resolve()

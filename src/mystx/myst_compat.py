@@ -1,6 +1,11 @@
 import os
 import re as _re
-from sphinx.util import logging; _logger = logging.getLogger(__name__)
+
+from docutils import nodes
+from sphinx.application import Sphinx
+from sphinx.util import logging
+
+_logger = logging.getLogger(__name__)
 
 _ISO_DATETIME_RE = _re.compile(
     r"([A-Za-z_][A-Za-z0-9_-]*\s*:\s*)"
@@ -54,7 +59,7 @@ def _reload_env_settings() -> None:
 _reload_env_settings()
 
 
-def quote_frontmatter_dates(app: "Sphinx", docname: str, source: list[str]) -> None:
+def quote_frontmatter_dates(app: Sphinx, docname: str, source: list[str]) -> None:
     """``source-read`` 钩子：为 **YAML frontmatter** 内无引号的裸日期/时间戳补双引号。
 
     解决的问题（对应原 awesome-okf-xs/doc/conf.py L183-L226）：
@@ -96,7 +101,7 @@ def quote_frontmatter_dates(app: "Sphinx", docname: str, source: list[str]) -> N
         source[0] = text[: delims[0].end()] + quoted + text[delims[1].start():]
 
 
-def dedupe_injected_h1(app: "Sphinx", doctree: "nodes.document") -> None:
+def dedupe_injected_h1(app: Sphinx, doctree: nodes.document) -> None:
     """``doctree-read`` 钩子：去除 ``myst_title_to_header`` 注入的重复 H1。
 
     解决的问题（对应原 awesome-okf-xs/doc/conf.py L229-L250）：
@@ -114,8 +119,6 @@ def dedupe_injected_h1(app: "Sphinx", doctree: "nodes.document") -> None:
     """
     if not _ENV_DEDUPE_H1:
         return
-    from docutils import nodes
-
     sections = [n for n in doctree.children if isinstance(n, nodes.section)]
     if len(sections) < 2:
         return
@@ -124,7 +127,7 @@ def dedupe_injected_h1(app: "Sphinx", doctree: "nodes.document") -> None:
         doctree.remove(first)
 
 
-def register_hooks(app: "Sphinx") -> None:
+def register_hooks(app: Sphinx) -> None:
     """在 Sphinx app 上统一注册本模块的两个兼容性钩子。"""
     app.connect("source-read", quote_frontmatter_dates)
     app.connect("doctree-read", dedupe_injected_h1, priority=400)

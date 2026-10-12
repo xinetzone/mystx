@@ -5,10 +5,12 @@
 - 将选项字典转换为查询字符串；
 - 生成原始 HTML ``<img>`` 节点用于嵌入卡片。
 """
-from urllib.parse import urlencode
 from html import escape
+from urllib.parse import urlencode
+
 from docutils import nodes
 from docutils.parsers.rst import Directive
+
 
 class BaseGitHubCardDirective(Directive):
     """GitHub 卡片指令的通用基类。

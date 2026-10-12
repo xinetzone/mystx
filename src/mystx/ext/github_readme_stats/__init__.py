@@ -11,9 +11,9 @@
 注意：卡片由外部服务 ``https://github-readme-stats.vercel.app/`` 渲染，选项与主题取值以该服务为准。
 """
 
+from .pinned_repo import GitHubPinnedRepoDirective
 from .stats import GitHubStatsDirective
 from .top_langs import GitHubTopLangsDirective
-from .pinned_repo import GitHubPinnedRepoDirective
 from .wakatime import GitHubWakaTimeDirective
 
 

@@ -26,6 +26,7 @@
 
 """
 from docutils.parsers.rst import directives
+
 from .base import BaseGitHubCardDirective
 
 

@@ -1,6 +1,5 @@
 import os
-from collections.abc import Callable
-from typing import Sequence
+from collections.abc import Callable, Sequence
 
 from .utils import has_module
 

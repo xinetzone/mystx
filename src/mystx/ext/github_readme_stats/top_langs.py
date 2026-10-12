@@ -3,8 +3,10 @@
 ``GitHubTopLangsDirective`` 使用 GitHub Readme Stats 服务生成语言占比卡片，
 支持 ``layout``、``theme`` 与 ``langs_count`` 等选项。
 """
-from .base import BaseGitHubCardDirective
 from docutils.parsers.rst import directives
+
+from .base import BaseGitHubCardDirective
+
 
 class GitHubTopLangsDirective(BaseGitHubCardDirective):
     """渲染 GitHub Top Languages 卡片。

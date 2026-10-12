@@ -1,10 +1,10 @@
 from typing import Any
 
-from ..utils import deep_merge
 from ..configs import build_base_config
 from ..extensions import resolve_extensions
 from ..myst_compat import register_hooks
 from ..themes import resolve_theme, resolve_theme_options
+from ..utils import deep_merge
 from ._shared import build_project_meta, build_setup_closure
 
 _MINIMAL_KEY_DEFAULTS: dict[str, Any] = {

@@ -3,8 +3,10 @@
 GitHubStatsDirective 使用 GitHub Readme Stats 服务生成用户统计卡片，
 支持选项 theme、show_icons 与 hide 控制外观与显示内容。
 """
-from .base import BaseGitHubCardDirective
 from docutils.parsers.rst import directives
+
+from .base import BaseGitHubCardDirective
+
 
 class GitHubStatsDirective(BaseGitHubCardDirective):
     """渲染 GitHub 用户基础统计卡片。

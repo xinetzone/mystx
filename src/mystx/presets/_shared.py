@@ -1,7 +1,6 @@
 from collections.abc import Callable, Mapping
 from typing import Any
 
-
 _COMMON_KEY_DEFAULTS: dict[str, Any] = {
     "project": "Untitled Project",
     "author": "Unknown Author",
