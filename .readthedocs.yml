@@ -25,6 +25,11 @@ build:
 # Build documentation in the doc/ directory with Sphinx
 sphinx:
    configuration: doc/conf.py
+   # 警告即失败（等价 -W --keep-going）。
+   # ⚠️ 本仓库 CI 的 `invoke build` 默认**不带** -W，所以这一行是把质量门
+   # 抬高到与 RTD 一致，而不是对齐既有门禁；首次 RTD 构建若因既存警告变红，
+   # 应先在 doc/conf.py 的 suppress_warnings 里逐条甄别，而不是直接回退这一行。
+   fail_on_warning: true
 
 # If using Sphinx, optionally build your docs in additional formats such as PDF
 # Build PDF & ePub * HTML
