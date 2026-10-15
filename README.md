@@ -56,7 +56,7 @@ pip install mystx
 如果需要使用文档扩展功能，可以安装可选依赖：
 
 ```bash
-pip install "mystx[doc]"
+pip install "mystx[docs]"
 ```
 
 ### 开发环境安装
