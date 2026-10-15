@@ -24,19 +24,31 @@
 
 /* === 主题核心UI样式 === */
 
-/* 版本切换器样式 */
-#version_switcher a[data-version-name*="stable"] {
+/* 切换下拉样式。
+   选择器用现代 pydata 的类名：容器 .version-switcher__container、按钮
+   .version-switcher__button、条目 .version-switcher__menu a。原先是
+   #version_switcher / #version_switcher_button——那是旧版 pydata 的 id，
+   现代版本已不再渲染这两者，三条规则全部空转：样式静默不生效、构建也不报错。
+
+   前缀 .version-switcher__container 用来抬特异性：pydata 自带
+   `.version-switcher__menu a.list-group-item`(0,2,1) 与只写类名的我们
+   `.version-switcher__menu a[data-version]`(0,2,1) **打平**，而本主题样式表
+   排在 styles/sphinx-book-theme.css 之前，同分同序必输——不抬特异性等于没写。
+
+   匹配键用前端 JS 写入的机器可读代号 data-version / data-active-version，
+   而不是展示用的 data-version-name：否则改一次按钮文案就顺带改坏配色。 */
+.version-switcher__container .version-switcher__menu a[data-version*="stable"] {
   background-color: var(--color-version-stable-bg);
   transition: background-color var(--transition-speed);
 }
 
-#version_switcher a:not([data-version-name*="stable"]):not([data-version-name="dev"]) {
+.version-switcher__container .version-switcher__menu a:not([data-version*="stable"]):not([data-version="dev"]) {
   background-color: var(--color-version-explicit-bg);
   color: var(--color-version-explicit-text);
   transition: background-color var(--transition-speed);
 }
 
-#version_switcher_button[data-active-version-name*="dev"] {
+.version-switcher__container .version-switcher__button[data-active-version*="dev"] {
   background-color: var(--color-version-dev-bg);
   transition: background-color var(--transition-speed);
 }
