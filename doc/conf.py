@@ -94,7 +94,13 @@ html_copy_source = True  # 是否在文档中包含源文件链接
 # }
 
 # ================================= 版本切换器配置 =================================
-version_switcher_json_url = "https://mystx.readthedocs.io/zh-cn/latest/_static/switcher.json"
+# 用**相对路径**指向本仓库的清单文件，不要写 http(s) 绝对 URL：
+# pydata 对绝对 URL 会在构建期发 requests.get 校验，读不到即 warning；而本仓库
+# CI 用 harden-runner 阻断出网（白名单不含 readthedocs.io），那道校验在 CI 上
+# 必然失败——既产生噪声，又让这道校验永远走不到「通过」分支（守卫空转）；
+# 且首次部署前该文件还不存在，绝对 URL 必然形成自举死锁。
+# 相对路径改为读本地文件，校验照旧生效，前端按站点根解析，两条通道都取得到。
+version_switcher_json_url = "_static/switcher.json"
 # ================================= 可选插件 =================================
 for _mod in [
     "sphinx_design",
