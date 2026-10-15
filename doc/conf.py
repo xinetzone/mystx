@@ -37,6 +37,12 @@ except Exception as e:
 # ================================= 项目基本信息 =================================
 project = "mystx"
 author = "xinetzone"
+# epub 是 .readthedocs.yml 声明的 formats 之一，而 Sphinx 的 epub3 builder 要求
+# copyright 与 version 均非空，否则构建期报「配置项不能为空」。RTD 侧已开
+# fail_on_warning，这会直接把该 format 判红（实测复现）。version 取 release
+# 即可：本包无 X.Y 短版本约定，取空值则 epub 产物的版本号本身也不合法。
+copyright = "2026, xinetzone"
+version = release
 # ================================= 国际化与本地化设置 ==============================
 language = 'zh_CN'       # 文档语言（中文简体）
 locale_dirs = ['../locales/']  # 翻译文件存放目录
@@ -198,6 +204,10 @@ suppress_warnings = [
     "myst.xref_missing", "myst.domains",
     "ref.ref",
     "autoapi.python_import_resolution", "autoapi.not_readable",
+    # epub builder 会扫描源目录，把 mimetypes 认不出的文件逐条告警；而
+    # _static/switcher.json 是 pydata 前端要按站点根取用的切换清单，必须留在
+    # _static（挪到别处前端就 404）。mimetypes 天然不认 .json，属误报，故抑制。
+    "epub.unknown_project_files",
     "docutils",
 ]
 
