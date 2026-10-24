@@ -7,7 +7,8 @@ name = "mystx"
 dynamic = ["version"]
 description = "mystx 主题 - 现代化 Sphinx 文档主题"
 readme = "README.md"
-license = {file = "LICENSE"}
+license = "Apache-2.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.14"
 authors = [
     {name = "xinetzone", email = "735613050@qq.com"}
@@ -26,7 +27,6 @@ classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.14",
