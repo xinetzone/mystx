@@ -4,6 +4,17 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### 变更
+
+- **配置层：`config.py` 与 `configs.py` 合并为 `mystx.config` 包。** 两者文件名仅差一个 `s`，但职责分属不同生效时点：原 `configs.py` 服务构建期的 conf.py 字典组装，原 `config.py` 服务运行期 `config-inited` 对 Sphinx `Config` 的注入。现按该正交轴拆为 `mystx.config.defaults`（静态默认与 `build_base_config`）与 `mystx.config.runtime`（`ConfigManager`、`config_inited_handler` 等），由包 `__init__` 统一导出；`mystx.config.*` 的既有导入路径不变。
+- **默认值：书系主题 `navbar_persistent` 改为单一权威源。** `BOOK_THEME_OPTION_DEFAULTS` 取值改为引用 `themes.DEFAULT_BOOK_THEME_OPTIONS`，消除同一默认值两处副本，避免 preset 路径与运行期注入路径分叉后重现双搜索框回归。
+
+### 破坏性变更
+
+- `mystx.configs` 模块移除：`DEFAULT_MYST_CONFIG`、`DEFAULT_BUILD_CONFIG`、`DEFAULT_EXT_CONFIG`、`DEFAULT_HTML_CONFIG`、`build_base_config` 请改从 `mystx.config` 导入；顶层 `mystx` 的导出保持不变。
+
 ## [v0.3.8] - 2026-10-15
 
 ### 修复
