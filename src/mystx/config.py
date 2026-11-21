@@ -15,6 +15,7 @@ from sphinx.config import Config
 from sphinx.errors import ExtensionError
 from sphinx.util import logging
 
+from .themes import DEFAULT_BOOK_THEME_OPTIONS
 from .utils import deep_merge
 from .version_switcher import sphinx_setup as version_switcher_setup
 
@@ -97,8 +98,10 @@ class ConfigManager:
 # 显式声明时生效，用户配置（conf.py / _config.toml）优先。
 BOOK_THEME_NAMES = ("mystx", "sphinx_book_theme")
 
+# 单一权威源：取值引用 ``themes.DEFAULT_BOOK_THEME_OPTIONS``，避免同一默认值
+# 在本包内出现两份副本（曾因两侧各自维护而在 preset 路径与服务路径之间产生分歧）。
 BOOK_THEME_OPTION_DEFAULTS: dict[str, object] = {
-    "navbar_persistent": [],
+    "navbar_persistent": DEFAULT_BOOK_THEME_OPTIONS["navbar_persistent"],
 }
 
 
