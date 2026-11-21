@@ -16,7 +16,7 @@ from sphinx.application import Sphinx
 from sphinx.util import logging
 from sphinx.util.typing import ExtensionMetadata
 
-from . import presets, tasks
+from . import presets
 from .config import config_inited_handler
 from .configs import (
     DEFAULT_BUILD_CONFIG,
@@ -34,6 +34,19 @@ from .utils import deep_merge, has_module
 __all__ = ["__version__", "deep_merge", "has_module", "MySTX", "config_inited_handler", "setup", "logger", "DEFAULT_MYST_CONFIG", "DEFAULT_BUILD_CONFIG", "DEFAULT_EXT_CONFIG", "DEFAULT_HTML_CONFIG", "build_base_config", "DEFAULT_OPTIONAL_EXTENSIONS", "DEFAULT_CONDITIONAL", "resolve_extensions", "DEFAULT_BOOK_THEME_OPTIONS", "DEFAULT_THEME_PRIORITY", "resolve_theme", "resolve_theme_options", "register_myst_compat_hooks", "presets", "build_minimal_myst_config", "tasks"]
 
 logger = logging.getLogger(__name__)
+
+
+def __getattr__(name: str):
+    """按需暴露 ``tasks`` 子包（PEP 562）。
+
+    ``mystx.tasks`` 依赖可选的 ``invoke``（``[tasks]`` extra），不宜在
+    ``import mystx`` 时急切加载，否则纯主题安装会因缺少 invoke 而失败。
+    """
+    if name == "tasks":
+        import importlib
+
+        return importlib.import_module(f"{__name__}.tasks")
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 def _setup_myst_nb(app: Sphinx) -> None:
