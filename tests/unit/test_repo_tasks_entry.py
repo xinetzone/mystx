@@ -58,15 +58,15 @@ def test_root_tasks_py_locks_doc_layout():
     }
 
 
-def test_root_namespace_registers_build_default_and_targets_subns():
-    """默认 HTML 任务与 targets 子命名空间必须可发现。"""
+def test_root_namespace_registers_build_default_and_doc_subns():
+    """默认 HTML 任务与 doc 子命名空间必须可发现。"""
     ns = _load_root_namespace()
     assert "build" in ns.tasks
     assert ns.default == "build"
     for name in ("clean", "browse", "tree", "doctest"):
         assert name in ns.tasks, f"根命名空间缺少任务 {name!r}"
     for name in ("html", "linkcheck", "help", "doctest", "build"):
-        assert name in ns.collections["targets"].tasks, f"targets 子命名空间缺少任务 {name!r}"
+        assert name in ns.collections["doc"].tasks, f"doc 子命名空间缺少任务 {name!r}"
 
 
 def _resolve_task(ns: Collection, name: str):

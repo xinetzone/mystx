@@ -1,10 +1,10 @@
-"""``-M`` 目标任务（Sphinx target 接口，挂 ``targets`` 子命名空间）。
+"""``-M`` 目标任务（Sphinx target 接口，挂 ``doc`` 子命名空间）。
 
-    targets.build(target)  ——  ``sphinx-build -M <target>`` 通用包装
-    targets.html           ——  构建 HTML
-    targets.linkcheck      ——  外链完整性校验
-    targets.help           ——  显示 Sphinx 内建目标帮助
-    targets.doctest        ——  ``-M doctest``
+    doc.build(target)  ——  ``sphinx-build -M <target>`` 通用包装
+    doc.html           ——  构建 HTML
+    doc.linkcheck      ——  外链完整性校验
+    doc.help           ——  显示 Sphinx 内建目标帮助
+    doc.doctest        ——  ``-M doctest``
 """
 from invoke import Collection, task
 
@@ -79,7 +79,7 @@ def _target_doctest(
 
 def build_targets_collection() -> Collection:
     """组装 ``-M`` 目标子 Collection（5 个任务）。"""
-    ns = Collection("targets")
+    ns = Collection("doc")
     ns.add_task(_target_build, name="build")
     ns.add_task(_target_html, name="html")
     ns.add_task(_target_linkcheck, name="linkcheck")

@@ -4,7 +4,7 @@
 
     _core.py        Sphinx 域底层（并行策略、选项合并、路径解析、-M 包装）
     builder.py     builder-mode 5 个根任务（build/clean/browse/tree/doctest）
-    targets.py     ``-M`` 目标 5 个任务与 ``targets`` 子 Collection
+    targets.py     ``-M`` 目标 5 个任务，以 ``doc`` 子 Collection 暴露
     _namespace.py  本域装配（``build_ns``）
 
 下游用法：``from mystx.tasks.doc import build_ns``（``mystx.tasks`` 仅作再导出门面），
