@@ -94,7 +94,7 @@ def test_build_task_command_targets_doc_tree(monkeypatch):
     from mystx.tasks import doc
 
     ns = _load_root_namespace()
-    monkeypatch.setattr(doc, "_PARALLEL_FLAG_DEFAULT", "-j 4")
+    monkeypatch.setattr(doc.builder, "_PARALLEL_FLAG_DEFAULT", "-j 4")
     captured: list[str] = []
     ctx = Context(config=ns.configuration())
     monkeypatch.setattr(ctx, "run", lambda cmd, pty: captured.append(cmd))

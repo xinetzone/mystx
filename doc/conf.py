@@ -195,7 +195,7 @@ nitpick_ignore = [
 
 # 抑制特定警告
 # docutils：autoapi 从源码 docstring 生成 RST 时，部分 docstring 中的 `**` / `` ` ``
-#   标记未闭合（如 tasks/doc.py 的多行任务说明），导致 "Inline literal/strong
+#   标记未闭合（如 tasks/doc/ 下的多行任务说明），导致 "Inline literal/strong
 #   start-string without end-string" 与 "Block quote ends without a blank line"。
 #   这些警告源自上游 docstring 写法，非本次文档结构改造引入；修复需改源码 docstring，
 #   不在本次范围内，故在此抑制以保持构建输出干净。
