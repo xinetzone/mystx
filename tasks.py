@@ -12,6 +12,6 @@ invoke 只能从执行目录的 ``tasks`` 集合发现任务，本文件是 ``my
 ``tests/unit/test_repo_tasks_entry.py`` 与本命名空间静态对账，
 防止工作流命令与任务注册再次失配（见 CI run 35072625311）。
 """
-from mystx.tasks import create_ns
+from mystx.tasks import build_ns
 
-ns = create_ns(source="doc", target="doc/_build/html", builddir="doc/_build")
+ns = build_ns(source="doc", target="doc/_build/html", builddir="doc/_build")

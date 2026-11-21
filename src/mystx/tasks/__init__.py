@@ -11,12 +11,12 @@
 
 用法::
 
-    from mystx.tasks import create_ns
+    from mystx.tasks import build_ns
 
-    ns = create_ns(source="doc", target="_build/html", builddir="_build")
+    ns = build_ns(source="doc", target="_build/html", builddir="_build")
 """
 
 from . import doc
-from .doc import build_ns, create_ns
+from .doc import build_ns
 
-__all__ = ["create_ns", "build_ns", "doc"]
+__all__ = ["build_ns", "doc"]

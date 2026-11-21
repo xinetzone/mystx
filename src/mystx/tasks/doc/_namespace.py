@@ -3,14 +3,14 @@
 把 builder-mode 的 5 个根任务与 make-mode 子 Collection 装配成单个
 ``invoke.Collection``，并把 Sphinx 路径默认值写入 ``sphinx`` 配置段。
 
-域契约：本函数只装配 ``doc`` 域，不触碰根命名空间；``create_ns`` 为历史别名。
+域契约：本函数只装配 ``doc`` 域，不触碰根命名空间。
 """
 from invoke import Collection
 
 from .builder import browse, build, clean, doctest, tree
 from .make import build_make_collection
 
-__all__ = ["build_ns", "create_ns"]
+__all__ = ["build_ns"]
 
 
 def build_ns(
@@ -51,7 +51,3 @@ def build_ns(
         }
     )
     return ns
-
-
-# 兼容别名：既有入口 ``mystx.tasks.create_ns`` 保持不变。
-create_ns = build_ns
