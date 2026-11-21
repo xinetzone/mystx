@@ -3,9 +3,9 @@
 invoke 只能从执行目录的 ``tasks`` 集合发现任务，本文件是 ``mystx.tasks``
 任务包的薄适配层，把源目录与产物目录锁定为仓库的 ``doc/`` 布局：
 
-    invoke build            构建 HTML 到 doc/_build/html（默认任务）
-    invoke clean            清理构建产物
-    invoke browse           本地 HTTP 预览
+    invoke doc.build        构建 HTML 到 doc/_build/html（默认任务）
+    invoke doc.clean        清理构建产物
+    invoke doc.browse       本地 HTTP 预览
     invoke doc.linkcheck    外链完整性校验
 
 ``.github/workflows/pages.yml`` 的调用名由

@@ -58,18 +58,18 @@ def test_root_tasks_py_locks_doc_layout():
     }
 
 
-def test_root_namespace_registers_build_default_and_doc_subns():
-    """默认 HTML 任务与 doc 子命名空间必须可发现。"""
+def test_root_namespace_exposes_everything_under_doc():
+    """所有任务必须以 ``doc.`` 前缀暴露，根命名空间不再散落任务。"""
     ns = _load_root_namespace()
-    assert "build" in ns.tasks
-    assert ns.default == "build"
-    for name in ("clean", "browse", "tree", "doctest"):
-        assert name in ns.tasks, f"根命名空间缺少任务 {name!r}"
-    for name in ("target", "linkcheck", "help"):
-        assert name in ns.collections["doc"].tasks, f"doc 子命名空间缺少任务 {name!r}"
-    # html / doctest 只能存在于根命名空间，避免与 builder-mode 任务重复
-    for name in ("html", "doctest", "build"):
-        assert name not in ns.collections["doc"].tasks, f"doc 子命名空间不应重复注册 {name!r}"
+    assert not ns.tasks, f"根命名空间不应直接挂任务，实际存在 {sorted(ns.tasks)}"
+    assert ns.default == "doc", "根默认入口必须是 doc 子集合"
+    doc = ns.collections["doc"]
+    assert doc.default == "build"
+    for name in ("build", "clean", "browse", "tree", "doctest",
+                 "target", "linkcheck", "help"):
+        assert name in doc.tasks, f"doc 子命名空间缺少任务 {name!r}"
+    # html 与 build 功能重复，不得再注册
+    assert "html" not in doc.tasks, "doc 子命名空间不应重复注册 html"
 
 
 def _resolve_task(ns: Collection, name: str):

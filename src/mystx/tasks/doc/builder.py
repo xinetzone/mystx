@@ -1,4 +1,4 @@
-"""Builder-mode 文档任务（挂在根命名空间，``invoke <name>`` 直接调用）。
+"""Builder-mode 文档任务（挂在 ``doc`` 子命名空间，``invoke doc.<name>`` 调用）。
 
     build    (default)  ——  builder-mode 构建，支持 clean/browse/nitpick 链式开关
     clean              ——  删除单个 target 目录（mode='builder'）或 ``-M`` 全清理
@@ -68,7 +68,7 @@ def browse(c, target: str | None = None, port: int = 8000) -> None:
     tgt = _resolve(c, "target", target, "_build/html")
     target_path = Path(tgt)
     if not target_path.exists():
-        print(f"[browse] 构建目录不存在：{target_path}，请先运行 invoke build", file=sys.stderr)
+        print(f"[browse] 构建目录不存在：{target_path}，请先运行 invoke doc.build", file=sys.stderr)
         return
     host = "127.0.0.1"
     while True:
