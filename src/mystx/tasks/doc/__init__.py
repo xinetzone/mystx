@@ -7,7 +7,7 @@
     targets.py     ``-M`` 目标 5 个任务，以 ``doc`` 子 Collection 暴露
     _namespace.py  本域装配（``build_ns``）
 
-下游用法：``from mystx.tasks.doc import build_ns``（``mystx.tasks`` 仅作再导出门面），
+下游用法：``from mystx.tasks import doc_ns``（域内实现名仍为 ``build_ns``），
 或直接访问 ``mystx.tasks.doc.build`` / ``mystx.tasks.doc.build_targets_collection``。
 """
 from ._namespace import build_ns

@@ -109,12 +109,12 @@ def test_build_task_command_targets_doc_tree(monkeypatch):
     assert "-j" in tokens and tokens[tokens.index("-j") + 1] == "4"
 
 
-def test_build_ns_owned_by_doc_package():
-    """``build_ns`` 实现归属 ``mystx.tasks.doc``，``mystx.tasks`` 仅再导出同一对象。"""
-    from mystx.tasks import build_ns, doc
+def test_doc_ns_owned_by_doc_package():
+    """``doc_ns`` 实现归属 ``mystx.tasks.doc.build_ns``，门面仅再导出同一对象。"""
+    from mystx.tasks import doc, doc_ns
 
-    assert build_ns is doc.build_ns, "mystx.tasks.build_ns 必须是 mystx.tasks.doc.build_ns"
-    assert doc.build_ns().configuration()["sphinx"]["source"] == "doc"
+    assert doc_ns is doc.build_ns, "mystx.tasks.doc_ns 必须是 mystx.tasks.doc.build_ns"
+    assert doc_ns().configuration()["sphinx"]["source"] == "doc"
 
 
 def test_build_chain_flags_propagate_effective_target(monkeypatch):
