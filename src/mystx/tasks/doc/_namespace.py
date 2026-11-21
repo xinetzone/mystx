@@ -8,8 +8,16 @@ Sphinx 路径默认值写入 ``sphinx`` 配置段后由子任务继承。
 """
 from invoke import Collection
 
-from .builder import browse, build, clean, doctest, tree
-from .targets import _target_help, _target_linkcheck, _target_target
+from .builder import (
+    _target_help,
+    _target_linkcheck,
+    _target_target,
+    browse,
+    build,
+    clean,
+    doctest,
+    tree,
+)
 
 __all__ = ["build_ns"]
 

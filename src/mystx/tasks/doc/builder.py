@@ -1,10 +1,16 @@
-"""Builder-mode 文档任务（挂在 ``doc`` 子命名空间，``invoke doc.<name>`` 调用）。
+"""Sphinx 文档任务（builder-mode 5 个 + ``-M`` 目标 3 个，挂 ``doc`` 子命名空间）。
 
-    build    (default)  ——  builder-mode 构建，支持 clean/browse/nitpick 链式开关
-    clean              ——  删除单个 target 目录（mode='builder'）或 ``-M`` 全清理
-    browse             ——  启动本地 HTTP 服务器预览
-    tree               ——  文本树列出构建产物
-    doctest            ——  builder-mode doctest
+两种接口同属 Sphinx builder 语义，统一在 ``invoke doc.<name>`` 下暴露；
+等价能力只注册一次（``html`` / ``doctest`` 走 builder-mode，不再重复）。
+
+    build (default) —— builder-mode ``-b html`` 构建，支持 clean/browse/nitpick 链式开关
+    clean           —— 删除单个 target 目录（mode='builder'）或 ``-M clean`` 全清理
+    browse          —— 启动本地 HTTP 服务器预览
+    tree            —— 文本树列出构建产物
+    doctest         —— builder-mode doctest
+    target <name>   —— ``sphinx-build -M <target>`` 通用入口（latex/epub 等）
+    linkcheck       —— ``-M linkcheck`` 外链完整性校验
+    help            —— ``-M help`` 显示 Sphinx 内建目标帮助
 
 全部任务仅依赖标准库与 ``invoke``，不调用第三方任务的私有实现，
 避免可选依赖缺失或升级时的行为分叉。
@@ -25,6 +31,7 @@ from ._core import (
     _PARALLEL_FLAG_DEFAULT,
     _collect_sphinx_opts,
     _resolve,
+    _resolve_or,
     _run_target,
 )
 
@@ -159,3 +166,48 @@ def build(
     run_cmd(c, rebuilt)
     if browse:
         _browse_task(c, target=tgt)
+
+
+# ---------------------------------------------------------------------------
+# ``-M`` 目标接口：builder-mode 未覆盖的能力（latex/epub 等），薄包装。
+# ---------------------------------------------------------------------------
+
+
+@task
+def _target_target(
+    _c,
+    target: str,
+    sourcedir: str = ".",
+    builddir: str = "_build",
+    opts: str = "",
+) -> None:
+    """``sphinx-build -M <target>`` 通用入口。"""
+    src = _resolve_or(_c, "source", sourcedir, "doc")
+    bd = _resolve_or(_c, "builddir", builddir, "_build")
+    _run_target(target, src, bd, opts=opts)
+
+
+@task
+def _target_linkcheck(
+    _c,
+    sourcedir: str = ".",
+    builddir: str = "_build",
+    opts: str = "",
+) -> None:
+    """``-M linkcheck``：检查所有外部链接完整性。"""
+    src = _resolve_or(_c, "source", sourcedir, "doc")
+    bd = _resolve_or(_c, "builddir", builddir, "_build")
+    _run_target("linkcheck", src, bd, opts)
+
+
+@task
+def _target_help(
+    _c,
+    sourcedir: str = ".",
+    builddir: str = "_build",
+    opts: str = "",
+) -> None:
+    """``-M help``：显示 Sphinx 内建目标帮助。"""
+    src = _resolve_or(_c, "source", sourcedir, "doc")
+    bd = _resolve_or(_c, "builddir", builddir, "_build")
+    _run_target("help", src, bd, opts)
