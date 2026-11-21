@@ -107,3 +107,21 @@ def test_build_task_command_targets_doc_tree(monkeypatch):
     assert "-b" in tokens and tokens[tokens.index("-b") + 1] == "html"
     assert tokens[-2:] == ["doc", "doc/_build/html"]
     assert "-j" in tokens and tokens[tokens.index("-j") + 1] == "4"
+
+
+def test_build_chain_flags_propagate_effective_target(monkeypatch):
+    """``build --clean --browse --target X`` 的链式开关必须沿用本次解析出的 target。"""
+    from mystx.tasks import doc
+
+    ns = _load_root_namespace()
+    monkeypatch.setattr(doc.builder, "_PARALLEL_FLAG_DEFAULT", "")
+    ctx = Context(config=ns.configuration())
+    monkeypatch.setattr(ctx, "run", lambda cmd, pty: None)
+    seen: dict[str, str | None] = {}
+    monkeypatch.setattr(doc.builder, "clean", lambda _c, target=None: seen.setdefault("clean", target))
+    monkeypatch.setattr(doc.builder, "browse", lambda _c, target=None: seen.setdefault("browse", target))
+
+    doc.build(ctx, clean=True, browse=True, target="out/html")
+
+    assert seen["clean"] == "out/html", "build --clean 未把 target 传给 clean，会误删默认目录"
+    assert seen["browse"] == "out/html", "build --browse 未把 target 传给 browse，会打开默认目录"

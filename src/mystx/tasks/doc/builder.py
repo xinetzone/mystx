@@ -58,7 +58,7 @@ def build(
     调用者显式传入 ``opts``（非 None）时完全尊重，不自动注入并行 flag。
     """
     if clean:
-        globals()["clean"](c)
+        globals()["clean"](c, target=target)
     src = _resolve(c, "source", source, "docs")
     tgt = _resolve(c, "target", target, "_build/html")
     if opts is None:
@@ -70,7 +70,7 @@ def build(
     rebuilt = ["sphinx-build", *_collect_sphinx_opts(opts), *extra, src, tgt]
     _run_cmd(c, rebuilt)
     if browse:
-        globals()["browse"](c)
+        globals()["browse"](c, target=tgt)
 
 
 @task(name="clean")
@@ -83,7 +83,7 @@ def clean(
     opts: str = "",
 ) -> None:
     """清理构建产物。``mode='builder'``（默认）只删单个 target 目录并回收空父目录；
-    ``mode='make'`` 等价 ``sphinx-build -M clean（清理 builddir 下所有子构建。"""
+    ``mode='make'`` 等价 ``sphinx-build -M clean``（清理 builddir 下所有子构建）。"""
     if mode == "builder":
         tgt = _resolve(c, "target", target, "_build/html")
         if _HAVE_INVOCATIONS:
