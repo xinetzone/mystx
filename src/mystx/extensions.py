@@ -12,10 +12,10 @@ def resolve_extensions(
     """解析三类扩展列表（公理 A3 实现）。
 
     参数：
-        required: 必须加载的扩展，缺失直接抛 :class:`ImportError`。
-        optional: 可选扩展，不存在则静默跳过。
-        conditional: ``(ext_name, predicate)`` 列表——predicate 返回真值才加载；
-            典型 predicate 如检查 :envvar:`GITHUB_ACTIONS` / :envvar:`READTHEDOCS`。
+        * ``required``：必须加载的扩展，缺失直接抛 :class:`ImportError`。
+        * ``optional``：可选扩展，不存在则静默跳过。
+        * ``conditional``：``(ext_name, predicate)`` 列表，predicate 返回真值才加载；
+          典型 predicate 如检查 ``GITHUB_ACTIONS`` / ``READTHEDOCS`` 环境变量。
 
     返回合并去重后的 extensions 列表（保持首次出现的顺序）。
     """

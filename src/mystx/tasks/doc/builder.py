@@ -20,11 +20,11 @@ from typing import Literal
 
 from invoke import Exit, task
 
+from .._shared import run_cmd
 from ._core import (
     _PARALLEL_FLAG_DEFAULT,
     _collect_sphinx_opts,
     _resolve,
-    _run_cmd,
     _run_make_mode,
 )
 
@@ -38,8 +38,8 @@ def clean(
     builddir: str | None = None,
     opts: str = "",
 ) -> None:
-    """清理构建产物。``mode='builder'``（默认）只删单个 target 目录并回收空父目录；
-    ``mode='make'`` 等价 ``sphinx-build -M clean``（清理 builddir 下所有子构建）。"""
+    """清理构建产物。``mode='builder'`` 为默认值，只删单个 target 目录并回收空父目录；
+    ``mode='make'`` 等价于 ``sphinx-build -M clean``，清理 builddir 下所有子构建。"""
     if mode == "builder":
         tgt = _resolve(c, "target", target, "_build/html")
         tgt_path = Path(tgt)
@@ -121,7 +121,7 @@ def doctest(
     """运行 Sphinx doctest 构建器（builder-mode，独立 build_dir）。"""
     src = _resolve(c, "source", source, "doc")
     tokens = ["sphinx-build", "-b", "doctest", *_collect_sphinx_opts(opts), src, build_dir]
-    _run_cmd(c, tokens)
+    run_cmd(c, tokens)
 
 
 @task(default=True)
@@ -139,11 +139,11 @@ def build(
     并行策略（``_PARALLEL_FLAG_DEFAULT``）：
       - CI (``GITHUB_ACTIONS=1``) → ``-j min(cpu_count, 8)`` 稳定优先，防 IPC 爆炸
       - 本地 POSIX (非 win32)   → ``-j max(1, cpu_count-1)``  留 1 核给桌面
-      - 本地 Windows           → 不加 ``-j``（Sphinx 依赖 POSIX fork，天然串行）
+      - 本地 Windows           → 不加 ``-j``，因 Sphinx 依赖 POSIX fork，天然串行
 
     便利开关：``clean`` 构建前清理；``browse`` 完成后自动打开预览；``nitpick`` 附加 ``-n -W -T`` 把警告当错误。
     两者都沿用本次解析出的 target，不会回到配置默认值。
-    调用者显式传入 ``opts``（非 None）时完全尊重，不自动注入并行 flag。
+    调用者显式传入 ``opts`` 且其值非 None 时完全尊重，不自动注入并行 flag。
     """
     if clean:
         _clean_task(c, target=target)
@@ -156,6 +156,6 @@ def build(
             opts = f"{opts} {_PARALLEL_FLAG_DEFAULT}"
     extra: list[str] = ["-n", "-W", "-T"] if nitpick else []
     rebuilt = ["sphinx-build", *_collect_sphinx_opts(opts), *extra, src, tgt]
-    _run_cmd(c, rebuilt)
+    run_cmd(c, rebuilt)
     if browse:
         _browse_task(c, target=tgt)

@@ -20,8 +20,9 @@ def deep_merge(base: dict[str, Any], override: dict[str, Any] | None = None,
     """分层合并配置字典（公理 A1 实现）。
 
     规则：
+
     * ``override`` 中存在的键覆盖 ``base`` 同键；
-    * 值为 ``remove_marker``（默认 ``None``）的键**显式表示「从 base 中删除该键」——
+    * 值为 ``remove_marker`` 的键（默认 ``None``）表示「从 base 中删除该键」——
       注意这与 Sphinx 原生「某键 = None 表示使用 Sphinx 默认」语义不同。
       若想表达「将某键显式置为 None 交给 Sphinx 默认处理」，请传
       ``sentinel`` 对象或其他非 ``remove_marker`` 的值；

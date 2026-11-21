@@ -191,14 +191,16 @@ tippy_rtd_urls = [
 nitpick_ignore = [
     ("py:class", "docutils.nodes.document"),
     ("py:class", "docutils.parsers.rst.directives.body.Sidebar"),
+    # autoapi 把类型注解中的 ``...`` 渲染成 ``Ellipsis`` 并按 py:class 交叉引用解析，
+    # 但 Ellipsis 是内置单例、不在 intersphinx 清单中，无法解析；注解写法
+    # （均为 tuple[X, ...]）不应为文档构建而改动，故仅精确豁免该符号。
+    ("py:class", "Ellipsis"),
+    # invoke 为可选第三方依赖，未配置 intersphinx 清单，故 invoke.Collection 无法解析；
+    # 仅豁免这一个具体符号，不使用通配符压制整类 py:class 告警。
+    ("py:class", "invoke.Collection"),
 ]
 
 # 抑制特定警告
-# docutils：autoapi 从源码 docstring 生成 RST 时，部分 docstring 中的 `**` / `` ` ``
-#   标记未闭合（如 tasks/doc/ 下的多行任务说明），导致 "Inline literal/strong
-#   start-string without end-string" 与 "Block quote ends without a blank line"。
-#   这些警告源自上游 docstring 写法，非本次文档结构改造引入；修复需改源码 docstring，
-#   不在本次范围内，故在此抑制以保持构建输出干净。
 suppress_warnings = [
     "mystnb.unknown_mime_type", "mystnb.mime_priority",
     "myst.xref_missing", "myst.domains",
