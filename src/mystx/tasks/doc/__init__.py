@@ -7,10 +7,9 @@
     builder.py     本域 8 个任务（builder-mode 5 个 + ``-M`` 目标 3 个）
     _namespace.py  本域装配（``build_ns``）
 
-下游用法：``from mystx.tasks import doc_ns``（域内实现名仍为 ``build_ns``），
-或直接访问 ``mystx.tasks.doc.build`` 等任务函数。
+下游用法：``from mystx.tasks import doc_ns``（域内实现名仍为 ``build_ns``）；
+任务函数定义在 ``mystx.tasks.doc.builder``，本包门面不再重复导出。
 """
 from ._namespace import build_ns
-from .builder import browse, build, clean, doctest, tree
 
-__all__ = ["build_ns", "build", "clean", "browse", "tree", "doctest"]
+__all__ = ["build_ns"]

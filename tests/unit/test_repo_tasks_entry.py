@@ -102,7 +102,7 @@ def test_build_task_command_targets_doc_tree(monkeypatch):
     ctx = Context(config=ns.configuration())
     monkeypatch.setattr(ctx, "run", lambda cmd, pty: captured.append(cmd))
 
-    doc.build(ctx)
+    doc.builder.build(ctx)
 
     assert len(captured) == 1
     tokens = shlex.split(captured[0], posix=False)
@@ -132,7 +132,7 @@ def test_build_chain_flags_propagate_effective_target(monkeypatch):
     monkeypatch.setattr(doc.builder, "_clean_task", lambda _c, target=None: seen.setdefault("clean", target))
     monkeypatch.setattr(doc.builder, "_browse_task", lambda _c, target=None: seen.setdefault("browse", target))
 
-    doc.build(ctx, clean=True, browse=True, target="out/html")
+    doc.builder.build(ctx, clean=True, browse=True, target="out/html")
 
     assert seen["clean"] == "out/html", "build --clean 未把 target 传给 clean，会误删默认目录"
     assert seen["browse"] == "out/html", "build --browse 未把 target 传给 browse，会打开默认目录"
