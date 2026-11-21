@@ -47,10 +47,10 @@ def _load_root_namespace() -> Collection:
 
 
 def test_root_tasks_py_locks_doc_layout():
-    """根命名空间的 sphinx 路径配置必须锚定到仓库 doc/ 布局的绝对路径。
+    """根命名空间的 sphinx 路径配置必须是锚定仓库 doc/ 布局的绝对路径。
 
-    绝对化是为规避 cmd.exe 不支持 UNC 工作目录（会退到 C:\\Windows，
-    相对路径 ``doc`` 被解析到 ``C:\\Windows\\doc``）导致的构建失败。
+    绝对化由 doc 域自动完成：cmd.exe 不支持 UNC 工作目录（会退到 C:\\Windows，
+    相对路径 ``doc`` 被解析到 ``C:\\Windows\\doc``），故任务不得依赖 cwd。
     """
     ns = _load_root_namespace()
     sphinx_cfg = ns.configuration()["sphinx"]
@@ -124,7 +124,7 @@ def test_doc_ns_owned_by_doc_package():
     from mystx.tasks import doc, doc_ns
 
     assert doc_ns is doc.build_ns, "mystx.tasks.doc_ns 必须是 mystx.tasks.doc.build_ns"
-    assert doc_ns().configuration()["sphinx"]["source"] == "doc"
+    assert doc_ns().configuration()["sphinx"]["source"] == str(_REPO_ROOT / "doc")
 
 
 def test_build_chain_flags_propagate_effective_target(monkeypatch):
