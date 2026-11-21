@@ -118,8 +118,8 @@ def test_build_chain_flags_propagate_effective_target(monkeypatch):
     ctx = Context(config=ns.configuration())
     monkeypatch.setattr(ctx, "run", lambda cmd, pty: None)
     seen: dict[str, str | None] = {}
-    monkeypatch.setattr(doc.builder, "clean", lambda _c, target=None: seen.setdefault("clean", target))
-    monkeypatch.setattr(doc.builder, "browse", lambda _c, target=None: seen.setdefault("browse", target))
+    monkeypatch.setattr(doc.builder, "_clean_task", lambda _c, target=None: seen.setdefault("clean", target))
+    monkeypatch.setattr(doc.builder, "_browse_task", lambda _c, target=None: seen.setdefault("browse", target))
 
     doc.build(ctx, clean=True, browse=True, target="out/html")
 

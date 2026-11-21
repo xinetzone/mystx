@@ -90,7 +90,6 @@ build = [
 ]
 tasks = [
     "invoke>=2.0",
-    "invocations>=3.0",
 ]
 dev = [
     "pdm",
@@ -173,7 +172,6 @@ build = [
 ]
 tasks = [
     "invoke>=2.0",
-    "invocations>=3.0",
 ]
 
 # ── scikit-build-core：mystx 纯 Python Sphinx 主题包 ──

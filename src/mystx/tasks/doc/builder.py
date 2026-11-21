@@ -6,9 +6,8 @@
     tree               ——  文本树列出构建产物
     doctest            ——  builder-mode doctest
 
-可选依赖：
-    安装 ``invocations`` 后，browse/tree/doctest(builder) 复用其稳定实现；
-    未安装时自动回退到 Python 标准库实现。
+全部任务仅依赖标准库与 ``invoke``，不调用第三方任务的私有实现，
+避免可选依赖缺失或升级时的行为分叉。
 """
 import os
 import shutil
@@ -29,49 +28,6 @@ from ._core import (
     _run_make_mode,
 )
 
-try:
-    from invocations import docs as _inv_docs  # type: ignore[import-not-found]
-    _HAVE_INVOCATIONS = True
-except ImportError:  # pragma: no cover - invocations 为可选依赖
-    _inv_docs = None  # type: ignore[assignment]
-    _HAVE_INVOCATIONS = False
-
-
-@task(default=True)
-def build(
-    c,
-    clean: bool = False,
-    browse: bool = False,
-    nitpick: bool = False,
-    opts: str | None = None,
-    source: str | None = None,
-    target: str | None = None,
-) -> None:
-    """构建 Sphinx 文档（builder-mode：默认 ``-b html`` + 按环境分流并行度）。
-
-    并行策略（``_PARALLEL_FLAG_DEFAULT``）：
-      - CI (``GITHUB_ACTIONS=1``) → ``-j min(cpu_count, 8)`` 稳定优先，防 IPC 爆炸
-      - 本地 POSIX (非 win32)   → ``-j max(1, cpu_count-1)``  留 1 核给桌面
-      - 本地 Windows           → 不加 ``-j``（Sphinx 依赖 POSIX fork，天然串行）
-
-    便利开关：``clean`` 构建前清理；``browse`` 完成后自动打开预览；``nitpick`` 附加 ``-n -W -T`` 把警告当错误。
-    调用者显式传入 ``opts``（非 None）时完全尊重，不自动注入并行 flag。
-    """
-    if clean:
-        globals()["clean"](c, target=target)
-    src = _resolve(c, "source", source, "docs")
-    tgt = _resolve(c, "target", target, "_build/html")
-    if opts is None:
-        # 默认：builder=html + 环境分流的并行 flag
-        opts = "-b html"
-        if _PARALLEL_FLAG_DEFAULT:
-            opts = f"{opts} {_PARALLEL_FLAG_DEFAULT}"
-    extra: list[str] = ["-n", "-W", "-T"] if nitpick else []
-    rebuilt = ["sphinx-build", *_collect_sphinx_opts(opts), *extra, src, tgt]
-    _run_cmd(c, rebuilt)
-    if browse:
-        globals()["browse"](c, target=tgt)
-
 
 @task(name="clean")
 def clean(
@@ -86,31 +42,30 @@ def clean(
     ``mode='make'`` 等价 ``sphinx-build -M clean``（清理 builddir 下所有子构建）。"""
     if mode == "builder":
         tgt = _resolve(c, "target", target, "_build/html")
-        if _HAVE_INVOCATIONS:
-            _inv_docs._clean(c)  # type: ignore[union-attr]
-        else:
-            tgt_path = Path(tgt)
-            if tgt_path.exists():
-                shutil.rmtree(tgt_path)
+        tgt_path = Path(tgt)
+        if tgt_path.exists():
+            shutil.rmtree(tgt_path)
         parent = os.path.dirname(tgt)
         while parent and os.path.isdir(parent) and not os.listdir(parent):
             os.rmdir(parent)
             parent = os.path.dirname(parent)
     elif mode == "make":
-        src = _resolve(c, "source", source, "docs")
+        src = _resolve(c, "source", source, "doc")
         bd = _resolve(c, "builddir", builddir, "_build")
         _run_make_mode("clean", sourcedir=src, builddir=bd, opts=opts)
     else:
         raise Exit(f"clean: unknown mode={mode!r} (expected 'builder' or 'make')")
 
 
+# build 的 ``--clean``/``--browse`` 形参与任务同名，函数体经私有别名调用，
+# 避免 ``globals()`` 反射带来的隐式依赖。
+_clean_task = clean
+
+
 @task
 def browse(c, target: str | None = None, port: int = 8000) -> None:
     """启动本地 HTTP 服务器预览已构建的 HTML。"""
     tgt = _resolve(c, "target", target, "_build/html")
-    if _HAVE_INVOCATIONS:
-        _inv_docs._browse(c)  # type: ignore[union-attr]
-        return
     target_path = Path(tgt)
     if not target_path.exists():
         print(f"[browse] 构建目录不存在：{target_path}，请先运行 invoke build", file=sys.stderr)
@@ -134,13 +89,13 @@ def browse(c, target: str | None = None, port: int = 8000) -> None:
         server.terminate()
 
 
+_browse_task = browse
+
+
 @task
 def tree(c, target: str | None = None) -> None:
     """以文本树形式列出 Sphinx 构建产物目录。"""
     tgt = _resolve(c, "target", target, "_build/html")
-    if _HAVE_INVOCATIONS:
-        _inv_docs.tree(c)  # type: ignore[union-attr]
-        return
     target_path = Path(tgt)
     if not target_path.exists():
         print(f"[tree] 构建目录不存在：{target_path}", file=sys.stderr)
@@ -164,9 +119,43 @@ def doctest(
     opts: str = "",
 ) -> None:
     """运行 Sphinx doctest 构建器（builder-mode，独立 build_dir）。"""
-    if _HAVE_INVOCATIONS:
-        _inv_docs.doctest(c)  # type: ignore[union-attr]
-        return
-    src = _resolve(c, "source", source, "docs")
+    src = _resolve(c, "source", source, "doc")
     tokens = ["sphinx-build", "-b", "doctest", *_collect_sphinx_opts(opts), src, build_dir]
     _run_cmd(c, tokens)
+
+
+@task(default=True)
+def build(
+    c,
+    clean: bool = False,
+    browse: bool = False,
+    nitpick: bool = False,
+    opts: str | None = None,
+    source: str | None = None,
+    target: str | None = None,
+) -> None:
+    """构建 Sphinx 文档（builder-mode：默认 ``-b html`` + 按环境分流并行度）。
+
+    并行策略（``_PARALLEL_FLAG_DEFAULT``）：
+      - CI (``GITHUB_ACTIONS=1``) → ``-j min(cpu_count, 8)`` 稳定优先，防 IPC 爆炸
+      - 本地 POSIX (非 win32)   → ``-j max(1, cpu_count-1)``  留 1 核给桌面
+      - 本地 Windows           → 不加 ``-j``（Sphinx 依赖 POSIX fork，天然串行）
+
+    便利开关：``clean`` 构建前清理；``browse`` 完成后自动打开预览；``nitpick`` 附加 ``-n -W -T`` 把警告当错误。
+    两者都沿用本次解析出的 target，不会回到配置默认值。
+    调用者显式传入 ``opts``（非 None）时完全尊重，不自动注入并行 flag。
+    """
+    if clean:
+        _clean_task(c, target=target)
+    src = _resolve(c, "source", source, "doc")
+    tgt = _resolve(c, "target", target, "_build/html")
+    if opts is None:
+        # 默认：builder=html + 环境分流的并行 flag
+        opts = "-b html"
+        if _PARALLEL_FLAG_DEFAULT:
+            opts = f"{opts} {_PARALLEL_FLAG_DEFAULT}"
+    extra: list[str] = ["-n", "-W", "-T"] if nitpick else []
+    rebuilt = ["sphinx-build", *_collect_sphinx_opts(opts), *extra, src, tgt]
+    _run_cmd(c, rebuilt)
+    if browse:
+        _browse_task(c, target=tgt)

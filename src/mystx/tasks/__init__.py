@@ -4,7 +4,7 @@
 
     from mystx.tasks import create_ns
 
-    ns = create_ns(source="docs", target="_build/html", builddir="_build")
+    ns = create_ns(source="doc", target="_build/html", builddir="_build")
 
 Builder-mode（根命名空间，默认）：
     invoke build         构建 HTML（增量）；可选 --clean/--browse/--nitpick
@@ -30,7 +30,7 @@ __all__ = ["create_ns", "doc"]
 
 def create_ns(
     *,
-    source: str = "docs",
+    source: str = "doc",
     target: str = "_build/html",
     target_file: str = "index.html",
     builddir: str = "_build",
@@ -40,7 +40,7 @@ def create_ns(
     所有参数关键字-only，避免调用者混淆参数顺序。
 
     Args:
-        source:      Sphinx 源目录（含 conf.py）。默认 ``"docs"``。
+        source:      Sphinx 源目录（含 conf.py）。默认 ``"doc"``。
         target:      Builder-mode HTML 输出目录。默认 ``"_build/html"``。
         target_file: 首页文件相对路径（预留 browse / CI 用）。默认 ``"index.html"``。
         builddir:    Make-mode 总构建目录（所有 ``-M`` 目标挂其下）。默认 ``"_build"``。

@@ -20,7 +20,7 @@ def _make_build(
     opts: str = "",
 ) -> None:
     """``sphinx-build -M <target>`` 通用入口（make-mode build 别名）。"""
-    src = _resolve_or(_c, "source", sourcedir, "docs")
+    src = _resolve_or(_c, "source", sourcedir, "doc")
     bd = _resolve_or(_c, "builddir", builddir, "_build")
     _run_make_mode(target, src, bd, opts=opts)
 
@@ -33,7 +33,7 @@ def _make_html(
     opts: str = "",
 ) -> None:
     """make-mode：构建 HTML。"""
-    src = _resolve_or(_c, "source", sourcedir, "docs")
+    src = _resolve_or(_c, "source", sourcedir, "doc")
     bd = _resolve_or(_c, "builddir", builddir, "_build")
     _run_make_mode("html", src, bd, opts)
 
@@ -46,7 +46,7 @@ def _make_linkcheck(
     opts: str = "",
 ) -> None:
     """make-mode：检查所有外部链接完整性。"""
-    src = _resolve_or(_c, "source", sourcedir, "docs")
+    src = _resolve_or(_c, "source", sourcedir, "doc")
     bd = _resolve_or(_c, "builddir", builddir, "_build")
     _run_make_mode("linkcheck", src, bd, opts)
 
@@ -59,7 +59,7 @@ def _make_help(
     opts: str = "",
 ) -> None:
     """make-mode：显示 Sphinx 帮助。"""
-    src = _resolve_or(_c, "source", sourcedir, "docs")
+    src = _resolve_or(_c, "source", sourcedir, "doc")
     bd = _resolve_or(_c, "builddir", builddir, "_build")
     _run_make_mode("help", src, bd, opts)
 
@@ -72,7 +72,7 @@ def _make_doctest(
     opts: str = "",
 ) -> None:
     """make-mode：运行 doctests（统一输出到 builddir/doctest）。"""
-    src = _resolve_or(_c, "source", sourcedir, "docs")
+    src = _resolve_or(_c, "source", sourcedir, "doc")
     bd = _resolve_or(_c, "builddir", builddir, "_build")
     _run_make_mode("doctest", src, bd, opts)
 
