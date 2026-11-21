@@ -30,7 +30,12 @@ __all__ = ["build_ns"]
 
 
 def _anchor_root(source: str) -> Path:
-    """定位项目根：从本包所在目录向上找含 ``<source>/conf.py`` 的目录。"""
+    """定位项目根：从本包所在目录向上找含 ``<source>/conf.py`` 的目录。
+
+    之所以不直接用 cwd：cmd.exe 无法把 UNC 路径设为工作目录，会退到
+    ``C:\\Windows``，此时相对路径 ``doc`` 被解析成 ``C:\\Windows\\doc``，
+    Sphinx 报“找不到源文件目录”（``\\\\10.16.11.3`` 共享上必现）。
+    """
     for parent in Path(__file__).resolve().parents:
         if (parent / source / "conf.py").is_file():
             return parent

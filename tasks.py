@@ -14,9 +14,6 @@ invoke 只能从执行目录的 ``tasks`` 集合发现任务，本文件是 ``my
 """
 from mystx.tasks import doc_ns
 
-# 布局显式声明，一眼可见；锚定与绝对化由 doc 域完成（见 mystx.tasks.doc._namespace），
-# 入口不重复计算路径：cmd.exe 不支持 UNC 工作目录（会退到 C:\Windows），
-# 相对路径会解析到错误位置（\\10.16.11.3 共享上必现）。
 ns = doc_ns(
     source="doc",
     target="_build/html",
