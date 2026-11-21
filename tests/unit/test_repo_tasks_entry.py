@@ -65,8 +65,11 @@ def test_root_namespace_registers_build_default_and_doc_subns():
     assert ns.default == "build"
     for name in ("clean", "browse", "tree", "doctest"):
         assert name in ns.tasks, f"根命名空间缺少任务 {name!r}"
-    for name in ("html", "linkcheck", "help", "doctest", "build"):
+    for name in ("target", "linkcheck", "help"):
         assert name in ns.collections["doc"].tasks, f"doc 子命名空间缺少任务 {name!r}"
+    # html / doctest 只能存在于根命名空间，避免与 builder-mode 任务重复
+    for name in ("html", "doctest", "build"):
+        assert name not in ns.collections["doc"].tasks, f"doc 子命名空间不应重复注册 {name!r}"
 
 
 def _resolve_task(ns: Collection, name: str):

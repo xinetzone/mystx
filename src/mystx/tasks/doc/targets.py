@@ -1,10 +1,11 @@
 """``-M`` 目标任务（Sphinx target 接口，挂 ``doc`` 子命名空间）。
 
-    doc.build(target)  ——  ``sphinx-build -M <target>`` 通用包装
-    doc.html           ——  构建 HTML
+只注册根命名空间没有的能力；与根任务等价的 ``html`` / ``doctest`` 不重复注册
+（对应 ``invoke build`` / ``invoke doctest``）。
+
+    doc.target <name>  ——  ``sphinx-build -M <target>`` 通用包装（latex/epub 等）
     doc.linkcheck      ——  外链完整性校验
     doc.help           ——  显示 Sphinx 内建目标帮助
-    doc.doctest        ——  ``-M doctest``
 """
 from invoke import Collection, task
 
@@ -12,7 +13,7 @@ from ._core import _resolve_or, _run_target
 
 
 @task
-def _target_build(
+def _target_target(
     _c,
     target: str,
     sourcedir: str = ".",
@@ -23,19 +24,6 @@ def _target_build(
     src = _resolve_or(_c, "source", sourcedir, "doc")
     bd = _resolve_or(_c, "builddir", builddir, "_build")
     _run_target(target, src, bd, opts=opts)
-
-
-@task
-def _target_html(
-    _c,
-    sourcedir: str = ".",
-    builddir: str = "_build",
-    opts: str = "",
-) -> None:
-    """``-M html``：构建 HTML。"""
-    src = _resolve_or(_c, "source", sourcedir, "doc")
-    bd = _resolve_or(_c, "builddir", builddir, "_build")
-    _run_target("html", src, bd, opts)
 
 
 @task
@@ -64,25 +52,10 @@ def _target_help(
     _run_target("help", src, bd, opts)
 
 
-@task
-def _target_doctest(
-    _c,
-    sourcedir: str = ".",
-    builddir: str = "_build",
-    opts: str = "",
-) -> None:
-    """``-M doctest``：运行 doctests（统一输出到 builddir/doctest）。"""
-    src = _resolve_or(_c, "source", sourcedir, "doc")
-    bd = _resolve_or(_c, "builddir", builddir, "_build")
-    _run_target("doctest", src, bd, opts)
-
-
 def build_targets_collection() -> Collection:
-    """组装 ``-M`` 目标子 Collection（5 个任务）。"""
+    """组装 ``-M`` 目标子 Collection（3 个任务，``help`` 为默认）。"""
     ns = Collection("doc")
-    ns.add_task(_target_build, name="build")
-    ns.add_task(_target_html, name="html")
+    ns.add_task(_target_target, name="target")
     ns.add_task(_target_linkcheck, name="linkcheck")
     ns.add_task(_target_help, name="help", default=True)
-    ns.add_task(_target_doctest, name="doctest")
     return ns
