@@ -10,6 +10,10 @@
 
 - **配置层：`config.py` 与 `configs.py` 合并为 `mystx.config` 包。** 两者文件名仅差一个 `s`，但职责分属不同生效时点：原 `configs.py` 服务构建期的 conf.py 字典组装，原 `config.py` 服务运行期 `config-inited` 对 Sphinx `Config` 的注入。现按该正交轴拆为 `mystx.config.defaults`（静态默认与 `build_base_config`）与 `mystx.config.runtime`（`ConfigManager`、`config_inited_handler` 等），由包 `__init__` 统一导出；`mystx.config.*` 的既有导入路径不变。
 - **默认值：书系主题 `navbar_persistent` 改为单一权威源。** `BOOK_THEME_OPTION_DEFAULTS` 取值改为引用 `themes.DEFAULT_BOOK_THEME_OPTIONS`，消除同一默认值两处副本，避免 preset 路径与运行期注入路径分叉后重现双搜索框回归。
+- **主题默认值：`theme.toml` 与 `themes.DEFAULT_BOOK_THEME_OPTIONS` 对齐并加机检守卫。** 二者对 13 个同名键各自声明，其中 8 个已分歧（`use_repository_button`/`use_source_button`/`use_issues_button`、`show_navbar_depth`、`max_navbar_depth`、`toc_title`、`navbar_persistent`），导致纯主题接入与 preset 接入呈现不同行为。现将 `theme.toml` 对齐到 Python 侧意图值，并新增 `tests/unit/test_theme_toml_consistency.py`，把"同名键取值必须一致"固化为机检门禁。
+- **预设：删除 `minimal_myst` 的 `_MINIMAL_KEY_DEFAULTS` 整表副本。** 其 5 个键与 `presets._shared._COMMON_KEY_DEFAULTS` 逐字相同，且后者本就先于前者叠加，属纯冗余。
+- **主题名单：`BOOK_THEME_NAMES` 收敛为 `themes.py` 单一权威源。** 原在 `DEFAULT_THEME_PRIORITY`、`resolve_theme_options` 字面量与 `config.defaults` 三处各写一份。
+- **sitemap 环境判定：抽取 `utils.sitemap_enabled_by_env()`。** `extensions._sitemap_conditional` 与 `config.defaults._resolve_html_baseurl` 改为共用同一分支实现，避免 CI/RTD 判定两处漂移。
 
 ### 破坏性变更
 
