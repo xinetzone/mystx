@@ -1,6 +1,6 @@
-"""mystx.tasks —— 可复用的 Sphinx + Invoke 任务命名空间（双模式：builder + make）。
+"""mystx.tasks —— 任务包门面，实现位于 ``mystx.tasks.doc``。
 
-典型用法（项目根 ``tasks.py``）::
+``create_ns`` 与 ``doc`` 在此再导出，保持既有调用方式不变::
 
     from mystx.tasks import create_ns
 
@@ -19,50 +19,11 @@ Make-mode（子命名空间 ``make.``）：
     invoke make.linkcheck  外链完整性校验
     invoke make.doctest    doctest（统一 builddir/doctest）
     invoke make.build target=latexpdf  通用包装 ``sphinx-build -M <target>``
+
+新代码建议直接引用实现所在包：``from mystx.tasks.doc import create_ns``。
 """
 
-from invoke import Collection
-
 from . import doc
+from .doc import create_ns
 
 __all__ = ["create_ns", "doc"]
-
-
-def create_ns(
-    *,
-    source: str = "doc",
-    target: str = "_build/html",
-    target_file: str = "index.html",
-    builddir: str = "_build",
-) -> Collection:
-    """组装一个 Invoke Collection，注入 Sphinx 路径默认配置。
-
-    所有参数关键字-only，避免调用者混淆参数顺序。
-
-    Args:
-        source:      Sphinx 源目录（含 conf.py）。默认 ``"doc"``。
-        target:      Builder-mode HTML 输出目录。默认 ``"_build/html"``。
-        target_file: 首页文件相对路径（预留 browse / CI 用）。默认 ``"index.html"``。
-        builddir:    Make-mode 总构建目录（所有 ``-M`` 目标挂其下）。默认 ``"_build"``。
-
-    Returns:
-        挂好 builder-mode 5 个根任务 + make-mode 子 Collection 的 invoke.Collection。
-    """
-    ns = Collection()
-    ns.add_task(doc.build, default=True)
-    ns.add_task(doc.clean)
-    ns.add_task(doc.browse)
-    ns.add_task(doc.tree)
-    ns.add_task(doc.doctest)
-    ns.add_collection(doc.build_make_collection())
-    ns.configure(
-        {
-            "sphinx": {
-                "source": source,
-                "target": target,
-                "target_file": target_file,
-                "builddir": builddir,
-            }
-        }
-    )
-    return ns
