@@ -91,15 +91,15 @@ def test_pages_workflow_invoke_calls_are_registered():
 
 def test_build_task_command_targets_doc_tree(monkeypatch):
     """build 任务拼装的 sphinx-build 命令必须指向 doc → doc/_build/html。"""
-    from mystx.tasks import docs
+    from mystx.tasks import doc
 
     ns = _load_root_namespace()
-    monkeypatch.setattr(docs, "_PARALLEL_FLAG_DEFAULT", "-j 4")
+    monkeypatch.setattr(doc, "_PARALLEL_FLAG_DEFAULT", "-j 4")
     captured: list[str] = []
     ctx = Context(config=ns.configuration())
     monkeypatch.setattr(ctx, "run", lambda cmd, pty: captured.append(cmd))
 
-    docs.build(ctx)
+    doc.build(ctx)
 
     assert len(captured) == 1
     tokens = shlex.split(captured[0], posix=False)

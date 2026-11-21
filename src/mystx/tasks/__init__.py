@@ -23,9 +23,9 @@ Make-mode（子命名空间 ``make.``）：
 
 from invoke import Collection
 
-from . import docs
+from . import doc
 
-__all__ = ["create_ns", "docs"]
+__all__ = ["create_ns", "doc"]
 
 
 def create_ns(
@@ -49,12 +49,12 @@ def create_ns(
         挂好 builder-mode 5 个根任务 + make-mode 子 Collection 的 invoke.Collection。
     """
     ns = Collection()
-    ns.add_task(docs.build, default=True)
-    ns.add_task(docs.clean)
-    ns.add_task(docs.browse)
-    ns.add_task(docs.tree)
-    ns.add_task(docs.doctest)
-    ns.add_collection(docs.build_make_collection())
+    ns.add_task(doc.build, default=True)
+    ns.add_task(doc.clean)
+    ns.add_task(doc.browse)
+    ns.add_task(doc.tree)
+    ns.add_task(doc.doctest)
+    ns.add_collection(doc.build_make_collection())
     ns.configure(
         {
             "sphinx": {
