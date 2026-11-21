@@ -7,9 +7,15 @@ from sphinx.util import logging as sphinx_logging
 
 from .utils import deep_merge, has_module
 
-DEFAULT_THEME_PRIORITY: tuple[str, ...] = (
+# 书系主题名单的唯一权威源：主题选择优先级、主题选项注入、运行期结构性默认
+# 均引用此常量，避免同一名单在包内多处维护。
+BOOK_THEME_NAMES: tuple[str, ...] = (
     "mystx",
     "sphinx_book_theme",
+)
+
+DEFAULT_THEME_PRIORITY: tuple[str, ...] = (
+    *BOOK_THEME_NAMES,
     "alabaster",
 )
 
@@ -75,7 +81,7 @@ def resolve_theme_options(
     其他主题返回空字典或 override 原样。
     """
     base: dict[str, object] = {}
-    if theme in ("sphinx_book_theme", "mystx"):
+    if theme in BOOK_THEME_NAMES:
         base = dict(book_defaults)
     return deep_merge(base, override or {})
 

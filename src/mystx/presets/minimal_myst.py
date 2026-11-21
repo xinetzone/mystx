@@ -7,14 +7,6 @@ from ..themes import resolve_theme, resolve_theme_options
 from ..utils import deep_merge
 from ._shared import build_project_meta, build_setup_closure
 
-_MINIMAL_KEY_DEFAULTS: dict[str, Any] = {
-    "project": "Untitled Project",
-    "author": "Unknown Author",
-    "release": "0.1.0",
-    "version": "0.1.0",
-    "language": "en",
-}
-
 
 def build_config(override: dict[str, Any] | None = None) -> dict[str, Any]:
     """极简 MyST 预设：仅保留 ``myst_parser`` + 两个兼容性钩子。
@@ -43,7 +35,7 @@ def build_config(override: dict[str, Any] | None = None) -> dict[str, Any]:
     params["html_theme"] = theme
     params["html_theme_options"] = theme_options
     params["extensions"] = extensions
-    project_meta = build_project_meta(params, _MINIMAL_KEY_DEFAULTS)
+    project_meta = build_project_meta(params)
     project_meta["extensions"] = extensions
     project_meta["html_theme"] = theme
     project_meta["html_theme_options"] = theme_options

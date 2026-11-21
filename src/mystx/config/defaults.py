@@ -8,8 +8,8 @@
 import os
 from typing import Any
 
-from ..themes import DEFAULT_BOOK_THEME_OPTIONS
-from ..utils import deep_merge
+from ..themes import BOOK_THEME_NAMES, DEFAULT_BOOK_THEME_OPTIONS
+from ..utils import deep_merge, sitemap_enabled_by_env
 
 DEFAULT_MYST_CONFIG: dict[str, Any] = {
     "myst_enable_extensions": [
@@ -65,11 +65,11 @@ DEFAULT_HTML_CONFIG: dict[str, Any] = {
 
 def _resolve_html_baseurl(params: dict[str, Any]) -> str | None:
     """从环境变量 / 项目参数中推断 ``html_baseurl`` 的取值（sitemap + ogp 需要）。"""
+    if not sitemap_enabled_by_env():
+        return None
     if os.environ.get("GITHUB_ACTIONS"):
         return os.environ.get("SITEMAP_URL_BASE", params.get("site_url"))
-    if not os.environ.get("READTHEDOCS"):
-        return params.get("site_url") or "http://127.0.0.1:8000/"
-    return None
+    return params.get("site_url") or "http://127.0.0.1:8000/"
 
 
 def build_base_config(params: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -93,7 +93,7 @@ def build_base_config(params: dict[str, Any] | None = None) -> dict[str, Any]:
     return deep_merge(merged, params.get("config_override") or {})
 
 
-# 书系主题（mystx 及其父主题 sphinx_book_theme）的结构性默认选项。
+# 书系主题名单与结构性默认均来自 ``themes``（唯一权威源）。
 # pydata-sphinx-theme 0.16+ 在 builder-inited 阶段会向未声明
 # ``navbar_persistent`` 的项目自动注入 ``["search-button-field"]``，
 # 使顶栏出现搜索按钮；而书系主题的主侧边栏已内置同一搜索按钮
@@ -101,8 +101,6 @@ def build_base_config(params: dict[str, Any] | None = None) -> dict[str, Any]:
 # 产生双搜索框。书系主题的设计意图是只保留侧边栏搜索，故在
 # config-inited（早于 builder-inited）补齐空列表默认；仅在用户未
 # 显式声明时生效，用户配置（conf.py / _config.toml）优先。
-BOOK_THEME_NAMES = ("mystx", "sphinx_book_theme")
-
 # 单一权威源：取值引用 ``themes.DEFAULT_BOOK_THEME_OPTIONS``，避免同一默认值
 # 在本包内出现两份副本（曾因两侧各自维护而在 preset 路径与服务路径之间产生分歧）。
 BOOK_THEME_OPTION_DEFAULTS: dict[str, object] = {

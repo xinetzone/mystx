@@ -1,5 +1,16 @@
 import importlib.util
+import os
 from typing import Any
+
+
+def sitemap_enabled_by_env() -> bool:
+    """当前环境是否需要 mystx 自行生成 sitemap 所需配置。
+
+    判定规则由包内唯一实现：GitHub Actions 有显式 baseurl；非 ReadTheDocs
+    环境可回退到本地站点；ReadTheDocs 自带 sitemap 生成，故不注入。
+    扩展启用判定与 ``html_baseurl`` 推断共用本函数，避免两处各写一遍分支。
+    """
+    return bool(os.environ.get("GITHUB_ACTIONS")) or not os.environ.get("READTHEDOCS")
 
 
 def has_module(mod: str) -> bool:

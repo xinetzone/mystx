@@ -1,7 +1,6 @@
-import os
 from collections.abc import Callable, Sequence
 
-from .utils import has_module
+from .utils import has_module, sitemap_enabled_by_env
 
 
 def resolve_extensions(
@@ -67,11 +66,7 @@ DEFAULT_OPTIONAL_EXTENSIONS: tuple[str, ...] = (
 
 def _sitemap_conditional() -> bool:
     """sitemap 扩展启用条件：非 RTD 环境且有本地/CI 可用的 baseurl。"""
-    if os.environ.get("GITHUB_ACTIONS"):
-        return True
-    if not os.environ.get("READTHEDOCS"):
-        return True
-    return False
+    return sitemap_enabled_by_env()
 
 
 DEFAULT_CONDITIONAL: tuple[tuple[str, Callable[[], bool]], ...] = (
