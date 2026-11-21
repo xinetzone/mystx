@@ -1,7 +1,7 @@
 """Builder-mode 文档任务（挂在根命名空间，``invoke <name>`` 直接调用）。
 
     build    (default)  ——  builder-mode 构建，支持 clean/browse/nitpick 链式开关
-    clean              ——  删除单个 target 目录（mode='builder'）或 make-mode 全清理
+    clean              ——  删除单个 target 目录（mode='builder'）或 ``-M`` 全清理
     browse             ——  启动本地 HTTP 服务器预览
     tree               ——  文本树列出构建产物
     doctest            ——  builder-mode doctest
@@ -25,7 +25,7 @@ from ._core import (
     _PARALLEL_FLAG_DEFAULT,
     _collect_sphinx_opts,
     _resolve,
-    _run_make_mode,
+    _run_target,
 )
 
 
@@ -33,13 +33,13 @@ from ._core import (
 def clean(
     c,
     target: str | None = None,
-    mode: Literal["builder", "make"] = "builder",
+    mode: Literal["builder", "targets"] = "builder",
     source: str | None = None,
     builddir: str | None = None,
     opts: str = "",
 ) -> None:
     """清理构建产物。``mode='builder'`` 为默认值，只删单个 target 目录并回收空父目录；
-    ``mode='make'`` 等价于 ``sphinx-build -M clean``，清理 builddir 下所有子构建。"""
+    ``mode='targets'`` 等价于 ``sphinx-build -M clean``，清理 builddir 下所有子构建。"""
     if mode == "builder":
         tgt = _resolve(c, "target", target, "_build/html")
         tgt_path = Path(tgt)
@@ -49,12 +49,12 @@ def clean(
         while parent and os.path.isdir(parent) and not os.listdir(parent):
             os.rmdir(parent)
             parent = os.path.dirname(parent)
-    elif mode == "make":
+    elif mode == "targets":
         src = _resolve(c, "source", source, "doc")
         bd = _resolve(c, "builddir", builddir, "_build")
-        _run_make_mode("clean", sourcedir=src, builddir=bd, opts=opts)
+        _run_target("clean", sourcedir=src, builddir=bd, opts=opts)
     else:
-        raise Exit(f"clean: unknown mode={mode!r} (expected 'builder' or 'make')")
+        raise Exit(f"clean: unknown mode={mode!r} (expected 'builder' or 'targets')")
 
 
 # build 的 ``--clean``/``--browse`` 形参与任务同名，函数体经私有别名调用，

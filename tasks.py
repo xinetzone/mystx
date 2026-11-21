@@ -6,7 +6,7 @@ invoke 只能从执行目录的 ``tasks`` 集合发现任务，本文件是 ``my
     invoke build            构建 HTML 到 doc/_build/html（默认任务）
     invoke clean            清理构建产物
     invoke browse           本地 HTTP 预览
-    invoke make.linkcheck   外链完整性校验
+    invoke targets.linkcheck   外链完整性校验
 
 ``.github/workflows/pages.yml`` 的调用名由
 ``tests/unit/test_repo_tasks_entry.py`` 与本命名空间静态对账，

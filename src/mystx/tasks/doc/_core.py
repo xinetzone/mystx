@@ -70,13 +70,13 @@ def _resolve_or(c, key: str, override: str, fallback: str) -> str:
     return override
 
 
-def _run_make_mode(
+def _run_target(
     target: str,
     sourcedir: str,
     builddir: str,
     opts: str = "",
 ) -> None:
-    """包装 ``sphinx-build -M`` 模式；读取 ``$SPHINXBUILD`` 覆盖可执行路径。"""
+    """调用 ``sphinx-build -M <target>``；读取 ``$SPHINXBUILD`` 覆盖可执行路径。"""
     sphinx_build = os.environ.get("SPHINXBUILD", "sphinx-build")
     command = [
         sphinx_build,

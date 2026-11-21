@@ -1,6 +1,6 @@
 """文档任务命名空间的装配逻辑（``build_ns``）。
 
-把 builder-mode 的 5 个根任务与 make-mode 子 Collection 装配成单个
+把 builder-mode 的 5 个根任务与 ``-M`` 目标子 Collection 装配成单个
 ``invoke.Collection``，并把 Sphinx 路径默认值写入 ``sphinx`` 配置段。
 
 域契约：本函数只装配 ``doc`` 域，不触碰根命名空间。
@@ -8,7 +8,7 @@
 from invoke import Collection
 
 from .builder import browse, build, clean, doctest, tree
-from .make import build_make_collection
+from .targets import build_targets_collection
 
 __all__ = ["build_ns"]
 
@@ -28,10 +28,10 @@ def build_ns(
         source:      Sphinx 源目录（含 conf.py）。默认 ``"doc"``。
         target:      Builder-mode HTML 输出目录。默认 ``"_build/html"``。
         target_file: 首页文件相对路径（预留 browse / CI 用）。默认 ``"index.html"``。
-        builddir:    Make-mode 总构建目录（所有 ``-M`` 目标挂其下）。默认 ``"_build"``。
+        builddir:    ``-M`` 目标总构建目录（所有 target 挂其下）。默认 ``"_build"``。
 
     Returns:
-        挂好 builder-mode 5 个根任务 + make-mode 子 Collection 的 invoke.Collection。
+        挂好 builder-mode 5 个根任务 + ``-M`` 目标子 Collection 的 invoke.Collection。
     """
     ns = Collection()
     ns.add_task(build, default=True)
@@ -39,7 +39,7 @@ def build_ns(
     ns.add_task(browse)
     ns.add_task(tree)
     ns.add_task(doctest)
-    ns.add_collection(build_make_collection())
+    ns.add_collection(build_targets_collection())
     ns.configure(
         {
             "sphinx": {
