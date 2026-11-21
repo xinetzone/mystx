@@ -122,11 +122,13 @@ def tree(c, target: str | None = None) -> None:
 def doctest(
     c,
     source: str | None = None,
-    build_dir: str = "_build/doctest",
+    build_dir: str | None = None,
     opts: str = "",
 ) -> None:
-    """运行 Sphinx doctest 构建器（builder-mode，独立 build_dir）。"""
+    """运行 Sphinx doctest 构建器（builder-mode，默认输出到 ``<builddir>/doctest``）。"""
     src = _resolve(c, "source", source, "doc")
+    if build_dir is None:
+        build_dir = os.path.join(_resolve(c, "builddir", None, "_build"), "doctest")
     tokens = ["sphinx-build", "-b", "doctest", *_collect_sphinx_opts(opts), src, build_dir]
     run_cmd(c, tokens)
 

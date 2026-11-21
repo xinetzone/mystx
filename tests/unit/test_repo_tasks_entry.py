@@ -47,14 +47,18 @@ def _load_root_namespace() -> Collection:
 
 
 def test_root_tasks_py_locks_doc_layout():
-    """根命名空间的 sphinx 路径配置必须与 doc/ 布局及工作流校验路径一致。"""
+    """根命名空间的 sphinx 路径配置必须锚定到仓库 doc/ 布局的绝对路径。
+
+    绝对化是为规避 cmd.exe 不支持 UNC 工作目录（会退到 C:\\Windows，
+    相对路径 ``doc`` 被解析到 ``C:\\Windows\\doc``）导致的构建失败。
+    """
     ns = _load_root_namespace()
     sphinx_cfg = ns.configuration()["sphinx"]
     assert sphinx_cfg == {
-        "source": "doc",
-        "target": "doc/_build/html",
+        "source": str(_REPO_ROOT / "doc"),
+        "target": str(_REPO_ROOT / "doc" / "_build" / "html"),
         "target_file": "index.html",
-        "builddir": "doc/_build",
+        "builddir": str(_REPO_ROOT / "doc" / "_build"),
     }
 
 
@@ -108,7 +112,10 @@ def test_build_task_command_targets_doc_tree(monkeypatch):
     tokens = shlex.split(captured[0], posix=False)
     assert tokens[0] == "sphinx-build"
     assert "-b" in tokens and tokens[tokens.index("-b") + 1] == "html"
-    assert tokens[-2:] == ["doc", "doc/_build/html"]
+    assert tokens[-2:] == [
+        str(_REPO_ROOT / "doc"),
+        str(_REPO_ROOT / "doc" / "_build" / "html"),
+    ]
     assert "-j" in tokens and tokens[tokens.index("-j") + 1] == "4"
 
 
