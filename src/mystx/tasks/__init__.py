@@ -16,7 +16,6 @@
     ns = build_ns(source="doc", target="_build/html", builddir="_build")
 """
 
-from . import doc
 from .doc import build_ns
 
-__all__ = ["build_ns", "doc"]
+__all__ = ["build_ns"]
