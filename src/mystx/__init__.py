@@ -17,13 +17,13 @@ from sphinx.util import logging
 from sphinx.util.typing import ExtensionMetadata
 
 from . import presets
-from .config import config_inited_handler
-from .configs import (
+from .config import (
     DEFAULT_BUILD_CONFIG,
     DEFAULT_EXT_CONFIG,
     DEFAULT_HTML_CONFIG,
     DEFAULT_MYST_CONFIG,
     build_base_config,
+    config_inited_handler,
 )
 from .extensions import DEFAULT_CONDITIONAL, DEFAULT_OPTIONAL_EXTENSIONS, resolve_extensions
 from .myst_compat import register_hooks as register_myst_compat_hooks

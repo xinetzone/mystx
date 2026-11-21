@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
-"""
-配置管理模块
+"""运行期配置：对已初始化的 Sphinx ``Config`` 对象做注入与合并。
 
-该模块负责处理mystx主题的配置加载、应用和交互式功能设置。
+与 :mod:`mystx.config.defaults` 的分工：本模块只在 ``config-inited`` 等事件
+触发后被调用，处理 ``_config.toml`` 加载、``html_theme_options`` 合并、
+书系主题结构性默认补齐，以及 Thebe / 版本切换器的延迟注册。
 """
 
 import tomllib
@@ -15,9 +15,9 @@ from sphinx.config import Config
 from sphinx.errors import ExtensionError
 from sphinx.util import logging
 
-from .themes import DEFAULT_BOOK_THEME_OPTIONS
-from .utils import deep_merge
-from .version_switcher import sphinx_setup as version_switcher_setup
+from ..utils import deep_merge
+from ..version_switcher import sphinx_setup as version_switcher_setup
+from .defaults import BOOK_THEME_NAMES, BOOK_THEME_OPTION_DEFAULTS
 
 # 获取Sphinx日志记录器
 logger = logging.getLogger(__name__)
@@ -86,23 +86,6 @@ class ConfigManager:
         self.config.html_theme_options = deep_merge(self.config.html_theme_options, custom_config["html_theme_options"], remove_marker=None)
 
         self.logger.info("已成功更新html_theme_options配置")
-
-
-# 书系主题（mystx 及其父主题 sphinx_book_theme）的结构性默认选项。
-# pydata-sphinx-theme 0.16+ 在 builder-inited 阶段会向未声明
-# ``navbar_persistent`` 的项目自动注入 ``["search-button-field"]``，
-# 使顶栏出现搜索按钮；而书系主题的主侧边栏已内置同一搜索按钮
-# （theme.toml sidebars 中的 search-button-field.html），两者叠加即
-# 产生双搜索框。书系主题的设计意图是只保留侧边栏搜索，故在
-# config-inited（早于 builder-inited）补齐空列表默认；仅在用户未
-# 显式声明时生效，用户配置（conf.py / _config.toml）优先。
-BOOK_THEME_NAMES = ("mystx", "sphinx_book_theme")
-
-# 单一权威源：取值引用 ``themes.DEFAULT_BOOK_THEME_OPTIONS``，避免同一默认值
-# 在本包内出现两份副本（曾因两侧各自维护而在 preset 路径与服务路径之间产生分歧）。
-BOOK_THEME_OPTION_DEFAULTS: dict[str, object] = {
-    "navbar_persistent": DEFAULT_BOOK_THEME_OPTIONS["navbar_persistent"],
-}
 
 
 def apply_book_theme_option_defaults(config: Config) -> None:

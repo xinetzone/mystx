@@ -1,7 +1,15 @@
+"""构建期配置：静态默认字典与纯函数组装。
+
+本模块不依赖任何已存在的 Sphinx 应用实例，只负责把默认字典与项目参数
+合成为一份 conf.py 风格的核心配置字典；运行期对 ``Config`` 的注入见
+:mod:`mystx.config.runtime`。
+"""
+
 import os
 from typing import Any
 
-from .utils import deep_merge
+from ..themes import DEFAULT_BOOK_THEME_OPTIONS
+from ..utils import deep_merge
 
 DEFAULT_MYST_CONFIG: dict[str, Any] = {
     "myst_enable_extensions": [
@@ -83,3 +91,20 @@ def build_base_config(params: dict[str, Any] | None = None) -> dict[str, Any]:
         merged["ogp_site_url"] = params["site_url"]
 
     return deep_merge(merged, params.get("config_override") or {})
+
+
+# 书系主题（mystx 及其父主题 sphinx_book_theme）的结构性默认选项。
+# pydata-sphinx-theme 0.16+ 在 builder-inited 阶段会向未声明
+# ``navbar_persistent`` 的项目自动注入 ``["search-button-field"]``，
+# 使顶栏出现搜索按钮；而书系主题的主侧边栏已内置同一搜索按钮
+# （theme.toml sidebars 中的 search-button-field.html），两者叠加即
+# 产生双搜索框。书系主题的设计意图是只保留侧边栏搜索，故在
+# config-inited（早于 builder-inited）补齐空列表默认；仅在用户未
+# 显式声明时生效，用户配置（conf.py / _config.toml）优先。
+BOOK_THEME_NAMES = ("mystx", "sphinx_book_theme")
+
+# 单一权威源：取值引用 ``themes.DEFAULT_BOOK_THEME_OPTIONS``，避免同一默认值
+# 在本包内出现两份副本（曾因两侧各自维护而在 preset 路径与服务路径之间产生分歧）。
+BOOK_THEME_OPTION_DEFAULTS: dict[str, object] = {
+    "navbar_persistent": DEFAULT_BOOK_THEME_OPTIONS["navbar_persistent"],
+}
