@@ -12,7 +12,7 @@ build:
   # mambaforge 工具链解析失败（asdf install 报
   # EnvironmentLocationNotFound: conda/latest，构建仅十余秒即失败，
   # 见 RTD build 35084329）。本项目仅需 pip 依赖（dev-environment.yml
-  # 的 conda 环境实质也只安装 .[docs]），故直接使用 CPython。
+  # 的 conda 环境实质也只安装 .[doc]），故直接使用 CPython。
   os: ubuntu-24.04
   tools:
     # 项目 requires-python >= 3.14，RTD 支持矩阵已提供 CPython 3.14
@@ -44,4 +44,4 @@ python:
     - method: pip
       path: .
       extra_requirements:
-        - docs
+        - doc

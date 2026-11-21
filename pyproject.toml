@@ -45,7 +45,7 @@ Issues = "https://github.com/xinetzone/mystx/issues"
 mystx = "mystx"
 
 [project.optional-dependencies]
-docs = [
+doc = [
     "sphinx>=8.0",
     "myst-parser>=4.0",
     "sphinx-book-theme>=1.1",
@@ -117,7 +117,7 @@ dev = [
 
 [dependency-groups]
 dev = [
-    {include-group = "docs"},
+    {include-group = "doc"},
     {include-group = "test"},
     {include-group = "lint"},
     {include-group = "build"},
@@ -128,7 +128,7 @@ dev = [
     "packaging>=24.0",
     "sphinx-intl",
 ]
-docs = [
+doc = [
     "sphinx>=8.0",
     "myst-parser>=4.0",
     "sphinx-book-theme>=1.1",
