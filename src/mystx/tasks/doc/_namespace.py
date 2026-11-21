@@ -1,24 +1,26 @@
-"""文档任务命名空间的装配逻辑（``create_ns``）。
+"""文档任务命名空间的装配逻辑（``build_ns``）。
 
 把 builder-mode 的 5 个根任务与 make-mode 子 Collection 装配成单个
 ``invoke.Collection``，并把 Sphinx 路径默认值写入 ``sphinx`` 配置段。
+
+域契约：本函数只装配 ``doc`` 域，不触碰根命名空间；``create_ns`` 为历史别名。
 """
 from invoke import Collection
 
 from .builder import browse, build, clean, doctest, tree
 from .make import build_make_collection
 
-__all__ = ["create_ns"]
+__all__ = ["build_ns", "create_ns"]
 
 
-def create_ns(
+def build_ns(
     *,
     source: str = "doc",
     target: str = "_build/html",
     target_file: str = "index.html",
     builddir: str = "_build",
 ) -> Collection:
-    """组装一个 Invoke Collection，注入 Sphinx 路径默认配置。
+    """组装 ``doc`` 域的 Invoke Collection，注入 Sphinx 路径默认配置。
 
     所有参数关键字-only，避免调用者混淆参数顺序。
 
@@ -49,3 +51,7 @@ def create_ns(
         }
     )
     return ns
+
+
+# 兼容别名：既有入口 ``mystx.tasks.create_ns`` 保持不变。
+create_ns = build_ns
