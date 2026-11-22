@@ -25,10 +25,10 @@ except Exception:
     release = os.environ.get("MYSTX_VERSION", "0.0.0")
 # 启用字体配置
 try:
-    from taolib.plot.configs.matplotlib_font import configure_matplotlib_fonts
+    from taolib.fonts import configure_matplotlib_fonts
     configure_matplotlib_fonts(
         font_directory=ROOT/'doc/_static/fonts',
-        target_fonts=['Maple Mono NF CN', 'Noto Color Emoji']
+        families=('Maple Mono NF CN', 'Noto Color Emoji')
     )
 except Exception as e:
     print(f"字体配置失败: {e}")
