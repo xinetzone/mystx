@@ -21,7 +21,7 @@
 | 我想…… | 从这里开始 |
 |---|---|
 | 用 mystx 主题构建自己的文档 | [README 快速开始](https://github.com/xinetzone/mystx#快速开始) |
-| 配置主题选项（仓库按钮、导航深度、页脚等） | [`_config.toml`](_config.toml) + [README 配置指南](https://github.com/xinetzone/mystx#%EF%B8%8F-配置指南) |
+| 配置站点取值与主题选项（仓库按钮、导航深度、页脚等） | [`conf.py`](conf.py) + [README 配置指南](https://github.com/xinetzone/mystx#%EF%B8%8F-配置指南) |
 | 在文档里嵌入 GitHub 统计卡片 | [ext/github-readme-stats/index.md](ext/github-readme-stats/index.md) |
 | 在线试写 MyST 并实时预览 | [ext/live-preview/index.md](ext/live-preview/index.md) |
 | 查 mystx 包的 Python API | 构建产物 `autoapi/`（由 `conf.py` 中 `autoapi.extension` 生成） |
