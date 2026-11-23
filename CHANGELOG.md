@@ -14,6 +14,14 @@
 - **预设：删除 `minimal_myst` 的 `_MINIMAL_KEY_DEFAULTS` 整表副本。** 其 5 个键与 `presets._shared._COMMON_KEY_DEFAULTS` 逐字相同，且后者本就先于前者叠加，属纯冗余。
 - **主题名单：`BOOK_THEME_NAMES` 收敛为 `themes.py` 单一权威源。** 原在 `DEFAULT_THEME_PRIORITY`、`resolve_theme_options` 字面量与 `config.defaults` 三处各写一份。
 - **sitemap 环境判定：抽取 `utils.sitemap_enabled_by_env()`。** `extensions._sitemap_conditional` 与 `config.defaults._resolve_html_baseurl` 改为共用同一分支实现，避免 CI/RTD 判定两处漂移。
+- **文档站：从 `doc/conf.py` 萃取五个可复用单元到包内。** 原实现把跨项目通用的逻辑内联在单项目配置文件中，其他文档站只能复制：
+  - 新增 `mystx.parallel`：中心化并行安全覆写表 + `env-before-read-docs` fail-fast 守卫。覆写表按扩展名批量声明 `parallel_{read,write}_safe`，未加载的扩展名静默跳过（一张表可跨项目复用）；守卫仅在调用方显式要求并行（`-j` / `$SPHINX_BUILD_JOBS`）时触发，并列出阻塞扩展名。
+  - 新增 `mystx.myst_docs`：把 `myst_parser._docs` 的七个文档工具指令、两个后置变换与 `myst` 词法器收拢为 `register_docs_directives()`；示例指令的三个 CSS 类名由 `example_prefix` 参数化（默认 `myst-example`，与原 `local.css` 契约一致）。缺失 `myst-parser>=5.1` 时抛出带安装提示的 `ImportError`。
+  - 新增 `mystx.fonts`：`configure_optional_matplotlib_fonts()` 把「字体包 / 字体目录 / 调用异常」三重守卫与静默降级收拢，返回是否生效，绝不抛出。
+  - `mystx.utils.resolve_release()`：版本回退链「分发包元数据 → 环境变量 → 兜底值」，替代 `conf.py` 内联 try-except。
+  - 新增 `mystx.ext.gallery`：`gallery-grid` 指令由 `doc/_ext/` 迁入包内（旧副本 `doc/_ext/gallery_directive.py` 已删除），下游无需再把 `doc/` 插入 `sys.path`；同时修复参数形式（YAML 文件路径不存在时）返回 `None` 导致指令异常的问题，改为返回提示段落并记 warning。
+- **配置：新增 `DEFAULT_SITE_CONFIG`。** 收纳与项目身份无关的文档站通用键（`graphviz_output_format`、`inheritance_graph_attrs`、`sitemap_locales`、`tippy_rtd_urls` 与三条通用 `nitpick_ignore`）；**不**并入 `build_base_config`，由调用方显式取用，避免改变既有 preset 行为。
+- **`doc/conf.py` 改为消费上述包内能力。** MyST 文档工具指令注册、并行覆写与守卫、字体增强、版本解析、gallery 扩展名均由包内提供；`invoke.Collection` 这一项目侧豁免项在 `DEFAULT_SITE_CONFIG` 基础上单独追加。同时移除了「mystx 不可导入」的降级分支——该分支不可达（同文件末尾无条件追加的 `mystx.ext.github_readme_stats` 与 autoapi 源目录都依赖包本身），保留它只会在 `conf.py` 内留下 `DEFAULT_SITE_CONFIG` 的第二份字面量，重现本仓反复修复的「双源漂移」缺陷。
 
 ### 修复
 
@@ -34,6 +42,8 @@
 
 - **补齐扩展与文档任务的回归用例。** 新增 `tests/unit/test_github_readme_stats.py`（HTML 转义、URL 拼装、缺参报错）以及 `tree`、`clean`、`browse`、`-M` 包装共 12 条用例；`tasks/doc/builder.py` 覆盖率 98%，`github_readme_stats` 的 `base.py` 与 `pinned_repo.py` 均达 100%。
 - **`browse` 补充端到端集成用例。** 真实拉起 `http.server` 并回读页面内容，另覆盖端口占用时的自增选择。
+- **mermaid 补充端到端构建用例。** 经 `build_minimal_myst_config` 装配 `sphinxcontrib.mermaid`，断言围栏被转换为 `mermaid` 指令节点并渲染出容器；构建在子进程中隔离执行，避免同进程多次 `Sphinx()` 的注册表污染。
+- **萃取层机检门禁。** 新增 `test_parallel.py`（覆写/跳过/守卫三种触发条件）、`test_myst_docs.py`（类名派生、注册顺序、可选开关、缺依赖报错）、`test_fonts.py`（缺失、目录不存在、成功转发、后端抛错）、`test_ext_gallery.py` 与 `test_conf_py.py`（conf.py 确实消费包内能力，防止又长回内联副本）；`test_utils.py` 补齐 `resolve_release` 的四条回退链用例。
 
 ### 破坏性变更
 
