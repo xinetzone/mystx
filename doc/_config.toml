@@ -1,14 +1,14 @@
-# 站点配置：纯取值集中在此，机制（扩展装配、主题决策、环境分支）留在 doc/_conf/。
+# 站点配置：纯取值集中在此，机制（扩展装配、主题决策、环境分支、钩子）在 doc/conf.py。
 # 由包内 mystx.config.runtime.ConfigManager 在 config-inited 合并进 Sphinx Config。
 
-# ---- 站点元信息（原 _conf/meta.py 的纯取值）----
-# 注意：language / locale_dirs / gettext_compact 必须留在 _conf/meta.py——
+# ---- 站点元信息 ----
+# 注意：language / locale_dirs / gettext_compact 必须留在 conf.py——
 # Sphinx 在 config-inited 之前就要初始化 i18n，延迟合并会导致译文不加载。
 project = "mystx"
 author = "xinetzone"
 copyright = "2026, xinetzone"
 
-# ---- 外观与静态资源（原 _conf/appearance.py 的纯取值）----
+# ---- 外观与静态资源 ----
 # README.md 面向仓库读者，站点根入口为 index.md
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "README.md"]
 html_static_path = ["_static"]

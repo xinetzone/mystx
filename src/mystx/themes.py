@@ -1,7 +1,7 @@
 """主题选择、主题选项默认值与 mystx 主题注册。
 
 主题优先级与书系主题名单是本模块的单一权威源：运行期结构性默认、站点配置与
-``doc/_conf`` 均从这里取值，包内不再维护第二份名单。
+``conf.py`` 均从这里取值，包内不再维护第二份名单。
 """
 from collections.abc import Sequence
 from dataclasses import dataclass, field
