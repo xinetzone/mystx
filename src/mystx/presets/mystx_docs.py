@@ -118,7 +118,9 @@ THEME_OPTIONS = {
 
 BIBTEX_BIBFILES = ["refs.bib"]
 INTERSPHINX_MAPPING = {
-    "python": ("https://docs.python.org/3.14", None),
+    # 第二条给本地清单文件名（相对 srcdir）：docs.python.org 的 TLS 握手实测约 40s，
+    # 取回一次后落盘复用；Python 版本升级时重新下载 _inv/python.inv
+    "python": ("https://docs.python.org/3.14", "_inv/python.inv"),
     "sphinx": ("https://daobook.github.io/sphinx/", None),
     "pst": ("https://daobook.github.io/pydata-sphinx-theme/", None),
     "sbt": ("https://daobook.github.io/sphinx-book-theme/", None),
