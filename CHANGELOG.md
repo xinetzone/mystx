@@ -6,6 +6,10 @@
 
 ## [Unreleased]
 
+### 新增
+
+- **CI：新增 `tests` 工作流与覆盖率门禁。** `.github/workflows/tests.yml` 在 push / PR 到 `main` 时执行 `pytest tests/unit --cov=mystx --cov-fail-under=70`。`checkout` 取完整历史（setuptools-scm 依 git 标签推算版本，浅克隆会让版本号退化）；安装 `.[test,doc]`——`test_doc_parallel_extensions_p1` 会加载 16 个可选扩展，doc 额外依赖是其硬前置。门禁下限取 70%：2026-11-23 本地实测 83%（105 passed），留 13 点缓冲，待 CI 稳定后再逐步上调。
+
 ### 变更
 
 - **配置层：`config.py` 与 `configs.py` 合并为 `mystx.config` 包。** 两者文件名仅差一个 `s`，但职责分属不同生效时点：原 `configs.py` 服务构建期的 conf.py 字典组装，原 `config.py` 服务运行期 `config-inited` 对 Sphinx `Config` 的注入。现按该正交轴拆为 `mystx.config.defaults`（静态默认与 `build_base_config`）与 `mystx.config.runtime`（`ConfigManager`、`config_inited_handler` 等），由包 `__init__` 统一导出；`mystx.config.*` 的既有导入路径不变。

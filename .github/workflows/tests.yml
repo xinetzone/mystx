@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pytest:
+    name: pytest + coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # setuptools-scm 依据 git 标签推算版本，浅克隆会让版本号退化
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install package with test and doc extras
+        # doc 额外依赖是 tests/unit/test_doc_parallel_extensions_p1.py 的硬前置：
+        # 该用例会加载 16 个可选扩展并校验 parallel_*_safe
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[test,doc]"
+      - name: Run tests with coverage gate
+        # 门禁下限 70%（交付总结 A4）：2026-11-23 本地实测 83%（105 passed），留 13 点缓冲，
+        # 待 CI 稳定后再逐步上调
+        run: |
+          python -m pytest tests/unit \
+            --cov=mystx \
+            --cov-report=term-missing \
+            --cov-fail-under=70
