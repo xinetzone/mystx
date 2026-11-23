@@ -1,18 +1,9 @@
 #!/usr/bin/env python3
 # ruff: noqa: E402, F401
-"""Sphinx 文档配置入口。
+"""Sphinx 文档配置入口：引导 ``sys.path``，再按依赖顺序再导出 ``doc/_conf/`` 分组。
 
-本文件只做装配：引导 ``doc`` 进入 ``sys.path``，再按依赖顺序从 ``doc/_conf/``
-再导出各分组。分组职责见 ``_conf/__init__`` 的说明。
-
-导入顺序即依赖顺序，不可随意调整：
-
-- ``appearance`` 触发字体增强副作用，并依赖 ``common.ROOT``；
-- ``extensions`` 依赖 ``meta.project`` 与 ``common.ROOT``；
-- ``guard`` 的 ``setup()`` 依赖 ``meta.release``。
-
-``_conf`` 为普通包，``sys.path`` 引导必须先于其导入；因此本文件保留
-``E402`` 文件级豁免。
+导入顺序即依赖顺序：``appearance`` 触发字体增强副作用；``extensions`` 依赖
+``meta.project`` 与 ``common.ROOT``；``guard.setup()`` 依赖 ``meta.release``。
 """
 import sys
 from pathlib import Path
