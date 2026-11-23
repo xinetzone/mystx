@@ -1,6 +1,4 @@
 """项目元信息与国际化、本地化配置。"""
-from __future__ import annotations
-
 from mystx.utils import resolve_release
 
 project = "mystx"

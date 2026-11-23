@@ -1,6 +1,4 @@
 """MyST 解析、交叉引用、短链接与告警抑制配置。"""
-from __future__ import annotations
-
 import os
 
 from mystx.config import DEFAULT_SITE_CONFIG

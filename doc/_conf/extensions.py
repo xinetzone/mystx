@@ -3,8 +3,6 @@
 装配顺序即 ``extensions`` 列表的最终顺序，改动前先确认扩展间依赖
 （例如 ``myst_parser`` 与 ``myst_nb`` 互斥，见 tests/unit/test_doc_parallel_extensions_p1.py）。
 """
-from __future__ import annotations
-
 import os
 
 from mystx.config import DEFAULT_SITE_CONFIG

@@ -1,6 +1,4 @@
 """Sphinx ``setup()``：文档指令注册与并行守卫。"""
-from __future__ import annotations
-
 from sphinx.application import Sphinx
 
 from mystx.myst_docs import register_docs_directives

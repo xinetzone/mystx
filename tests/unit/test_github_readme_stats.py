@@ -1,6 +1,4 @@
 """GitHub Readme Stats 指令的 HTML 转义与 URL 拼装契约。"""
-from __future__ import annotations
-
 from docutils import nodes
 
 from mystx.ext.github_readme_stats.base import BaseGitHubCardDirective

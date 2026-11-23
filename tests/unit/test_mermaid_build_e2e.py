@@ -11,8 +11,6 @@
 构建在独立子进程中执行：同进程内多次 ``Sphinx(...)`` 会相互污染注册表与
 环境（实测出现 ``KeyError: 'myst-nb'``），隔离进程可获得确定结果。
 """
-from __future__ import annotations
-
 import json
 import os
 import shutil

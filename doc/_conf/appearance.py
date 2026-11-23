@@ -1,6 +1,4 @@
 """主题、静态资源、字体增强与站点前端配置。"""
-from __future__ import annotations
-
 from mystx.fonts import configure_optional_matplotlib_fonts
 
 from .common import ROOT, has_module

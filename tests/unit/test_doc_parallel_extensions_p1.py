@@ -4,8 +4,6 @@
 
 来源：P1-A 审计 (sphinx-parallel-build-5k-scale-20260903 报告)。
 """
-from __future__ import annotations
-
 import shutil
 import tempfile
 from pathlib import Path

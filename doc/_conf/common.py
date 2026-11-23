@@ -3,8 +3,6 @@
 本模块是所有分组的依赖起点：``ROOT`` 指向 mystx 项目根，``has_module``
 统一封装可选扩展的可用性判断，避免各分组各写一份 ``find_spec``。
 """
-from __future__ import annotations
-
 import importlib.util as _ilut
 from pathlib import Path
 

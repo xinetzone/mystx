@@ -4,8 +4,6 @@
 ``extensions.py`` 以「不在依赖中」为由注释掉了 ``sphinxcontrib.mermaid``，
 形成死映射——一旦文档出现 ```mermaid 围栏，构建期会因指令未注册而失败。
 """
-from __future__ import annotations
-
 from mystx.config.defaults import DEFAULT_MYST_CONFIG
 from mystx.extensions import DEFAULT_OPTIONAL_EXTENSIONS
 
