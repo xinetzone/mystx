@@ -261,13 +261,22 @@ def setup(app: Sphinx):
         DocutilsCliHelpDirective,
         MystAdmonitionDirective,
         MystConfigDirective,
-        MystExampleDirective,
         MystLexer,
         MystToHTMLDirective,
         MystWarningsDirective,
         NumberSections,
         StripUnsupportedLatex,
+        SyntaxExampleDocsDirective,
     )
+
+    # 项目仅支持 myst-parser >= 5.1（见 pyproject.toml 版本下界）：薄子类化仅
+    # 把三个 CSS 类名钉回本仓 local.css 依赖的 myst-example* 契约；渲染语义
+    # （源码/渲染双栏、无标题、sphinx-design div）沿用上游，注册名 "myst-example"
+    # 与 doc/ 下既有用法保持不变。
+    class MystExampleDirective(SyntaxExampleDocsDirective):
+        wrapper_classes = ("myst-example",)
+        source_classes = ("myst-example-source",)
+        render_classes = ("myst-example-render",)
 
     app.add_directive("myst-config", MystConfigDirective)
     app.add_directive("docutils-cli-help", DocutilsCliHelpDirective)

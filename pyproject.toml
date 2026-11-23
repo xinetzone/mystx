@@ -47,7 +47,9 @@ mystx = "mystx"
 [project.optional-dependencies]
 doc = [
     "sphinx>=8.0",
-    "myst-parser>=4.0",
+    "myst-parser>=5.1",
+    # myst-parser >= 5.1 的 myst_parser._docs 顶部硬导入此包，上游未在其依赖清单声明，需显式补齐
+    "sphinx-syntax-example>=0.2.0",
     "sphinx-book-theme>=1.1",
     "sphinx-design",
     "sphinx-copybutton",
@@ -99,7 +101,7 @@ dev = [
     "invoke>=2.0",
     "sphinx>=8.0",
     "sphinx-intl",
-    "myst-parser>=4.0",
+    "myst-parser>=5.1",
     "myst-nb",
     "myst-docutils>=4.0",
     "docutils>=0.20",
@@ -129,7 +131,9 @@ dev = [
 ]
 doc = [
     "sphinx>=8.0",
-    "myst-parser>=4.0",
+    "myst-parser>=5.1",
+    # myst-parser >= 5.1 的 myst_parser._docs 顶部硬导入此包，上游未在其依赖清单声明，需显式补齐
+    "sphinx-syntax-example>=0.2.0",
     "sphinx-book-theme>=1.1",
     "sphinx-design",
     "sphinx-copybutton",
