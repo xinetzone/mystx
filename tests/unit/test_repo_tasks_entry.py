@@ -347,3 +347,107 @@ def test_doctest_uses_explicit_build_dir(monkeypatch):
     tokens = shlex.split(captured[0], posix=False)
     assert tokens[1:3] == ["-b", "doctest"]
     assert tokens[-2:] == ["doc", "out/doctest"]
+
+
+def test_browse_serves_built_html_end_to_end(tmp_path, capsys, monkeypatch):
+    """集成：真实拉起 ``http.server``，浏览器回调取到页面即证明目录与端口正确。"""
+    import socket
+    import subprocess
+    import sys
+    import time
+    import urllib.request
+
+    from mystx.tasks import doc
+
+    html = tmp_path / "html"
+    html.mkdir()
+    (html / "index.html").write_text("<h1>MYSTX_BROWSE_OK</h1>", encoding="utf-8")
+
+    probe = socket.socket()
+    probe.bind(("127.0.0.1", 0))
+    free_port = probe.getsockname()[1]
+    probe.close()
+
+    real_popen = subprocess.Popen
+    started: list = []
+
+    def _popen(*args, **kwargs):
+        proc = real_popen(*args, **kwargs)
+        started.append((proc, args, kwargs))
+        return proc
+
+    bodies: dict[str, str] = {}
+
+    def _open(url):
+        deadline = time.monotonic() + 10
+        while True:
+            try:
+                with urllib.request.urlopen(url, timeout=1) as resp:
+                    bodies[url] = resp.read().decode("utf-8")
+                break
+            except OSError:
+                if time.monotonic() > deadline:
+                    raise
+                time.sleep(0.05)
+        started[0][0].terminate()
+
+    monkeypatch.setattr(subprocess, "Popen", _popen)
+    monkeypatch.setattr(doc.builder.webbrowser, "open", _open)
+
+    try:
+        doc.builder.browse(
+            Context(config={"sphinx": {}}), target=str(html), port=free_port
+        )
+    finally:
+        for proc, _, _ in started:
+            if proc.poll() is None:
+                proc.terminate()
+                proc.wait(timeout=5)
+
+    url = f"http://127.0.0.1:{free_port}/"
+    assert "MYSTX_BROWSE_OK" in bodies.get(url, "")
+    _, args, kwargs = started[0]
+    assert args[0] == [
+        sys.executable,
+        "-m",
+        "http.server",
+        str(free_port),
+        "--bind",
+        "127.0.0.1",
+    ]
+    assert kwargs["cwd"] == str(html)
+    assert url in capsys.readouterr().out
+
+
+def test_browse_skips_occupied_port(tmp_path, monkeypatch):
+    import socket
+
+    from mystx.tasks import doc
+
+    html = tmp_path / "html"
+    html.mkdir()
+    (html / "index.html").write_text("x", encoding="utf-8")
+
+    blocker = socket.socket()
+    blocker.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    blocker.bind(("127.0.0.1", 0))
+    blocker.listen(1)
+    busy_port = blocker.getsockname()[1]
+
+    class _Server:
+        def wait(self):
+            return 0
+
+    opened: list[str] = []
+    monkeypatch.setattr(doc.builder.subprocess, "Popen", lambda *a, **k: _Server())
+    monkeypatch.setattr(doc.builder.webbrowser, "open", opened.append)
+
+    try:
+        doc.builder.browse(
+            Context(config={"sphinx": {}}), target=str(html), port=busy_port
+        )
+    finally:
+        blocker.close()
+
+    chosen = int(opened[0].rsplit(":", 1)[1].rstrip("/"))
+    assert chosen > busy_port

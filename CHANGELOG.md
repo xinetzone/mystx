@@ -32,7 +32,8 @@
 
 ### 测试
 
-- **补齐扩展与文档任务的回归用例。** 新增 `tests/unit/test_github_readme_stats.py`（HTML 转义、URL 拼装、缺参报错）以及 `tree`、`clean`、`browse`、`-M` 包装共 10 条用例；`tasks/doc/builder.py` 覆盖率 87%，`github_readme_stats` 的 `base.py` 与 `pinned_repo.py` 均达 100%。
+- **补齐扩展与文档任务的回归用例。** 新增 `tests/unit/test_github_readme_stats.py`（HTML 转义、URL 拼装、缺参报错）以及 `tree`、`clean`、`browse`、`-M` 包装共 12 条用例；`tasks/doc/builder.py` 覆盖率 98%，`github_readme_stats` 的 `base.py` 与 `pinned_repo.py` 均达 100%。
+- **`browse` 补充端到端集成用例。** 真实拉起 `http.server` 并回读页面内容，另覆盖端口占用时的自增选择。
 
 ### 破坏性变更
 
