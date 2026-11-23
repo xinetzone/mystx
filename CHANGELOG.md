@@ -12,6 +12,7 @@
 
 ### 变更
 
+- **`tasks/doc` 结构优化：服务器生命周期独立成 `_serve`，命令组装收敛为单点。** `builder.browse` 的端口探测、`http.server` 子进程托管与浏览器唤起迁入 `_serve.serve()`，任务层只保留「目录不存在」守卫；`build` 与 `doctest` 共用 `_core._builder_tokens()`，消除两处 `sphinx-build` 参数拼接；三个 `-M` 包装任务共用 `_m_paths()`。命令 token 顺序、错误信息与 8 个任务签名均不变，110 条测试全绿。
 - **`doc/_conf` 瘦身：删死配置、压注释、去未用导出，配置量减 30%（357 → 251 行）。** 删除 `appearance` 中整块注释掉的 thebe 配置（该能力已由包内 `config.runtime` 按需自动装配）、未被引用的 `common.DOC_DIR`、各文件的横幅分隔线与编号小标题；保留全部决策性注释（epub 对 `version` 的约束、switcher 相对路径的阻网理由、sitemap 的 CI 强校验、并行覆写表用途）。`conf.py` 再导出结构不变，逐键比对 34 项配置前后完全一致；RTD 与 GitHub Pages 两条产线构建均通过，Pages 仍产出 `sitemap.xml`。
 - **文档站配置薄化：`doc/_conf` 改为复用包内决策，不再保留平行实现。** `has_module` 再导出 `mystx.utils.has_module`；主题回退改用 `themes.resolve_theme()`；`numfig`、`myst_enable_extensions`、`copybutton_exclude`、`copybutton_selector` 取自 `config.defaults` 的默认字典。装配结果逐键比对前后完全一致；新增 `tests/unit/test_conf_py.py::test_conf_reuses_package_decisions_instead_of_inline_copies` 固化该契约。
 - **配置层：`config.py` 与 `configs.py` 合并为 `mystx.config` 包。** 两者文件名仅差一个 `s`，但职责分属不同生效时点：原 `configs.py` 服务构建期的 conf.py 字典组装，原 `config.py` 服务运行期 `config-inited` 对 Sphinx `Config` 的注入。现按该正交轴拆为 `mystx.config.defaults`（静态默认与 `build_base_config`）与 `mystx.config.runtime`（`ConfigManager`、`config_inited_handler` 等），由包 `__init__` 统一导出；`mystx.config.*` 的既有导入路径不变。

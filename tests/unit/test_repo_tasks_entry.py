@@ -358,6 +358,7 @@ def test_browse_serves_built_html_end_to_end(tmp_path, capsys, monkeypatch):
     import urllib.request
 
     from mystx.tasks import doc
+    from mystx.tasks.doc import _serve
 
     html = tmp_path / "html"
     html.mkdir()
@@ -392,7 +393,7 @@ def test_browse_serves_built_html_end_to_end(tmp_path, capsys, monkeypatch):
         started[0][0].terminate()
 
     monkeypatch.setattr(subprocess, "Popen", _popen)
-    monkeypatch.setattr(doc.builder.webbrowser, "open", _open)
+    monkeypatch.setattr(_serve.webbrowser, "open", _open)
 
     try:
         doc.builder.browse(
@@ -421,8 +422,10 @@ def test_browse_serves_built_html_end_to_end(tmp_path, capsys, monkeypatch):
 
 def test_browse_skips_occupied_port(tmp_path, monkeypatch):
     import socket
+    import subprocess
 
     from mystx.tasks import doc
+    from mystx.tasks.doc import _serve
 
     html = tmp_path / "html"
     html.mkdir()
@@ -439,8 +442,8 @@ def test_browse_skips_occupied_port(tmp_path, monkeypatch):
             return 0
 
     opened: list[str] = []
-    monkeypatch.setattr(doc.builder.subprocess, "Popen", lambda *a, **k: _Server())
-    monkeypatch.setattr(doc.builder.webbrowser, "open", opened.append)
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: _Server())
+    monkeypatch.setattr(_serve.webbrowser, "open", opened.append)
 
     try:
         doc.builder.browse(

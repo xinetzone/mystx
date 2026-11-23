@@ -59,6 +59,26 @@ def _sphinx_build_cmd() -> str:
     return os.environ.get("SPHINXBUILD", "sphinx-build")
 
 
+def _builder_tokens(
+    builder_opts: str,
+    sourcedir: str,
+    builddir: str,
+    extra: str = "",
+) -> list[str]:
+    """组装 builder-mode 的 ``sphinx-build`` 命令。
+
+    ``builder_opts``（如 ``-b html``）与 ``extra``（如 ``-n -W -T``）各自经
+    三层选项合并后拼接，顺序为：可执行文件 → builder_opts → extra → 源目录 → 输出目录。
+    """
+    return [
+        _sphinx_build_cmd(),
+        *_collect_sphinx_opts(builder_opts),
+        *_collect_sphinx_opts(extra),
+        sourcedir,
+        builddir,
+    ]
+
+
 def _resolve(c, key: str, override: str | None, default: str | None = None) -> str:
     """解析优先级：显式参数 > 配置字典 > 默认值。"""
     if override is not None:
