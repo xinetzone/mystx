@@ -27,11 +27,11 @@ from .config import (
 )
 from .extensions import DEFAULT_CONDITIONAL, DEFAULT_OPTIONAL_EXTENSIONS, resolve_extensions
 from .myst_compat import register_hooks as register_myst_compat_hooks
-from .presets import build_minimal_myst_config
+from .presets import build_minimal_myst_config, build_mystx_site_config
 from .themes import DEFAULT_BOOK_THEME_OPTIONS, DEFAULT_THEME_PRIORITY, MySTX, resolve_theme, resolve_theme_options
 from .utils import deep_merge, has_module
 
-__all__ = ["__version__", "deep_merge", "has_module", "MySTX", "config_inited_handler", "setup", "logger", "DEFAULT_MYST_CONFIG", "DEFAULT_BUILD_CONFIG", "DEFAULT_EXT_CONFIG", "DEFAULT_HTML_CONFIG", "build_base_config", "DEFAULT_OPTIONAL_EXTENSIONS", "DEFAULT_CONDITIONAL", "resolve_extensions", "DEFAULT_BOOK_THEME_OPTIONS", "DEFAULT_THEME_PRIORITY", "resolve_theme", "resolve_theme_options", "register_myst_compat_hooks", "presets", "build_minimal_myst_config", "tasks"]
+__all__ = ["__version__", "deep_merge", "has_module", "MySTX", "config_inited_handler", "setup", "logger", "DEFAULT_MYST_CONFIG", "DEFAULT_BUILD_CONFIG", "DEFAULT_EXT_CONFIG", "DEFAULT_HTML_CONFIG", "build_base_config", "DEFAULT_OPTIONAL_EXTENSIONS", "DEFAULT_CONDITIONAL", "resolve_extensions", "DEFAULT_BOOK_THEME_OPTIONS", "DEFAULT_THEME_PRIORITY", "resolve_theme", "resolve_theme_options", "register_myst_compat_hooks", "presets", "build_minimal_myst_config", "build_mystx_site_config", "tasks"]
 
 logger = logging.getLogger(__name__)
 

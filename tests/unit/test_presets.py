@@ -1,4 +1,5 @@
-from mystx.presets import build_minimal_myst_config
+from mystx.config import DEFAULT_MYST_CONFIG
+from mystx.presets import build_minimal_myst_config, build_mystx_site_config
 from mystx.presets._shared import build_setup_closure
 
 
@@ -49,3 +50,34 @@ def test_setup_closure_without_user_setup():
 def test_minimal_preset_has_setup_callable():
     conf = build_minimal_myst_config({"project": "p", "author": "a"})
     assert callable(conf["setup"])
+
+
+def test_site_preset_core_config(tmp_path):
+    conf = build_mystx_site_config(root=tmp_path, site_url="https://example.com/docs/")
+
+    assert conf["extensions"][0] == "mystx"
+    assert conf["html_baseurl"] == "https://example.com/docs/"
+    assert conf["sitemap_url_scheme"] == "{link}"
+    assert conf["release"] == conf["version"]
+    assert conf["language"] == "zh_CN"
+    assert conf["myst_enable_extensions"] == DEFAULT_MYST_CONFIG["myst_enable_extensions"]
+    assert conf["myst_enable_extensions"] is not DEFAULT_MYST_CONFIG["myst_enable_extensions"]
+    assert callable(conf["setup"])
+
+
+def test_site_preset_without_site_url_disables_sitemap(tmp_path):
+    conf = build_mystx_site_config(root=tmp_path, site_url=None)
+
+    assert conf["html_baseurl"] == ""
+    assert conf["sitemap_url_scheme"] == "{lang}{version}{link}"
+    assert "sphinx_sitemap" not in conf["extensions"]
+
+
+def test_site_preset_skips_missing_optional_extensions(tmp_path):
+    conf = build_mystx_site_config(
+        root=tmp_path,
+        site_url=None,
+        optional_extensions=("no_such_ext_xyz",),
+    )
+
+    assert "no_such_ext_xyz" not in conf["extensions"]

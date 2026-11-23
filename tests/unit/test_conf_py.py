@@ -1,4 +1,4 @@
-"""doc/conf.py 的萃取契约测试：确认它消费包内模块而非自留副本。
+"""doc/conf.py 的萃取契约测试：确认它消费包内预设而非自留机制副本。
 
 本文件只做「装配面」断言，不启动 Sphinx 构建：目标是把 conf.py 与
 ``mystx`` 包之间的复用关系固化为机检门禁，避免日后又长回一份内联实现。
@@ -8,6 +8,15 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
+
+from mystx.config import (
+    DEFAULT_BUILD_CONFIG,
+    DEFAULT_EXT_CONFIG,
+    DEFAULT_MYST_CONFIG,
+    DEFAULT_SITE_CONFIG,
+)
+from mystx.presets import build_mystx_site_config
+from mystx.themes import resolve_theme
 
 CONF_PATH = Path(__file__).resolve().parents[2] / "doc" / "conf.py"
 
@@ -26,25 +35,24 @@ def _require_upstream_docs():
         pytest.skip("本机 myst-parser < 5.1，缺少 SyntaxExampleDocsDirective")
 
 
-def test_conf_consumes_package_layer():
+def test_conf_consumes_site_preset():
     conf = _load_conf()
 
-    assert callable(conf.register_docs_directives)
-    assert callable(conf.connect_parallel_guard)
+    assert conf.build_mystx_site_config is build_mystx_site_config
+    assert callable(conf.setup)
     assert conf.release and conf.version == conf.release
     assert "mystx.ext.gallery" in conf.extensions
     assert ("py:class", "invoke.Collection") in conf.nitpick_ignore
-    assert conf.graphviz_output_format == conf.DEFAULT_SITE_CONFIG["graphviz_output_format"]
-    assert conf.tippy_rtd_urls == conf.DEFAULT_SITE_CONFIG["tippy_rtd_urls"]
+    assert conf.graphviz_output_format == DEFAULT_SITE_CONFIG["graphviz_output_format"]
+    assert conf.tippy_rtd_urls == DEFAULT_SITE_CONFIG["tippy_rtd_urls"]
 
 
-def test_conf_reuses_package_decisions_instead_of_inline_copies():
-    """站点侧不得为「机制」另留一份实现：主题回退、默认值均取自包内。"""
-    from mystx.config import DEFAULT_BUILD_CONFIG, DEFAULT_EXT_CONFIG, DEFAULT_MYST_CONFIG
-    from mystx.themes import resolve_theme
-
+def test_conf_keeps_no_inline_mechanism_copies():
+    """机制已迁入预设：conf.py 命名空间不再暴露实现符号，取值仍与包内同源。"""
     conf = _load_conf()
 
+    for name in ("register_docs_directives", "connect_parallel_guard", "resolve_extensions"):
+        assert not hasattr(conf, name)
     assert conf.html_theme == resolve_theme()
     assert conf.numfig == DEFAULT_BUILD_CONFIG["numfig"]
     assert conf.myst_enable_extensions == DEFAULT_MYST_CONFIG["myst_enable_extensions"]
