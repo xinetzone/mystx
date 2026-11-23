@@ -35,3 +35,20 @@ def test_unknown_key_warns_and_is_skipped(tmp_path, caplog):
     assert not hasattr(manager.config, "mystx_unknown")
     assert "mystx_unknown" in caplog.text
     assert "已跳过" in caplog.text
+
+
+def test_unknown_keys_are_aggregated_with_structured_type(tmp_path, caplog):
+    manager = _manager(tmp_path, 'mystx_beta = 2\nmystx_alpha = 1\n')
+
+    with caplog.at_level(logging.WARNING):
+        manager.apply_config()
+
+    records = [r for r in caplog.records if getattr(r, "type", "") == "config"]
+    assert len(records) == 1
+    record = records[0]
+    assert record.subtype == "unknown_key"
+    message = record.getMessage()
+    assert "2 个键" in message
+    assert "mystx_alpha、mystx_beta" in message
+    assert not hasattr(manager.config, "mystx_alpha")
+    assert not hasattr(manager.config, "mystx_beta")

@@ -59,20 +59,29 @@ class ConfigManager:
 
         只有已注册键才写入 ``Config``。未注册键若直接 ``setattr``，会绕过
         配置注册表：``config.values``、``config.filter/iter``、``-D`` 未知键
-        告警与增量缓存快照都看不到它，形成「有值但不受管」的幽灵键。此处
-        告警后跳过，使拼写错误或扩展缺失在构建日志中显形。
+        告警与增量缓存快照都看不到它，形成「有值但不受管」的幽灵键。
+
+        未知键聚合为一条 ``type="config"`` / ``subtype="unknown_key"`` 的告警：
+        既可在 ``show_warning_types`` 中归因，也可用
+        ``suppress_warnings = ["config.unknown_key"]`` 精确压制。
         """
+        unknown: list[str] = []
         for key, value in custom_config.items():
             if key == "html_theme_options":
                 continue
             if key not in self.config.values:
-                self.logger.warning(
-                    "_config.toml 中的 %s 不是 Sphinx 已注册配置项，已跳过"
-                    "（检查拼写，或确认对应扩展已加载）",
-                    key,
-                )
+                unknown.append(key)
                 continue
             setattr(self.config, key, value)
+        if unknown:
+            self.logger.warning(
+                "_config.toml 中 %s 个键不是 Sphinx 已注册配置项，已跳过：%s"
+                "（检查拼写，或确认对应扩展已加载）",
+                len(unknown),
+                "、".join(sorted(unknown)),
+                type="config",
+                subtype="unknown_key",
+            )
 
     def _merge_html_theme_options(self, custom_config: dict[str, Any]) -> None:
         """``deep_merge`` 自定义主题选项，用户配置覆盖包内预设。"""
