@@ -53,8 +53,11 @@ def test_conf_keeps_no_inline_mechanism_copies():
 
     for name in ("register_docs_directives", "connect_parallel_guard", "resolve_extensions"):
         assert not hasattr(conf, name)
-    # 预设返回值一次性并入命名空间，不应留下中间字典变量
+    # 预设返回值一次性并入命名空间，不应留下中间变量（含取值的临时名）
     assert not hasattr(conf, "conf")
+    assert not hasattr(conf, "_site")
+    # 字体注册已拆为显式副作用，站点侧必须真的调用过（导入名存活即证明装配路径存在）
+    assert callable(conf.configure_site_fonts)
     assert conf.html_theme == resolve_theme()
     assert conf.numfig == DEFAULT_BUILD_CONFIG["numfig"]
     assert conf.myst_enable_extensions == DEFAULT_MYST_CONFIG["myst_enable_extensions"]

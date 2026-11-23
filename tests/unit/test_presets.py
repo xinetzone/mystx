@@ -1,6 +1,11 @@
 from mystx.config import DEFAULT_MYST_CONFIG
-from mystx.presets import build_minimal_myst_config, build_mystx_site_config
+from mystx.presets import (
+    build_minimal_myst_config,
+    build_mystx_site_config,
+    configure_site_fonts,
+)
 from mystx.presets._shared import build_setup_closure
+from mystx.presets.mystx_site import SiteConfig
 
 
 def test_minimal_preset_keys_whitelist():
@@ -52,44 +57,57 @@ def test_minimal_preset_has_setup_callable():
     assert callable(conf["setup"])
 
 
-def test_site_preset_core_config(tmp_path):
-    conf = build_mystx_site_config(root=tmp_path, site_url="https://example.com/docs/")
+def test_site_preset_core_config():
+    values, setup = build_mystx_site_config(site_url="https://example.com/docs/")
 
-    assert conf["extensions"][0] == "mystx"
-    assert conf["html_baseurl"] == "https://example.com/docs/"
-    assert conf["sitemap_url_scheme"] == "{link}"
-    assert conf["release"] == conf["version"]
-    assert conf["language"] == "zh_CN"
-    assert conf["myst_enable_extensions"] == DEFAULT_MYST_CONFIG["myst_enable_extensions"]
-    assert conf["myst_enable_extensions"] is not DEFAULT_MYST_CONFIG["myst_enable_extensions"]
-    assert callable(conf["setup"])
-
-
-def test_site_preset_without_site_url_disables_sitemap(tmp_path):
-    conf = build_mystx_site_config(root=tmp_path, site_url=None)
-
-    assert conf["html_baseurl"] == ""
-    assert conf["sitemap_url_scheme"] == "{lang}{version}{link}"
-    assert "sphinx_sitemap" not in conf["extensions"]
+    assert values["extensions"][0] == "mystx"
+    assert values["html_baseurl"] == "https://example.com/docs/"
+    assert values["sitemap_url_scheme"] == "{link}"
+    assert values["release"] == values["version"]
+    assert values["language"] == "zh_CN"
+    assert values["myst_enable_extensions"] == DEFAULT_MYST_CONFIG["myst_enable_extensions"]
+    assert values["myst_enable_extensions"] is not DEFAULT_MYST_CONFIG["myst_enable_extensions"]
+    assert callable(setup)
 
 
-def test_site_preset_appends_site_increments(tmp_path):
-    conf = build_mystx_site_config(
-        root=tmp_path,
+def test_site_preset_values_match_declared_contract():
+    """取值键集合由 SiteConfig 固定，且钩子不混入取值字典。"""
+    values, setup = build_mystx_site_config(site_url=None)
+
+    assert set(values) == set(SiteConfig.__annotations__)
+    assert "setup" not in values
+    assert callable(setup)
+
+
+def test_configure_site_fonts_is_explicit_side_effect(tmp_path):
+    """字体注册是显式调用的独立副作用，缺目录时静默返回而非抛错。"""
+    assert callable(configure_site_fonts)
+    configure_site_fonts(tmp_path / "no-such-fonts-dir")
+
+
+def test_site_preset_without_site_url_disables_sitemap():
+    values, _ = build_mystx_site_config(site_url=None)
+
+    assert values["html_baseurl"] == ""
+    assert values["sitemap_url_scheme"] == "{lang}{version}{link}"
+    assert "sphinx_sitemap" not in values["extensions"]
+
+
+def test_site_preset_appends_site_increments():
+    values, _ = build_mystx_site_config(
         site_url=None,
         nitpick_ignore=(("py:class", "invoke.Collection"),),
         suppress_warnings=("epub.unknown_project_files",),
     )
 
-    assert ("py:class", "invoke.Collection") in conf["nitpick_ignore"]
-    assert conf["suppress_warnings"][-1] == "epub.unknown_project_files"
+    assert ("py:class", "invoke.Collection") in values["nitpick_ignore"]
+    assert values["suppress_warnings"][-1] == "epub.unknown_project_files"
 
 
-def test_site_preset_skips_missing_optional_extensions(tmp_path):
-    conf = build_mystx_site_config(
-        root=tmp_path,
+def test_site_preset_skips_missing_optional_extensions():
+    values, _ = build_mystx_site_config(
         site_url=None,
         optional_extensions=("no_such_ext_xyz",),
     )
 
-    assert "no_such_ext_xyz" not in conf["extensions"]
+    assert "no_such_ext_xyz" not in values["extensions"]
