@@ -90,6 +90,20 @@ def test_apply_site_config_injects_values_and_returns_setup():
     assert callable(setup)
 
 
+def test_docs_profile_injects_fresh_copies(tmp_path):
+    """站点画像每次装配都给副本：扩展就地改写字典时不污染模块常量。"""
+    from mystx.presets import mystx_docs
+
+    first: dict = {}
+    second: dict = {}
+    mystx_docs.configure(first, root=tmp_path)
+    mystx_docs.configure(second, root=tmp_path)
+
+    assert first["html_theme_options"] is not second["html_theme_options"]
+    first["html_theme_options"]["announcement"] = "被改写"
+    assert mystx_docs.THEME_OPTIONS["announcement"] != "被改写"
+
+
 def test_configure_site_fonts_is_explicit_side_effect(tmp_path):
     """字体注册是显式调用的独立副作用，缺目录时静默返回而非抛错。"""
     assert callable(configure_site_fonts)

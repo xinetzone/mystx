@@ -5,6 +5,8 @@
   - build_mystx_site_config（来自 presets.mystx_site）：完整文档站机制（扩展装配、默认值下放、主题回退），返回 (SiteConfig, setup)
   - apply_site_config（来自 presets.mystx_site）：把站点取值注入给定命名空间并交回 setup，conf.py 的唯一装配入口
   - configure_site_fonts（来自 presets.mystx_site）：字体注册副作用，由站点显式调用
+  - presets.mystx_docs：本项目文档站的**具体画像**（身份、主题选项、外部链接），
+    不从包门面导出，仅供 ``doc/conf.py`` 使用
 
 注意：OKF 专属预设（okf_docs）属 Non-Goals 未迁移。
 """
