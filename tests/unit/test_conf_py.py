@@ -15,7 +15,7 @@ from mystx.config import (
     DEFAULT_MYST_CONFIG,
     DEFAULT_SITE_CONFIG,
 )
-from mystx.presets import build_mystx_site_config
+from mystx.presets import apply_site_config
 from mystx.themes import resolve_theme
 
 CONF_PATH = Path(__file__).resolve().parents[2] / "doc" / "conf.py"
@@ -38,7 +38,7 @@ def _require_upstream_docs():
 def test_conf_consumes_site_preset():
     conf = _load_conf()
 
-    assert conf.build_mystx_site_config is build_mystx_site_config
+    assert conf.apply_site_config is apply_site_config
     assert callable(conf.setup)
     assert conf.release and conf.version == conf.release
     assert "mystx.ext.gallery" in conf.extensions
@@ -53,7 +53,7 @@ def test_conf_keeps_no_inline_mechanism_copies():
 
     for name in ("register_docs_directives", "connect_parallel_guard", "resolve_extensions"):
         assert not hasattr(conf, name)
-    # 预设返回值一次性并入命名空间，不应留下中间变量（含取值的临时名）
+    # 装配是单次调用，命名空间里不应残留中间变量或 update 痕迹
     assert not hasattr(conf, "conf")
     assert not hasattr(conf, "_site")
     # 字体注册已拆为显式副作用，站点侧必须真的调用过（导入名存活即证明装配路径存在）

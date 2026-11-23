@@ -2,7 +2,7 @@
 """Sphinx 文档配置。
 
 站点取值与站点机制集中在本文件：机制（扩展装配、默认值下放、主题与字体、
-``setup`` 钩子）由 ``mystx.presets.build_mystx_site_config`` 提供；原
+``setup`` 钩子）由 ``mystx.presets.apply_site_config`` 提供；原
 ``doc/_config.toml`` 的取值已合并回此处，避免同一份站点配置在两处维护。
 
 仍由 Sphinx 时机约束、不能交给延迟合并的项只有 ``language`` /
@@ -12,7 +12,7 @@ import os
 import sys
 from pathlib import Path
 
-from mystx.presets import build_mystx_site_config, configure_site_fonts
+from mystx.presets import apply_site_config, configure_site_fonts
 from mystx.utils import resolve_site_url
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -147,8 +147,9 @@ nitpicky = os.environ.get("SPHINX_NITPICK", "").lower() in {"1", "true", "yes"}
 # 字体注册是副作用，显式调用；字体目录由站点给出，预设不假设布局
 configure_site_fonts(ROOT / "doc" / "_static" / "fonts")
 
-# 预设返回 (取值, setup)：取值并入本模块命名空间，钩子单独挂到 setup 名字上
-_site, setup = build_mystx_site_config(
+# 预设一次调用完成装配：取值注入本模块命名空间，setup 钩子挂到 setup 名字上
+setup = apply_site_config(
+    globals(),
     site_url=site_url,
     # 站点增量：包内可选清单（默认剔除 sitemap 与 mermaid）之外，本站另需 8 项。
     optional_extensions=(
@@ -166,5 +167,3 @@ _site, setup = build_mystx_site_config(
     # epub 扫描 _static/switcher.json 的误报
     suppress_warnings=("epub.unknown_project_files",),
 )
-globals().update(_site)
-del _site

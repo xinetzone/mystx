@@ -1,5 +1,6 @@
 from mystx.config import DEFAULT_MYST_CONFIG
 from mystx.presets import (
+    apply_site_config,
     build_minimal_myst_config,
     build_mystx_site_config,
     configure_site_fonts,
@@ -76,6 +77,16 @@ def test_site_preset_values_match_declared_contract():
 
     assert set(values) == set(SiteConfig.__annotations__)
     assert "setup" not in values
+    assert callable(setup)
+
+
+def test_apply_site_config_injects_values_and_returns_setup():
+    """单次调用完成装配：键集合与 SiteConfig 一致，钩子不落进命名空间。"""
+    namespace: dict[str, object] = {}
+    setup = apply_site_config(namespace, site_url=None)
+
+    assert set(namespace) == set(SiteConfig.__annotations__)
+    assert "setup" not in namespace
     assert callable(setup)
 
 

@@ -12,6 +12,8 @@
 
 * :func:`build_config` 只返回取值，键集合由 :class:`SiteConfig` 固定；
   ``setup`` 钩子随取值一起返回但不混入配置字典；
+* :func:`apply_config` 是站点装配入口：把取值注入给定命名空间并交回
+  ``setup``，conf.py 不再需要 ``globals().update`` 与临时变量；
 * 字体注册是副作用，独立为 :func:`configure_site_fonts`，由站点显式调用并
   给出目录，预设不假设 ``root/doc/_static`` 布局。
 
@@ -19,7 +21,7 @@
 BibTeX 文件等）仍留在站点侧，避免预设对目录布局与外部链接做假设。
 """
 
-from collections.abc import Callable, Mapping, Sequence
+from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from pathlib import Path
 from typing import Any, TypedDict
 
@@ -179,3 +181,21 @@ def build_config(
         "myst_enable_extensions": list(DEFAULT_MYST_CONFIG["myst_enable_extensions"]),
     }
     return values, setup
+
+
+def apply_config(
+    namespace: MutableMapping[str, Any],
+    /,
+    **options: Any,
+) -> SetupFunction:
+    """把站点取值注入 ``namespace``，返回 ``setup`` 钩子。
+
+    ``options`` 与 :func:`build_config` 完全一致。取值先在局部组装并校验键集，
+    再一次性写入，避免中途异常留下半装配的命名空间。
+    """
+    values, setup = build_config(**options)
+    undeclared = set(values) - set(SiteConfig.__annotations__)
+    if undeclared:
+        raise RuntimeError(f"预设产出了 SiteConfig 未声明的键：{sorted(undeclared)}")
+    namespace.update(values)
+    return setup
