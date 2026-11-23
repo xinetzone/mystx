@@ -112,6 +112,17 @@ def thebe_setup(app: Sphinx, config: Config) -> None:
     logger = logging.getLogger(f"{__name__}.thebe_setup")
     logger.info("配置Thebe交互式代码块功能")
 
+    # 先装配扩展，再写入主题选项：装配失败时不应留下“按钮已开启但功能缺失”的状态。
+    if "sphinx_thebe" not in config.extensions:
+        try:
+            app.setup_extension("sphinx_thebe")
+            logger.info("已成功设置sphinx_thebe扩展")
+        except ExtensionError as e:
+            logger.warning(f"设置sphinx_thebe扩展时出错: {e}")
+            return
+    else:
+        logger.debug("sphinx_thebe扩展已存在，无需重复设置")
+
     # 确保必要的配置结构存在
     if not hasattr(config, "html_theme_options"):
         config.html_theme_options = {}
@@ -122,16 +133,6 @@ def thebe_setup(app: Sphinx, config: Config) -> None:
     # 启用Thebe按钮
     config.html_theme_options["launch_buttons"]["thebe"] = True
     logger.debug("已启用Thebe交互式代码块功能")
-
-    # 使用Sphinx的app.setup_extension方法添加sphinx_thebe扩展
-    if "sphinx_thebe" not in config.extensions:
-        try:
-            app.setup_extension("sphinx_thebe")
-            logger.info("已成功设置sphinx_thebe扩展")
-        except ExtensionError as e:
-            logger.warning(f"设置sphinx_thebe扩展时出错: {e}")
-    else:
-        logger.debug("sphinx_thebe扩展已存在，无需重复设置")
 
 
 def config_inited_handler(app: Sphinx, config: Config) -> None:

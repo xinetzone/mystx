@@ -54,6 +54,11 @@ def _collect_sphinx_opts(opts: str = "") -> list[str]:
     return args
 
 
+def _sphinx_build_cmd() -> str:
+    """Sphinx 可执行命令的唯一解析点：``$SPHINXBUILD`` 优先，缺省 ``sphinx-build``。"""
+    return os.environ.get("SPHINXBUILD", "sphinx-build")
+
+
 def _resolve(c, key: str, override: str | None, default: str | None = None) -> str:
     """解析优先级：显式参数 > 配置字典 > 默认值。"""
     if override is not None:
@@ -77,7 +82,7 @@ def _run_target(
     opts: str = "",
 ) -> None:
     """调用 ``sphinx-build -M <target>``；读取 ``$SPHINXBUILD`` 覆盖可执行路径。"""
-    sphinx_build = os.environ.get("SPHINXBUILD", "sphinx-build")
+    sphinx_build = _sphinx_build_cmd()
     command = [
         sphinx_build,
         "-M",

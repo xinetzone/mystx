@@ -33,6 +33,7 @@ from ._core import (
     _resolve,
     _resolve_or,
     _run_target,
+    _sphinx_build_cmd,
 )
 
 
@@ -48,14 +49,23 @@ def clean(
     """清理构建产物。``mode='builder'`` 为默认值，只删单个 target 目录并回收空父目录；
     ``mode='targets'`` 等价于 ``sphinx-build -M clean``，清理 builddir 下所有子构建。"""
     if mode == "builder":
-        tgt = _resolve(c, "target", target, "_build/html")
-        tgt_path = Path(tgt)
+        tgt_path = Path(_resolve(c, "target", target, "_build/html")).resolve()
+        buildroot = Path(_resolve(c, "builddir", builddir, "_build")).resolve()
+        if not tgt_path.is_relative_to(buildroot):
+            raise Exit(
+                f"clean: 拒绝删除构建根之外的目录：{tgt_path}（构建根={buildroot}）"
+            )
         if tgt_path.exists():
             shutil.rmtree(tgt_path)
-        parent = os.path.dirname(tgt)
-        while parent and os.path.isdir(parent) and not os.listdir(parent):
-            os.rmdir(parent)
-            parent = os.path.dirname(parent)
+        parent = tgt_path.parent
+        while (
+            parent != buildroot
+            and parent.is_relative_to(buildroot)
+            and parent.is_dir()
+            and not any(parent.iterdir())
+        ):
+            parent.rmdir()
+            parent = parent.parent
     elif mode == "targets":
         src = _resolve(c, "source", source, "doc")
         bd = _resolve(c, "builddir", builddir, "_build")
@@ -128,7 +138,7 @@ def doctest(
     src = _resolve(c, "source", source, "doc")
     if build_dir is None:
         build_dir = os.path.join(_resolve(c, "builddir", None, "_build"), "doctest")
-    tokens = ["sphinx-build", "-b", "doctest", *_collect_sphinx_opts(opts), src, build_dir]
+    tokens = [_sphinx_build_cmd(), "-b", "doctest", *_collect_sphinx_opts(opts), src, build_dir]
     run_cmd(c, tokens)
 
 
@@ -163,7 +173,7 @@ def build(
         if _PARALLEL_FLAG_DEFAULT:
             opts = f"{opts} {_PARALLEL_FLAG_DEFAULT}"
     extra: list[str] = ["-n", "-W", "-T"] if nitpick else []
-    rebuilt = ["sphinx-build", *_collect_sphinx_opts(opts), *extra, src, tgt]
+    rebuilt = [_sphinx_build_cmd(), *_collect_sphinx_opts(opts), *extra, src, tgt]
     run_cmd(c, rebuilt)
     if browse:
         _browse_task(c, target=tgt)

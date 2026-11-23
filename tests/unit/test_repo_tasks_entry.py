@@ -19,7 +19,7 @@ import pytest
 
 pytest.importorskip("invoke")
 
-from invoke import Collection, Context  # noqa: E402
+from invoke import Collection, Context, Exit  # noqa: E402
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _TASKS_PY = _REPO_ROOT / "tasks.py"
@@ -143,3 +143,73 @@ def test_build_chain_flags_propagate_effective_target(monkeypatch):
 
     assert seen["clean"] == "out/html", "build --clean 未把 target 传给 clean，会误删默认目录"
     assert seen["browse"] == "out/html", "build --browse 未把 target 传给 browse，会打开默认目录"
+
+
+def test_sphinxbuild_env_is_shared_by_all_entries(monkeypatch):
+    """AC-5：``SPHINXBUILD`` 必须同时作用于 build / doctest / ``-M`` 目标三个入口。"""
+    from mystx.tasks import doc
+    from mystx.tasks.doc import _core
+
+    fake = "/opt/fake/sphinx-build"
+    monkeypatch.setenv("SPHINXBUILD", fake)
+    monkeypatch.setattr(doc.builder, "_PARALLEL_FLAG_DEFAULT", "")
+
+    ns = _load_root_namespace()
+    ctx = Context(config=ns.configuration())
+    captured: list[str] = []
+    monkeypatch.setattr(ctx, "run", lambda cmd, pty: captured.append(cmd))
+
+    doc.builder.build(ctx)
+    doc.builder.doctest(ctx)
+
+    assert len(captured) == 2
+    for cmd in captured:
+        assert shlex.split(cmd, posix=False)[0] == fake
+
+    seen: list[list[str]] = []
+
+    class _Done:
+        returncode = 0
+
+    monkeypatch.setattr(
+        _core.subprocess, "run", lambda command, check: seen.append(command) or _Done()
+    )
+    _core._run_target("clean", "doc", "_build")
+
+    assert seen and seen[0][0] == fake, "-M 目标入口未复用 SPHINXBUILD 解析"
+
+
+def test_clean_refuses_target_outside_buildroot(tmp_path):
+    """AC-4：target 指向构建根之外时必须拒绝删除，且不误删任何目录。"""
+    from mystx.tasks import doc
+
+    buildroot = tmp_path / "build"
+    outside = tmp_path / "outside" / "html"
+    buildroot.mkdir()
+    outside.mkdir(parents=True)
+    marker = outside / "index.html"
+    marker.write_text("keep", encoding="utf-8")
+
+    ctx = Context(config={"sphinx": {"builddir": str(buildroot)}})
+
+    with pytest.raises(Exit):
+        doc.builder.clean(ctx, target=str(outside))
+
+    assert marker.is_file(), "越界 target 不应删除任何目录"
+
+
+def test_clean_removes_inside_target_without_touching_buildroot(tmp_path):
+    """AC-4：构建根内的 target 正常删除，但构建根本身保留。"""
+    from mystx.tasks import doc
+
+    buildroot = tmp_path / "build"
+    target = buildroot / "html"
+    target.mkdir(parents=True)
+    (target / "index.html").write_text("x", encoding="utf-8")
+
+    ctx = Context(config={"sphinx": {"builddir": str(buildroot)}})
+
+    doc.builder.clean(ctx, target=str(target))
+
+    assert not target.exists()
+    assert buildroot.is_dir()

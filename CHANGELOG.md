@@ -20,6 +20,9 @@
 - **扩展：`github-pinned-repo` 的 `:link:` 与图片地址统一经 HTML 转义。** 原实现以 f-string 直接拼接 `<a href>`/`<img src>`，含 `"`、`<`、`&` 的链接可破坏标签结构。现统一经 `BaseGitHubCardDirective.create_image_node(..., link=...)` 生成，`link`、`url`、`alt` 均走 `html.escape`；无 `link` 时输出与旧实现一致。
 - **文档：README 配置示例拼写修正。** Python 代码块内 `static_path` 改为 `html_static_path`，`"home_page_in_toc": false` 改为 `False`，避免照抄示例即报 `NameError` 或配置不生效。
 - **脚本：`invoke doc.tree` 子目录重复打印与 `doc.browse` 启动顺序。** `tree` 原对同一子目录打印两次（枚举一次、递归一次），现仅由递归打印；`browse` 改为先启动 HTTP 服务器再打开浏览器，避免浏览器先于服务就绪。
+- **任务 CLI：Sphinx 可执行命令统一解析。** 新增 `mystx.tasks.doc._core._sphinx_build_cmd()`，`build`、`doctest`、`-M` 目标三个入口共用 `$SPHINXBUILD`（缺省 `sphinx-build`），消除 `build`/`doctest` 两处硬编码字面量。
+- **任务 CLI：`doc.clean`（builder 模式）增加构建根边界。** target 不在解析出的 builddir 内时拒绝删除并给出提示；空父目录回收不再越过构建根，避免误删项目目录。
+- **配置：`use_thebe` 改为「先装配、后配置」。** 先 `setup_extension("sphinx_thebe")`，成功后再写 `launch_buttons.thebe=True`；装配失败时不再留下「按钮已开启但功能缺失」的状态。
 
 ### 文档
 
