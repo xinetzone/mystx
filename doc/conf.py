@@ -23,17 +23,6 @@ try:
     release = _pkg_version("mystx")
 except Exception:
     release = os.environ.get("MYSTX_VERSION", "0.0.0")
-# 启用字体配置
-try:
-    from taolib.fonts import configure_matplotlib_fonts
-    configure_matplotlib_fonts(
-        font_directory=ROOT/'doc/_static/fonts',
-        families=('Maple Mono NF CN', 'Noto Color Emoji')
-    )
-except Exception as e:
-    print(f"字体配置失败: {e}")
-    import traceback
-    traceback.print_exc()
 # ================================= 项目基本信息 =================================
 project = "mystx"
 author = "xinetzone"
@@ -56,6 +45,22 @@ import importlib.util as _ilut  # noqa: E402
 def _has(mod: str) -> bool:
     return _ilut.find_spec(mod) is not None
 extensions = [e for e in ['mystx'] if _has(e)]
+
+# ================================= 可选：matplotlib 字体配置 =================================
+# taolib 与 doc/_static/fonts 均为可选增强，二者缺一即静默跳过：
+# ・RTD 仅安装 .[doc]（见 .readthedocs.yml），其依赖清单不含 taolib；
+# ・浏览器端代码字体由 _static/font.css 的 @font-face 独立提供，与本块无关。
+# 守卫通过后仍失败时只提示、不阻断——该配置仅影响构建期 matplotlib 绘图的字形。
+_font_directory = ROOT / 'doc/_static/fonts'
+if _has('taolib') and _font_directory.is_dir():
+    try:
+        from taolib.fonts import configure_matplotlib_fonts
+        configure_matplotlib_fonts(
+            font_directory=_font_directory,
+            families=('Maple Mono NF CN', 'Noto Color Emoji'),
+        )
+    except Exception as exc:
+        print(f"[mystx] matplotlib 字体配置未生效，已跳过：{exc}")
 
 # ================================= 文档构建配置 =================================
 # 排除文件和目录模式
