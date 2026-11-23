@@ -98,7 +98,7 @@ exclude_patterns = [
     "Thumbs.db",  # 缩略图数据库
     ".DS_Store",  # macOS 系统文件
 ]
-static_path = ["_static"]  # 静态资源目录，用于存放CSS、JavaScript、图片等
+html_static_path = ["_static"]  # 静态资源目录，用于存放CSS、JavaScript、图片等
 html_theme = 'mystx'  # 使用的主题名称
 html_logo = "_static/images/logo.jpg" # 文档logo
 html_title = "Sphinx mystx Theme" # 文档标题
@@ -128,7 +128,7 @@ html_theme_options = {
     "path_to_docs": "doc/",  # 文档目录（相对于项目根目录）
     
     # 导航相关配置
-    "home_page_in_toc": false,  # 是否在目录中显示首页
+    "home_page_in_toc": False,  # 是否在目录中显示首页
     "show_navbar_depth": 2,  # 导航栏显示的层级深度
     
     # 其他配置

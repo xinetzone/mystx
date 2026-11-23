@@ -11,7 +11,6 @@ Example:
           :repo: hello-world
           :theme: dark
 """
-from docutils import nodes
 from docutils.parsers.rst import directives
 
 from .base import BaseGitHubCardDirective
@@ -40,7 +39,8 @@ class GitHubPinnedRepoDirective(BaseGitHubCardDirective):
         """根据指令选项构建卡片 URL 并返回 HTML 节点。
 
         Returns:
-            list[nodes.Node]: 单元素列表，包含原始 HTML ``<img>`` 节点。
+            list[nodes.Node]: 单元素列表，包含原始 HTML ``<img>`` 节点；
+            提供 ``:link:`` 时以转义后的 ``<a>`` 包裹。
         """
         username = self.options.get("username")
         repo = self.options.get("repo")
@@ -59,7 +59,4 @@ class GitHubPinnedRepoDirective(BaseGitHubCardDirective):
         }
         url = self.build_url("https://github-readme-stats.vercel.app/api/pin", opts)
         link = self.options.get("link")
-        if link:
-            html = f'<a href="{link}"><img src="{url}" alt="Pinned Repo"></a>'
-            return [nodes.raw('', html, format='html')]
-        return [self.create_image_node(url, alt="Pinned Repo")]
+        return [self.create_image_node(url, alt="Pinned Repo", link=link)]

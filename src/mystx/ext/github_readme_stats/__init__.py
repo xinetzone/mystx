@@ -1,10 +1,11 @@
-"""mystx.ext.github_stats — GitHub Readme Stats 指令入口
+"""mystx.ext.github_readme_stats — GitHub Readme Stats 指令入口
 
-该子包提供三条指令，用于在 Sphinx 文档中嵌入 GitHub Readme Stats 卡片:
+该子包提供四条指令，用于在 Sphinx 文档中嵌入 GitHub Readme Stats 卡片:
 
 - ``github-stats``：用户统计卡片；
 - ``github-top-langs``：常用语言占比卡片；
-- ``github-pinned-repo``：置顶仓库卡片。
+- ``github-pinned-repo``：置顶仓库卡片；
+- ``github-wakatime``：WakaTime 编码时长卡片。
 
 此模块导出指令类，并提供 ``setup(app)`` 以便 Sphinx 自动注册。
 
@@ -18,7 +19,7 @@ from .wakatime import GitHubWakaTimeDirective
 
 
 def setup(app):
-    """注册三条 GitHub Stats 相关指令到 Sphinx。
+    """注册四条 GitHub Stats 相关指令到 Sphinx。
 
     Args:
         app: Sphinx 应用实例。

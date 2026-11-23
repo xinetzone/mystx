@@ -1,6 +1,6 @@
 # GitHub Readme Stats
 
-本文档介绍在 Sphinx 文档中使用 GitHub Readme Stats 的指令（模块：{mod}`~mystx.ext.github_readme_stats`），通过三条指令嵌入 GitHub Readme Stats 卡片：用户统计、常用语言、置顶仓库。
+本文档介绍在 Sphinx 文档中使用 GitHub Readme Stats 的指令（模块：{mod}`~mystx.ext.github_readme_stats`），通过四条指令嵌入 GitHub Readme Stats 卡片：用户统计、常用语言、置顶仓库、WakaTime 统计。
 
 - 外部服务：`https://github-readme-stats.vercel.app/`
 - 参考 [GitHub Readme Stats 项目文档](https://github.com/anuraghazra/github-readme-stats)
@@ -10,7 +10,7 @@
 在你的扩展入口或 `conf.py` 中注册指令：
 
 ```python
-extension = ["mystx.ext.github_readme_stats"]
+extensions = ["mystx.ext.github_readme_stats"]
 ```
 
 ## 用法示例

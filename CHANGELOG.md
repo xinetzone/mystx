@@ -15,6 +15,16 @@
 - **主题名单：`BOOK_THEME_NAMES` 收敛为 `themes.py` 单一权威源。** 原在 `DEFAULT_THEME_PRIORITY`、`resolve_theme_options` 字面量与 `config.defaults` 三处各写一份。
 - **sitemap 环境判定：抽取 `utils.sitemap_enabled_by_env()`。** `extensions._sitemap_conditional` 与 `config.defaults._resolve_html_baseurl` 改为共用同一分支实现，避免 CI/RTD 判定两处漂移。
 
+### 修复
+
+- **扩展：`github-pinned-repo` 的 `:link:` 与图片地址统一经 HTML 转义。** 原实现以 f-string 直接拼接 `<a href>`/`<img src>`，含 `"`、`<`、`&` 的链接可破坏标签结构。现统一经 `BaseGitHubCardDirective.create_image_node(..., link=...)` 生成，`link`、`url`、`alt` 均走 `html.escape`；无 `link` 时输出与旧实现一致。
+- **文档：README 配置示例拼写修正。** Python 代码块内 `static_path` 改为 `html_static_path`，`"home_page_in_toc": false` 改为 `False`，避免照抄示例即报 `NameError` 或配置不生效。
+- **脚本：`invoke doc.tree` 子目录重复打印与 `doc.browse` 启动顺序。** `tree` 原对同一子目录打印两次（枚举一次、递归一次），现仅由递归打印；`browse` 改为先启动 HTTP 服务器再打开浏览器，避免浏览器先于服务就绪。
+
+### 文档
+
+- **`SW_MYST_COMPAT_*` 环境变量别名的移除版本明确为 `mystx>=0.7`。** 新规范前缀为 `MYSTX_MYST_COMPAT_*`；命中旧前缀时记录 info 级弃用提示，0.7 起移除该别名。
+
 ### 破坏性变更
 
 - `mystx.configs` 模块移除：`DEFAULT_MYST_CONFIG`、`DEFAULT_BUILD_CONFIG`、`DEFAULT_EXT_CONFIG`、`DEFAULT_HTML_CONFIG`、`build_base_config` 请改从 `mystx.config` 导入；顶层 `mystx` 的导出保持不变。

@@ -85,11 +85,11 @@ def browse(c, target: str | None = None, port: int = 8000) -> None:
             port += 1
     url = f"http://{host}:{port}/"
     print(f"[browse] 启动 HTTP 服务器：{url}  (目录={target_path})；Ctrl+C 退出")
-    webbrowser.open(url)
     server = subprocess.Popen(
         [sys.executable, "-m", "http.server", str(port), "--bind", host],
         cwd=str(target_path),
     )
+    webbrowser.open(url)
     try:
         server.wait()
     except KeyboardInterrupt:
@@ -108,12 +108,11 @@ def tree(c, target: str | None = None) -> None:
         print(f"[tree] 构建目录不存在：{target_path}", file=sys.stderr)
         return
     for root, dirs, files in os.walk(target_path):
+        dirs.sort()  # 保持遍历顺序稳定；子目录由下一层递归打印，避免重复
         level = len(Path(root).relative_to(target_path).parts)
         indent = "│   " * level
         print(f"{indent}{os.path.basename(root)}/")
         sub = "│   " * (level + 1)
-        for name in sorted(dirs):
-            print(f"{sub}{name}/")
         for name in sorted(files):
             print(f"{sub}{name}")
 

@@ -38,15 +38,17 @@ class BaseGitHubCardDirective(Directive):
         query = urlencode({**scalars, **flags})
         return f"{base_url}?{query}"
 
-    def create_image_node(self, url: str, alt: str = "GitHub Card"):
+    def create_image_node(self, url: str, alt: str = "GitHub Card", link: str | None = None):
         """创建原始 HTML 节点，以 ``<img>`` 标签插入卡片图片。
 
         Args:
             url: 图片地址（通常为 GitHub Readme Stats 服务的卡片 URL）。
             alt: 图片的替代文本。
+            link: 可选的点击跳转地址；提供时以转义后的 ``<a>`` 包裹图片。
 
         Returns:
             ``docutils.nodes.raw`` 节点，可直接嵌入到最终 HTML。
         """
-        html = f'<img src="{escape(url)}" alt="{escape(alt)}">'
+        image = f'<img src="{escape(url)}" alt="{escape(alt)}">'
+        html = f'<a href="{escape(link)}">{image}</a>' if link else image
         return nodes.raw('', html, format='html')
