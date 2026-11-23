@@ -37,6 +37,7 @@
 
 ### 文档
 
+- **清理 `doc/_ext/` 的上游复制件。** 删除 `component_directive.py`（pydata-sphinx-theme 的 `component-list` 指令复制件）：自 6a6993a 随文档目录迁移引入后从未在 `extensions` 中注册，`doc/` 下无任何 `component-list` 引用，且硬编码的 `src/pydata_sphinx_theme/theme/pydata_sphinx_theme/components` 在本仓并不存在（实测为 `False`），一旦启用即抛 `FileNotFoundError`。删除前记录 SHA-256 `AF8A7DBD…856CA2`。
 - **`SW_MYST_COMPAT_*` 环境变量别名的移除版本明确为 `mystx>=0.7`。** 新规范前缀为 `MYSTX_MYST_COMPAT_*`；命中旧前缀时记录 info 级弃用提示，0.7 起移除该别名。
 
 ### 测试
