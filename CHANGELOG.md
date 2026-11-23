@@ -12,6 +12,7 @@
 
 ### 变更
 
+- **`themes` 与 `version_switcher` 收敛：共减 42 行（122→98、89→71）。** `resolve_theme` 的「跳过 alabaster 再末尾补齐」改为候选列表一次性拼装 + `next()`，兜底成为队列性质而非循环特判；`MySTX` 删除记录后重抛的 `try/except`、重复错误消息与专用 logger，失败时直接上抛由 Sphinx 打印完整 traceback；`themes.py` 补模块 docstring。`sphinx_setup` 将 `READTHEDOCS` / `GITHUB_ACTIONS` 由三处读取收敛为 `on_rtd` / `on_ci` 两个布尔量，`logger.info` 改延迟格式化；公开常量全部保留。117 条测试全绿，构建退出码 0，`version-switcher` / `ethical-ads` 出现次数与改动前一致。
 - **`myst_docs` 指令注册表单一来源化：120 → 110 行。** 原先「`DOCS_DIRECTIVE_NAMES` 常量 + `register` 内 `dict`」两份名单合并为 `_DIRECTIVE_SPEC` 三元组表（指令名 / 上游符号 / 是否包装示例），常量与注册均由表派生；解析（模块、全部符号、变换、词法器）提前到写入 app 之前，`ImportError` 与 `AttributeError` 统一转为带安装提示的错误，不再留下半注册状态。新增 2 条测试覆盖缺符号路径与派生一致性；117 条全绿，`myst-example` 页面渲染与改动前一致。
 - **`myst_compat` 开关解析收敛：133 → 113 行，别名移除条件显式化。** 两段逐行重复的 `SW_MYST_COMPAT_*` 读取块合并为 `_read_switch()`（规范前缀优先、过渡别名次之、缺省启用），弃用文案抽为常量并绑定 `mystx>=0.7`，到期只需删 `for` 循环中的一项；模块文档与 `_read_switch` docstring 双重写明优先级。恢复 `re` 正常导入，去掉 `_re` 别名；新增 `test_canonical_prefix_wins_over_deprecated_alias` 锁定「同时设置时规范前缀优先」语义。115 条测试全绿。
 - **`ext/gallery` 指令层去重：正文与选项拼装收敛为两个纯函数（145 → 132 行）。** `header`/`image`/`content` 三段拼装抽为 `_card_body()`（就地消费三键，其余键自然成为卡片选项），`:选项: 值` 渲染抽为 `_as_options()`（原两处 `join` 副本）；缺失数据文件的提示只构造一次；容器类名改用 `join` 过滤，消除 `gallery-directive ` 的尾随空格。新增 4 条拼装单测（含键消费副作用断言）；文档站三个 gallery 页面改动前后逐页对比仅时间戳与 tippy 哈希不同，卡片 DOM 一致。
