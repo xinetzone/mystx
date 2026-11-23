@@ -23,10 +23,16 @@
 - **任务 CLI：Sphinx 可执行命令统一解析。** 新增 `mystx.tasks.doc._core._sphinx_build_cmd()`，`build`、`doctest`、`-M` 目标三个入口共用 `$SPHINXBUILD`（缺省 `sphinx-build`），消除 `build`/`doctest` 两处硬编码字面量。
 - **任务 CLI：`doc.clean`（builder 模式）增加构建根边界。** target 不在解析出的 builddir 内时拒绝删除并给出提示；空父目录回收不再越过构建根，避免误删项目目录。
 - **配置：`use_thebe` 改为「先装配、后配置」。** 先 `setup_extension("sphinx_thebe")`，成功后再写 `launch_buttons.thebe=True`；装配失败时不再留下「按钮已开启但功能缺失」的状态。
+- **打包：声明运行期依赖。** `dependencies` 由空改为 `sphinx>=8.0`、`sphinx-book-theme>=1.1`（`theme.toml` 的 `inherit` 必需），使干净环境 `pip install` 后 `import mystx` 即可用；`[project.optional-dependencies].doc` 继续承载文档构建增量。
+- **扩展装配：恢复 `sphinxcontrib.mermaid`。** 与 `myst_fence_as_directive = ["mermaid"]` 配对，消除围栏指令的死映射（原注释「不在依赖中」已过时）；`has_module` 守卫保证未安装时静默跳过。新增契约测试防回归。
 
 ### 文档
 
 - **`SW_MYST_COMPAT_*` 环境变量别名的移除版本明确为 `mystx>=0.7`。** 新规范前缀为 `MYSTX_MYST_COMPAT_*`；命中旧前缀时记录 info 级弃用提示，0.7 起移除该别名。
+
+### 测试
+
+- **补齐扩展与文档任务的回归用例。** 新增 `tests/unit/test_github_readme_stats.py`（HTML 转义、URL 拼装、缺参报错）以及 `tree`、`clean`、`browse`、`-M` 包装共 10 条用例；`tasks/doc/builder.py` 覆盖率 87%，`github_readme_stats` 的 `base.py` 与 `pinned_repo.py` 均达 100%。
 
 ### 破坏性变更
 

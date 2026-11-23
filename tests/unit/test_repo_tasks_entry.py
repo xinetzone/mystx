@@ -213,3 +213,137 @@ def test_clean_removes_inside_target_without_touching_buildroot(tmp_path):
 
     assert not target.exists()
     assert buildroot.is_dir()
+
+
+def test_clean_removes_empty_parents_within_buildroot(tmp_path):
+    """AC-4：空父目录可回收，但不得越过构建根。"""
+    from mystx.tasks import doc
+
+    buildroot = tmp_path / "build"
+    target = buildroot / "a" / "html"
+    target.mkdir(parents=True)
+    (target / "index.html").write_text("x", encoding="utf-8")
+
+    doc.builder.clean(
+        Context(config={"sphinx": {"builddir": str(buildroot)}}), target=str(target)
+    )
+
+    assert not target.exists()
+    assert not (buildroot / "a").exists(), "空父目录应被回收"
+    assert buildroot.is_dir(), "回收不得越过构建根"
+
+
+def test_tree_prints_each_directory_once(tmp_path, capsys):
+    """AC-9：``tree`` 每个目录只打印一行，且按字典序输出文件。"""
+    from mystx.tasks import doc
+
+    root = tmp_path / "html"
+    (root / "a" / "b").mkdir(parents=True)
+    (root / "index.html").write_text("x", encoding="utf-8")
+    (root / "z.txt").write_text("x", encoding="utf-8")
+    (root / "a" / "one.txt").write_text("x", encoding="utf-8")
+    (root / "a" / "b" / "two.txt").write_text("x", encoding="utf-8")
+
+    doc.builder.tree(Context(config={"sphinx": {}}), target=str(root))
+
+    assert capsys.readouterr().out.splitlines() == [
+        "html/",
+        "│   index.html",
+        "│   z.txt",
+        "│   a/",
+        "│   │   one.txt",
+        "│   │   b/",
+        "│   │   │   two.txt",
+    ]
+
+
+def test_tree_reports_missing_dir(tmp_path, capsys):
+    from mystx.tasks import doc
+
+    doc.builder.tree(Context(config={"sphinx": {}}), target=str(tmp_path / "nope"))
+
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    assert "构建目录不存在" in captured.err
+
+
+def test_browse_reports_missing_dir_without_starting_server(tmp_path, capsys):
+    from mystx.tasks import doc
+
+    doc.builder.browse(Context(config={"sphinx": {}}), target=str(tmp_path / "nope"))
+
+    assert "构建目录不存在" in capsys.readouterr().err
+
+
+def test_clean_targets_mode_delegates_to_m(monkeypatch):
+    from mystx.tasks import doc
+
+    seen: dict = {}
+    monkeypatch.setattr(doc.builder, "_run_target", lambda *a, **k: seen.update(args=a, kwargs=k))
+    ctx = Context(config={"sphinx": {"source": "doc", "builddir": "_build"}})
+
+    doc.builder.clean(ctx, mode="targets", opts="-q")
+
+    assert seen["args"] == ("clean",)
+    assert seen["kwargs"] == {"sourcedir": "doc", "builddir": "_build", "opts": "-q"}
+
+
+def test_clean_rejects_unknown_mode():
+    from mystx.tasks import doc
+
+    with pytest.raises(Exit):
+        doc.builder.clean(Context(config={"sphinx": {}}), mode="bogus")
+
+
+def test_target_wrappers_delegate_to_m_builder(monkeypatch):
+    from mystx.tasks import doc
+
+    calls: list[tuple] = []
+    monkeypatch.setattr(doc.builder, "_run_target", lambda *a, **k: calls.append((a, k)))
+    ctx = Context(config={"sphinx": {"source": "doc", "builddir": "_build"}})
+
+    doc.builder._target_target(ctx, "latex")
+    doc.builder._target_linkcheck(ctx)
+    doc.builder._target_help(ctx)
+
+    assert [c[0][0] for c in calls] == ["latex", "linkcheck", "help"]
+    assert calls[0][0] == ("latex", "doc", "_build")
+    assert calls[0][1] == {"opts": ""}
+    assert calls[1][0] == ("linkcheck", "doc", "_build", "")
+    assert calls[2][0] == ("help", "doc", "_build", "")
+
+
+def test_build_nitpick_and_explicit_opts_skip_parallel(monkeypatch):
+    """显式传入 opts（含空串）时完全尊重，不自动注入 ``-b html`` 与并行 flag。"""
+    from mystx.tasks import doc
+
+    monkeypatch.delenv("SPHINXOPTS", raising=False)
+    monkeypatch.delenv("O", raising=False)
+    captured: list[str] = []
+    ctx = Context(
+        config={"sphinx": {"source": "doc", "target": "_build/html", "builddir": "_build"}}
+    )
+    monkeypatch.setattr(ctx, "run", lambda cmd, pty: captured.append(cmd))
+
+    doc.builder.build(ctx, nitpick=True, opts="")
+
+    tokens = shlex.split(captured[0], posix=False)
+    assert tokens[1:4] == ["-n", "-W", "-T"]
+    assert tokens[-2:] == ["doc", "_build/html"]
+    assert "-b" not in tokens and "-j" not in tokens
+
+
+def test_doctest_uses_explicit_build_dir(monkeypatch):
+    from mystx.tasks import doc
+
+    monkeypatch.delenv("SPHINXOPTS", raising=False)
+    monkeypatch.delenv("O", raising=False)
+    captured: list[str] = []
+    ctx = Context(config={"sphinx": {"source": "doc", "builddir": "_build"}})
+    monkeypatch.setattr(ctx, "run", lambda cmd, pty: captured.append(cmd))
+
+    doc.builder.doctest(ctx, build_dir="out/doctest")
+
+    tokens = shlex.split(captured[0], posix=False)
+    assert tokens[1:3] == ["-b", "doctest"]
+    assert tokens[-2:] == ["doc", "out/doctest"]
