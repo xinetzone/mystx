@@ -3,6 +3,36 @@ import os
 from typing import Any
 
 
+def resolve_release(
+    distribution: str = "mystx",
+    *,
+    env_var: str | None = None,
+    fallback: str = "0.0.0",
+) -> str:
+    """解析包版本号，供 ``conf.py`` 的 ``release`` / ``version`` 使用。
+
+    回退链：已安装分发包的元数据 → 环境变量 ``env_var`` → ``fallback``。
+    覆盖「源码树内直接构建文档、包尚未安装」与「CI 以变量注入版本」两类
+    场景，避免 ``conf.py`` 内联 try-except 样板。
+
+    Args:
+        distribution: 分发包名（非模块名）。
+        env_var: 可选的版本环境变量名；未设置或为空时继续回退。
+        fallback: 最终兜底值。
+    """
+    try:
+        from importlib.metadata import version as _pkg_version
+
+        return _pkg_version(distribution)
+    except Exception:
+        pass
+    if env_var:
+        value = os.environ.get(env_var)
+        if value:
+            return value
+    return fallback
+
+
 def sitemap_enabled_by_env() -> bool:
     """当前环境是否需要 mystx 自行生成 sitemap 所需配置。
 

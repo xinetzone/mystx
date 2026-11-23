@@ -10,6 +10,17 @@ from pathlib import Path
 
 from sphinx.application import Sphinx
 
+# mystx 包同时是本项目的复用层：并行守卫、MyST 文档工具指令、可选字体增强
+# 与版本解析统一从包内导入，避免同一能力在 conf.py 与包内各留一份实现。
+# 此处不设 try-except 降级：本文件的 autoapi 源目录与末尾无条件追加的
+# mystx.ext.github_readme_stats 都依赖包本身，未安装 mystx 时构建不可能完成，
+# 早退报 ImportError 比维护一条走不到的降级分支更诚实。
+from mystx.config import DEFAULT_SITE_CONFIG
+from mystx.fonts import configure_optional_matplotlib_fonts
+from mystx.myst_docs import register_docs_directives
+from mystx.parallel import connect_parallel_guard
+from mystx.utils import resolve_release
+
 
 # 设置路径
 def get_project_root() -> Path:
@@ -18,11 +29,9 @@ def get_project_root() -> Path:
 
 ROOT = get_project_root()
 sys.path.insert(0, str(ROOT / 'doc'))
-try:
-    from importlib.metadata import version as _pkg_version
-    release = _pkg_version("mystx")
-except Exception:
-    release = os.environ.get("MYSTX_VERSION", "0.0.0")
+
+release = resolve_release("mystx", env_var="MYSTX_VERSION", fallback="0.0.0")
+
 # ================================= 项目基本信息 =================================
 project = "mystx"
 author = "xinetzone"
@@ -47,20 +56,14 @@ def _has(mod: str) -> bool:
 extensions = [e for e in ['mystx'] if _has(e)]
 
 # ================================= 可选：matplotlib 字体配置 =================================
-# taolib 与 doc/_static/fonts 均为可选增强，二者缺一即静默跳过：
+# 字体增强的「包不可用 / 目录缺失 / 调用失败」三重守卫由包内
+# configure_optional_matplotlib_fonts 统一实现：任一不满足只记日志、不阻断。
 # ・RTD 仅安装 .[doc]（见 .readthedocs.yml），其依赖清单不含 taolib；
 # ・浏览器端代码字体由 _static/font.css 的 @font-face 独立提供，与本块无关。
-# 守卫通过后仍失败时只提示、不阻断——该配置仅影响构建期 matplotlib 绘图的字形。
-_font_directory = ROOT / 'doc/_static/fonts'
-if _has('taolib') and _font_directory.is_dir():
-    try:
-        from taolib.fonts import configure_matplotlib_fonts
-        configure_matplotlib_fonts(
-            font_directory=_font_directory,
-            families=('Maple Mono NF CN', 'Noto Color Emoji'),
-        )
-    except Exception as exc:
-        print(f"[mystx] matplotlib 字体配置未生效，已跳过：{exc}")
+configure_optional_matplotlib_fonts(
+    ROOT / 'doc/_static/fonts',
+    families=('Maple Mono NF CN', 'Noto Color Emoji'),
+)
 
 # ================================= 文档构建配置 =================================
 # 排除文件和目录模式
@@ -119,7 +122,7 @@ for _mod in [
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinx_comments",
-    "_ext.gallery_directive",
+    "mystx.ext.gallery",  # gallery-grid 指令（原 doc/_ext 副本已迁入包内）
 ]:
     if _has(_mod):
         extensions.append(_mod)
@@ -148,7 +151,7 @@ elif not os.environ.get("READTHEDOCS"):
     html_baseurl = os.environ.get("SITEMAP_URL_BASE", "http://127.0.0.1:8000/")
     sitemap_url_scheme = "{link}"
 
-sitemap_locales = [None]  # 语言列表
+sitemap_locales = DEFAULT_SITE_CONFIG["sitemap_locales"]  # 语言列表
 
 # 3. 参考文献配置
 extensions.append('sphinxcontrib.bibtex')
@@ -161,13 +164,10 @@ autoapi_root = "autoapi"  # API 文档输出目录
 autoapi_generate_api_docs = True  # 启用 API 文档生成
 
 # 5. 图表生成配置
+# 取值来自包内 DEFAULT_SITE_CONFIG（与项目身份无关的文档站通用键）
 extensions.append("sphinx.ext.graphviz")
-graphviz_output_format = "svg"  # 输出格式
-inheritance_graph_attrs = {
-    "rankdir": "LR",  # 图表方向：从左到右
-    "fontsize": 14,  # 字体大小
-    "ratio": "compress",  # 压缩比例
-}
+graphviz_output_format = DEFAULT_SITE_CONFIG["graphviz_output_format"]
+inheritance_graph_attrs = DEFAULT_SITE_CONFIG["inheritance_graph_attrs"]
 
 # 6. GitHub 贡献者显示
 extensions.append('sphinx_contributors')
@@ -184,24 +184,16 @@ ogp_social_cards = {
 
 # 10. 丰富的悬停提示
 extensions.append("sphinx_tippy")
-tippy_rtd_urls = [
-    "https://docs.readthedocs.io/en/stable/",
-    "https://www.sphinx-doc.org/zh-cn/master/",
-]
+tippy_rtd_urls = DEFAULT_SITE_CONFIG["tippy_rtd_urls"]
 
 # =============================================================================
 # 高级配置
 # =============================================================================
 # 忽略特定的 Nitpick 警告
+# 前三条为上游实现导致的通用噪声，来自包内 DEFAULT_SITE_CONFIG；invoke 属
+# 本项目可选依赖（未配置 intersphinx 清单），单独追加，仅豁免具体符号。
 nitpick_ignore = [
-    ("py:class", "docutils.nodes.document"),
-    ("py:class", "docutils.parsers.rst.directives.body.Sidebar"),
-    # autoapi 把类型注解中的 ``...`` 渲染成 ``Ellipsis`` 并按 py:class 交叉引用解析，
-    # 但 Ellipsis 是内置单例、不在 intersphinx 清单中，无法解析；注解写法
-    # （均为 tuple[X, ...]）不应为文档构建而改动，故仅精确豁免该符号。
-    ("py:class", "Ellipsis"),
-    # invoke 为可选第三方依赖，未配置 intersphinx 清单，故 invoke.Collection 无法解析；
-    # 仅豁免这一个具体符号，不使用通配符压制整类 py:class 告警。
+    *DEFAULT_SITE_CONFIG["nitpick_ignore"],
     ("py:class", "invoke.Collection"),
 ]
 
@@ -259,78 +251,31 @@ extensions.append("sphinx_pyscript")
 # GitHub 统计卡片插件
 extensions.append("mystx.ext.github_readme_stats")
 
+
 def setup(app: Sphinx):
     """Add functions to the Sphinx setup."""
-    from myst_parser._docs import (
-        DirectiveDoc,
-        DocutilsCliHelpDirective,
-        MystAdmonitionDirective,
-        MystConfigDirective,
-        MystLexer,
-        MystToHTMLDirective,
-        MystWarningsDirective,
-        NumberSections,
-        StripUnsupportedLatex,
-        SyntaxExampleDocsDirective,
-    )
-
-    # 项目仅支持 myst-parser >= 5.1（见 pyproject.toml 版本下界）：薄子类化仅
-    # 把三个 CSS 类名钉回本仓 local.css 依赖的 myst-example* 契约；渲染语义
-    # （源码/渲染双栏、无标题、sphinx-design div）沿用上游，注册名 "myst-example"
-    # 与 doc/ 下既有用法保持不变。
-    class MystExampleDirective(SyntaxExampleDocsDirective):
-        wrapper_classes = ("myst-example",)
-        source_classes = ("myst-example-source",)
-        render_classes = ("myst-example-render",)
-
-    app.add_directive("myst-config", MystConfigDirective)
-    app.add_directive("docutils-cli-help", DocutilsCliHelpDirective)
-    app.add_directive("doc-directive", DirectiveDoc)
-    app.add_directive("myst-warnings", MystWarningsDirective)
-    app.add_directive("myst-example", MystExampleDirective)
-    app.add_directive("myst-admonitions", MystAdmonitionDirective)
-    app.add_directive("myst-to-html", MystToHTMLDirective)
-    app.add_post_transform(StripUnsupportedLatex)
-    app.add_post_transform(NumberSections)
-    app.add_lexer("myst", MystLexer)
+    # MyST 文档工具指令（myst-config / myst-example 等）由包内统一注册：
+    # 示例指令的 CSS 类名沿用 local.css 依赖的 myst-example* 契约。
+    register_docs_directives(app)
 
     # P1-A 审计结论：新增第三方扩展时，如果其上游 setup() 未显式声明
     # parallel_{read,write}_safe=True，Sphinx 会将其视为 None 并退化为串行。
-    # 此处提供中心化覆写表，只需补充 extension_name 即可启用并行，
-    # 不再需要逐个去上游提 PR。
+    # 覆写表与 fail-fast 守卫的实现见 mystx.parallel：表内补充扩展名即可
+    # 启用并行，不再需要逐个去上游提 PR；守卫仅在显式要求并行时生效。
     # 审计参考: docs/retrospective/reports/documentation-governance/
     #           sphinx-parallel-build-5k-scale-20260903/index.md
     _PARALLEL_SAFE_OVERRIDES: dict[str, tuple[bool, bool]] = {
-        # "autoapi.extension":   (True, True),   # 需要时取消注释
-        # "_ext.gallery_directive": (True, True),  # 需要时取消注释
+        # "autoapi.extension": (True, True),      # 需要时取消注释
+        # "mystx.ext.gallery": (True, True),      # 需要时取消注释
     }
-    for ext_name, (pr, pw) in _PARALLEL_SAFE_OVERRIDES.items():
-        if ext_name in app.extensions:
-            setattr(app.extensions[ext_name], "parallel_read_safe", bool(pr))
-            setattr(app.extensions[ext_name], "parallel_write_safe", bool(pw))
-
-    def _assert_parallel_ready(app, env, docnames):
-        """Fail fast if any extension silently disabled parallel read.
-
-        Gate: only fire when the caller actually requested parallelism
-        via -j / $SPHINX_BUILD_JOBS so pure serial builds are not bothered.
-
-        ``env-before-read-docs`` 事件契约为 (app, env, docnames) 三参，
-        docnames 本钩子不使用但必须在签名中接收。
-        """
-        if app.parallel > 0 and not app.is_parallel_allowed("read"):
-            raise RuntimeError(
-                "Parallel read disabled. Check extensions missing "
-                "parallel_read_safe=True. Re-run with -v to see per-extension "
-                "warnings from Sphinx.is_parallel_allowed()."
-            )
-
-    app.connect("env-before-read-docs", _assert_parallel_ready)
+    connect_parallel_guard(app, _PARALLEL_SAFE_OVERRIDES)
 
     return {
         "version": release,
         "parallel_read_safe": True,
         "parallel_write_safe": True,
     }
+
+
 nitpicky = os.environ.get("SPHINX_NITPICK", "").lower() in {"1", "true", "yes"}
 templates_path = ["_templates"]

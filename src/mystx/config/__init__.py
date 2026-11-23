@@ -15,6 +15,7 @@ from .defaults import (
     DEFAULT_EXT_CONFIG,
     DEFAULT_HTML_CONFIG,
     DEFAULT_MYST_CONFIG,
+    DEFAULT_SITE_CONFIG,
     build_base_config,
 )
 from .runtime import (
@@ -31,6 +32,7 @@ __all__ = [
     "DEFAULT_EXT_CONFIG",
     "DEFAULT_HTML_CONFIG",
     "DEFAULT_MYST_CONFIG",
+    "DEFAULT_SITE_CONFIG",
     "ConfigManager",
     "apply_book_theme_option_defaults",
     "build_base_config",

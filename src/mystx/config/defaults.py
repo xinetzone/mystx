@@ -63,6 +63,32 @@ DEFAULT_HTML_CONFIG: dict[str, Any] = {
 }
 
 
+#: 文档站通用的「非身份相关」配置键：与项目名、仓库地址、源目录布局无关，
+#: 可被任意 Sphinx 文档站直接合并进 ``conf.py`` 命名空间。
+#:
+#: 与 ``DEFAULT_*_CONFIG`` 的区别是**不参与** :func:`build_base_config` 的
+#: 默认合并——这些键只在对应扩展加载时才有意义，由调用方显式取用。
+DEFAULT_SITE_CONFIG: dict[str, Any] = {
+    "graphviz_output_format": "svg",
+    "inheritance_graph_attrs": {"rankdir": "LR", "fontsize": 14, "ratio": "compress"},
+    "sitemap_locales": [None],
+    "tippy_rtd_urls": [
+        "https://docs.readthedocs.io/en/stable/",
+        "https://www.sphinx-doc.org/zh-cn/master/",
+    ],
+    # 三条均为「上游实现导致、与本项目无关」的交叉引用失败，属文档站通用噪声：
+    # ・autoapi 把类型注解里的 ``...`` 渲染成 ``Ellipsis`` 并按 py:class 解析，
+    #   而它是内置单例、不在 intersphinx 清单中；
+    # ・docutils 两符号被 myst_parser 文档工具指令引用但未纳入清单。
+    # 仅精确豁免具体符号，不使用通配符压制整类 py:class 告警。
+    "nitpick_ignore": [
+        ("py:class", "docutils.nodes.document"),
+        ("py:class", "docutils.parsers.rst.directives.body.Sidebar"),
+        ("py:class", "Ellipsis"),
+    ],
+}
+
+
 def _resolve_html_baseurl(params: dict[str, Any]) -> str | None:
     """从环境变量 / 项目参数中推断 ``html_baseurl`` 的取值（sitemap + ogp 需要）。"""
     if not sitemap_enabled_by_env():

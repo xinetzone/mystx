@@ -1,12 +1,22 @@
-"""A directive to generate a gallery of images from structured data.
+"""``gallery-grid`` 指令：由结构化数据生成等宽图片画廊。
 
-Generating a gallery of images that are all the same size is a common
-pattern in documentation, and this can be cumbersome if the gallery is
-generated programmatically. This directive wraps this particular use-case
-in a helper-directive to generate it with a single YAML configuration file.
+文档站里「一排等宽、带标题与链接的卡片」是高频版式，手写容易错行且难以
+批量维护。本指令把该版式收敛为一条指令：接受 YAML 列表（写在指令体内，
+或给出指向 YAML 文件的参数），逐项展开为 sphinx-design 的
+``grid`` + ``grid-item-card``。
 
-It currently exists for maintainers of the pydata-sphinx-theme,
-but might be abstracted into a standalone package if it proves useful.
+用法（MyST）::
+
+    ```{gallery-grid}
+    :grid-columns: 1 2 3
+    - header: 项目名
+      image: https://example.org/logo.png
+      content: 一句话说明
+    ```
+
+迁移说明：本模块原为 ``doc/_ext/gallery_directive.py``（源自
+pydata-sphinx-theme 的维护者工具），迁入包内后下游项目无需再把 ``doc/``
+插入 ``sys.path``，直接以 ``mystx.ext.gallery`` 加入 ``extensions`` 即可。
 """
 
 from pathlib import Path
@@ -20,7 +30,6 @@ from sphinx.util.docutils import SphinxDirective
 from yaml import safe_load
 
 logger = logging.getLogger(__name__)
-
 
 TEMPLATE_GRID = """
 `````{{grid}} {columns}
@@ -41,17 +50,13 @@ GRID_CARD = """
 
 
 class GalleryGridDirective(SphinxDirective):
-    """A directive to show a gallery of images and links in a Bootstrap grid.
+    """把 YAML 描述的画廊展开为 sphinx-design 卡片网格。
 
-    The grid can be generated from a YAML file that contains a list of items, or
-    from the content of the directive (also formatted in YAML). Use the parameter
-    "class-card" to add an additional CSS class to all cards. When specifying the grid
-    items, you can use all parameters from "grid-item-card" directive to customize
-    individual cards + ["image", "header", "content", "title"].
+    该项内容可以是 YAML 文件路径（作为指令参数给出，相对当前文档解析），
+    也可以直接写在指令体内。每个列表项可含 ``title`` / ``header`` /
+    ``image`` / ``content`` 以及任意 ``grid-item-card`` 选项。
 
-    Danger:
-        This directive can only be used in the context of a Myst documentation page as
-        the templates use Markdown flavored formatting.
+    注意：生成的模板是 Markdown 语法，因此本指令只能用于 MyST 页面。
     """
 
     name = "gallery-grid"
@@ -76,9 +81,8 @@ class GalleryGridDirective(SphinxDirective):
             path_doc = Path(path_doc).parent
             path_data = (path_doc / path_data_rel).resolve()
             if not path_data.exists():
-                logger.info("Could not find grid data at %s.", path_data)
-                nodes.text("No grid data found at {path_data}.")
-                return
+                logger.warning("Could not find grid data at %s.", path_data)
+                return [nodes.paragraph("", f"Could not find grid data at {path_data}.")]
             yaml_string = path_data.read_text()
         else:
             yaml_string = "\n".join(self.content)
@@ -128,13 +132,10 @@ class GalleryGridDirective(SphinxDirective):
 
 
 def setup(app: Sphinx) -> dict[str, Any]:
-    """Add custom configuration to sphinx app.
-
-    Args:
-        app: the Sphinx application
+    """注册 ``gallery-grid`` 指令。
 
     Returns:
-        the 2 parallel parameters set to ``True``.
+        扩展元信息，读写两阶段均声明并行安全。
     """
     app.add_directive("gallery-grid", GalleryGridDirective)
 

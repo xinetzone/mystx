@@ -76,6 +76,8 @@ doc = [
     "graphviz",
     "sphinx-tippy",
     "sphinx-pyscript",
+    # mystx.ext.gallery 的 gallery-grid 指令在模块顶层解析 YAML 画廊数据
+    "pyyaml>=6.0",
 ]
 test = [
     "pytest>=8.0",
@@ -160,6 +162,8 @@ doc = [
     "graphviz",
     "sphinx-tippy",
     "sphinx-pyscript",
+    # mystx.ext.gallery 的 gallery-grid 指令在模块顶层解析 YAML 画廊数据
+    "pyyaml>=6.0",
 ]
 test = [
     "pytest>=8.0",
