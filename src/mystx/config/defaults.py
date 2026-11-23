@@ -86,6 +86,19 @@ DEFAULT_SITE_CONFIG: dict[str, Any] = {
         ("py:class", "docutils.parsers.rst.directives.body.Sidebar"),
         ("py:class", "Ellipsis"),
     ],
+    # 文档站（myst-nb / autoapi / docutils）链路的上游噪声，与本项目内容无关。
+    # 与 ``DEFAULT_BUILD_CONFIG["suppress_warnings"]`` 分开维护：后者是 preset 的
+    # 最小集合（toc/etoc 类），合并会改变 preset 行为。
+    "suppress_warnings": [
+        "mystnb.unknown_mime_type",
+        "mystnb.mime_priority",
+        "myst.xref_missing",
+        "myst.domains",
+        "ref.ref",
+        "autoapi.python_import_resolution",
+        "autoapi.not_readable",
+        "docutils",
+    ],
 }
 
 

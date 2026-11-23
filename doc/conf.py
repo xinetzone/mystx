@@ -19,11 +19,12 @@ from pathlib import Path
 from sphinx.application import Sphinx
 
 from mystx.config import DEFAULT_BUILD_CONFIG, DEFAULT_EXT_CONFIG, DEFAULT_MYST_CONFIG, DEFAULT_SITE_CONFIG
+from mystx.extensions import DEFAULT_OPTIONAL_EXTENSIONS, resolve_extensions
 from mystx.fonts import configure_optional_matplotlib_fonts
 from mystx.myst_docs import register_docs_directives
 from mystx.parallel import connect_parallel_guard
 from mystx.themes import resolve_theme
-from mystx.utils import has_module, resolve_release, resolve_site_url
+from mystx.utils import resolve_release, resolve_site_url
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "doc"))
@@ -38,55 +39,48 @@ locale_dirs = ["../locales/"]
 gettext_compact = False
 
 # ================================= 扩展装配 =================================
-extensions = [e for e in ["mystx"] if has_module(e)]
-
-# 可选插件：未安装则跳过
-for _mod in [
-    "sphinx_design",
+# 站点可选扩展 = 包内清单（剔除 sitemap，改由环境条件决定）＋ 本站增量；
+# resolve_extensions 负责 has_module 探测与去重，列表顺序即加载顺序。
+_SITE_OPTIONAL_EXTENSIONS = tuple(
+    ext for ext in DEFAULT_OPTIONAL_EXTENSIONS if ext != "sphinx_sitemap"
+) + (
     "sphinx.ext.viewcode",
-    "sphinx.ext.intersphinx",
-    "sphinx_copybutton",
     "sphinx_comments",
     "mystx.ext.gallery",
-]:
-    if has_module(_mod):
-        extensions.append(_mod)
+    "sphinxcontrib.bibtex",
+    "autoapi.extension",
+    "sphinx_examples",
+    "sphinx_pyscript",
+    "mystx.ext.github_readme_stats",
+)
+
+# 非 RTD 由 mystx 生成 sitemap；CI 须显式给 SITEMAP_URL_BASE（项目型 Pages 带 /mystx/ 前缀）。
+# 这里用站点自己的严格判定：DEFAULT_CONDITIONAL 只看 GITHUB_ACTIONS 是否存在，
+# 会放过「CI 未声明 SITEMAP_URL_BASE」的情形，把 localhost 写进线上 sitemap。
+site_url = resolve_site_url(require_on_ci=True)
+
+extensions = resolve_extensions(
+    required=("mystx",),
+    optional=_SITE_OPTIONAL_EXTENSIONS,
+    conditional=(("sphinx_sitemap", lambda: bool(site_url)),),
+)
 
 copybutton_exclude = DEFAULT_EXT_CONFIG["copybutton_exclude"]
 copybutton_selector = DEFAULT_EXT_CONFIG["copybutton_selector"]
 
-# 非 RTD 由 mystx 生成 sitemap；CI 须显式给 SITEMAP_URL_BASE（项目型 Pages 带 /mystx/ 前缀）
-site_url = resolve_site_url(require_on_ci=True)
-html_baseurl = ""  # RTD 侧保持 Sphinx 默认值
-if site_url:
-    extensions.append("sphinx_sitemap")
-    html_baseurl = site_url
-    sitemap_url_scheme = "{link}"
-else:
-    sitemap_url_scheme = "{lang}{version}{link}"
+html_baseurl = site_url or ""  # RTD 侧保持 Sphinx 默认值
+sitemap_url_scheme = "{link}" if site_url else "{lang}{version}{link}"
 sitemap_locales = DEFAULT_SITE_CONFIG["sitemap_locales"]
 
-extensions.append("sphinxcontrib.bibtex")
 bibtex_bibfiles = ["refs.bib"]
 
-extensions.append("autoapi.extension")
 autoapi_dirs = [str(ROOT / "src")]
 autoapi_root = "autoapi"
 autoapi_generate_api_docs = True
 
-extensions.append("sphinx.ext.graphviz")
 graphviz_output_format = DEFAULT_SITE_CONFIG["graphviz_output_format"]
 inheritance_graph_attrs = DEFAULT_SITE_CONFIG["inheritance_graph_attrs"]
-
-extensions.append("sphinx_contributors")
-extensions.append("sphinxext.opengraph")
-
-extensions.append("sphinx_tippy")
 tippy_rtd_urls = DEFAULT_SITE_CONFIG["tippy_rtd_urls"]
-
-extensions.extend(["sphinx.ext.intersphinx", "sphinx.ext.extlinks", "sphinx_examples"])
-extensions.append("sphinx_pyscript")
-extensions.append("mystx.ext.github_readme_stats")
 
 # ================================= 主题与字体 =================================
 # 回退链（mystx → sphinx_book_theme → alabaster）由包内 themes 唯一维护
@@ -104,16 +98,10 @@ nitpick_ignore = [
     ("py:class", "invoke.Collection"),
 ]
 
+# 通用噪声来自包内 DEFAULT_SITE_CONFIG；本站只追加与 _static/switcher.json 相关的一条
 suppress_warnings = [
-    "mystnb.unknown_mime_type",
-    "mystnb.mime_priority",
-    "myst.xref_missing",
-    "myst.domains",
-    "ref.ref",
-    "autoapi.python_import_resolution",
-    "autoapi.not_readable",
+    *DEFAULT_SITE_CONFIG["suppress_warnings"],
     "epub.unknown_project_files",  # epub 扫描 _static/switcher.json 的误报
-    "docutils",
 ]
 
 numfig = DEFAULT_BUILD_CONFIG["numfig"]
