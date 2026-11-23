@@ -20,6 +20,7 @@
   - 新增 `mystx.fonts`：`configure_optional_matplotlib_fonts()` 把「字体包 / 字体目录 / 调用异常」三重守卫与静默降级收拢，返回是否生效，绝不抛出。
   - `mystx.utils.resolve_release()`：版本回退链「分发包元数据 → 环境变量 → 兜底值」，替代 `conf.py` 内联 try-except。
   - 新增 `mystx.ext.gallery`：`gallery-grid` 指令由 `doc/_ext/` 迁入包内（旧副本 `doc/_ext/gallery_directive.py` 已删除），下游无需再把 `doc/` 插入 `sys.path`；同时修复参数形式（YAML 文件路径不存在时）返回 `None` 导致指令异常的问题，改为返回提示段落并记 warning。
+  - **依赖：`pyyaml>=6.0` 显式声明。** 迁入的 `mystx.ext.gallery` 在模块顶层解析 YAML 画廊数据，此前仅依赖传递安装；现同时加入 `[project.optional-dependencies].doc` 与 `[dependency-groups].doc` 两处清单，避免干净环境下启用该扩展即报 `ModuleNotFoundError`。
 - **配置：新增 `DEFAULT_SITE_CONFIG`。** 收纳与项目身份无关的文档站通用键（`graphviz_output_format`、`inheritance_graph_attrs`、`sitemap_locales`、`tippy_rtd_urls` 与三条通用 `nitpick_ignore`）；**不**并入 `build_base_config`，由调用方显式取用，避免改变既有 preset 行为。
 - **`doc/conf.py` 改为消费上述包内能力。** MyST 文档工具指令注册、并行覆写与守卫、字体增强、版本解析、gallery 扩展名均由包内提供；`invoke.Collection` 这一项目侧豁免项在 `DEFAULT_SITE_CONFIG` 基础上单独追加。同时移除了「mystx 不可导入」的降级分支——该分支不可达（同文件末尾无条件追加的 `mystx.ext.github_readme_stats` 与 autoapi 源目录都依赖包本身），保留它只会在 `conf.py` 内留下 `DEFAULT_SITE_CONFIG` 的第二份字面量，重现本仓反复修复的「双源漂移」缺陷。
 
