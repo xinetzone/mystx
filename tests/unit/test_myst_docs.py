@@ -87,19 +87,38 @@ def test_register_docs_directives_raises_informative_import_error(monkeypatch):
 
     monkeypatch.setitem(sys.modules, "myst_parser._docs", None)
 
-    with pytest.raises(ImportError, match="myst-parser"):
+    with pytest.raises(ImportError) as excinfo:
         register_docs_directives(MagicMock())
 
+    message = str(excinfo.value)
+    assert "myst-parser>=5.1" in message
+    assert "mystx[doc]" in message
 
-def test_missing_upstream_symbol_raises_informative_import_error(monkeypatch):
+
+def test_missing_upstream_symbol_names_the_document_extra(monkeypatch):
+    """模块在、符号缺（如 sphinx-syntax-example 未装）时不能误报成版本太低。"""
     import sys
     import types
 
-    # 上游模块存在但缺少 _DIRECTIVE_SPEC 声明的符号：应转成同一安装提示
-    monkeypatch.setitem(sys.modules, "myst_parser._docs", types.ModuleType("myst_parser._docs"))
+    import mystx.myst_docs as mod
 
-    with pytest.raises(ImportError, match="myst-parser"):
+    fake = types.ModuleType("myst_parser._docs")
+    spec = mod._DIRECTIVE_SPEC
+    for _, symbol, wrap_example in spec:
+        if not wrap_example:
+            setattr(fake, symbol, object)
+    fake.StripUnsupportedLatex = object
+    fake.NumberSections = object
+    fake.MystLexer = object
+    monkeypatch.setitem(sys.modules, "myst_parser._docs", fake)
+    monkeypatch.setattr(mod, "make_example_directive", _fake_factory)
+
+    with pytest.raises(ImportError) as excinfo:
         register_docs_directives(MagicMock())
+
+    message = str(excinfo.value)
+    assert "SyntaxExampleDocsDirective" in message
+    assert "sphinx-syntax-example>=0.2.0" in message
 
 
 def test_directive_names_are_derived_from_single_spec():

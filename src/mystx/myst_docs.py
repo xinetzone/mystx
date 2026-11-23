@@ -79,6 +79,17 @@ def _resolve_directives(upstream: Any, example_prefix: str) -> dict[str, Any]:
     return directives
 
 
+def _load_upstream() -> Any:
+    """导入上游文档工具模块；模块缺失时给出可执行的安装提示。"""
+    try:
+        return importlib.import_module("myst_parser._docs")
+    except ImportError as exc:
+        raise ImportError(
+            "myst_parser._docs 不可用（需要 myst-parser>=5.1）："
+            f"{exc}。请安装 mystx[doc] 或 `pip install \"myst-parser>=5.1\"`。"
+        ) from exc
+
+
 def register_docs_directives(
     app: Sphinx,
     *,
@@ -88,17 +99,21 @@ def register_docs_directives(
 ) -> None:
     """注册 MyST 文档工具指令、后置变换与词法器。
 
-    依赖 ``myst_parser >= 5.1``（``myst_parser._docs`` 在该版本提供所需符号）；
-    模块或符号缺失时抛出带安装提示的 :class:`ImportError`。
+    依赖 ``myst_parser >= 5.1`` 与 ``sphinx-syntax-example >= 0.2.0``：前者提供
+    ``myst_parser._docs`` 模块本体，后者提供其中被硬导入的
+    ``SyntaxExampleDocsDirective``（上游未在依赖清单声明该包）。模块或符号缺失
+    时抛出带安装提示的 :class:`ImportError`，并保留原始异常供排查。
     """
+    upstream = _load_upstream()
     try:
-        upstream = importlib.import_module("myst_parser._docs")
         directives = _resolve_directives(upstream, example_prefix)
         transforms = (upstream.StripUnsupportedLatex, upstream.NumberSections)
         lexer = upstream.MystLexer
-    except (ImportError, AttributeError) as exc:
+    except AttributeError as exc:
         raise ImportError(
-            "myst_parser._docs 不可用：请安装 myst-parser>=5.1 后重试。"
+            "myst_parser._docs 缺少预期符号（文档依赖未装全）："
+            f"{exc}。请安装 mystx[doc] 或 "
+            '`pip install "myst-parser>=5.1" "sphinx-syntax-example>=0.2.0"`。'
         ) from exc
 
     for name, directive in directives.items():
