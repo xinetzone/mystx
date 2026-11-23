@@ -55,12 +55,23 @@ class ConfigManager:
         self._merge_html_theme_options(custom_config)
 
     def _apply_top_level(self, custom_config: dict[str, Any]) -> None:
-        """写入非主题选项的顶层键；Sphinx 未注册的键告警但仍写入。"""
+        """写入非主题选项的顶层键；Sphinx 未注册的键告警并跳过。
+
+        只有已注册键才写入 ``Config``。未注册键若直接 ``setattr``，会绕过
+        配置注册表：``config.values``、``config.filter/iter``、``-D`` 未知键
+        告警与增量缓存快照都看不到它，形成「有值但不受管」的幽灵键。此处
+        告警后跳过，使拼写错误或扩展缺失在构建日志中显形。
+        """
         for key, value in custom_config.items():
             if key == "html_theme_options":
                 continue
             if key not in self.config.values:
-                self.logger.warning("_config.toml 中的 %s 不是 Sphinx 已注册配置项", key)
+                self.logger.warning(
+                    "_config.toml 中的 %s 不是 Sphinx 已注册配置项，已跳过"
+                    "（检查拼写，或确认对应扩展已加载）",
+                    key,
+                )
+                continue
             setattr(self.config, key, value)
 
     def _merge_html_theme_options(self, custom_config: dict[str, Any]) -> None:

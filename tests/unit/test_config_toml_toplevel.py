@@ -26,11 +26,12 @@ def test_toplevel_keys_are_applied_and_theme_options_merged(tmp_path):
     assert manager.config.html_theme_options == {"announcement": "a"}
 
 
-def test_unknown_key_warns_but_is_still_written(tmp_path, caplog):
+def test_unknown_key_warns_and_is_skipped(tmp_path, caplog):
     manager = _manager(tmp_path, 'mystx_unknown = 1\n')
 
     with caplog.at_level(logging.WARNING):
         manager.apply_config()
 
-    assert manager.config.mystx_unknown == 1
+    assert not hasattr(manager.config, "mystx_unknown")
     assert "mystx_unknown" in caplog.text
+    assert "已跳过" in caplog.text
