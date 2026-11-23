@@ -97,9 +97,14 @@ def test_switcher_json_url_is_relative(monkeypatch):
 
 def test_repo_conf_points_at_local_manifest():
     """仓库文档站的数据源必须是相对路径，否则 CI（阻断出网）的构建期校验必然 warning。"""
-    conf = (_REPO_ROOT / "doc" / "conf.py").read_text(encoding="utf-8")
-    assert 'version_switcher_json_url = "_static/switcher.json"' in conf, (
-        "doc/conf.py 未把切换清单指向本地文件"
+    import importlib.util
+
+    conf_path = _REPO_ROOT / "doc" / "conf.py"
+    spec = importlib.util.spec_from_file_location("mystx_doc_conf_switcher", conf_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert module.version_switcher_json_url == "_static/switcher.json", (
+        "文档站配置未把切换清单指向本地文件"
     )
 
 

@@ -22,7 +22,8 @@
   - 新增 `mystx.ext.gallery`：`gallery-grid` 指令由 `doc/_ext/` 迁入包内（旧副本 `doc/_ext/gallery_directive.py` 已删除），下游无需再把 `doc/` 插入 `sys.path`；同时修复参数形式（YAML 文件路径不存在时）返回 `None` 导致指令异常的问题，改为返回提示段落并记 warning。
   - **依赖：`pyyaml>=6.0` 显式声明。** 迁入的 `mystx.ext.gallery` 在模块顶层解析 YAML 画廊数据，此前仅依赖传递安装；现同时加入 `[project.optional-dependencies].doc` 与 `[dependency-groups].doc` 两处清单，避免干净环境下启用该扩展即报 `ModuleNotFoundError`。
 - **配置：新增 `DEFAULT_SITE_CONFIG`。** 收纳与项目身份无关的文档站通用键（`graphviz_output_format`、`inheritance_graph_attrs`、`sitemap_locales`、`tippy_rtd_urls` 与三条通用 `nitpick_ignore`）；**不**并入 `build_base_config`，由调用方显式取用，避免改变既有 preset 行为。
-- **`doc/conf.py` 改为消费上述包内能力。** MyST 文档工具指令注册、并行覆写与守卫、字体增强、版本解析、gallery 扩展名均由包内提供；`invoke.Collection` 这一项目侧豁免项在 `DEFAULT_SITE_CONFIG` 基础上单独追加。同时移除了「mystx 不可导入」的降级分支——该分支不可达（同文件末尾无条件追加的 `mystx.ext.github_readme_stats` 与 autoapi 源目录都依赖包本身），保留它只会在 `conf.py` 内留下 `DEFAULT_SITE_CONFIG` 的第二份字面量，重现本仓反复修复的「双源漂移」缺陷。
+- **`doc/conf.py` 消费上述包内能力。** MyST 文档工具指令注册、并行覆写与守卫、字体增强、版本解析、gallery 扩展名均由包内提供；`invoke.Collection` 这一项目侧豁免项在 `DEFAULT_SITE_CONFIG` 基础上单独追加。同时移除了「mystx 不可导入」的降级分支——该分支不可达（同文件末尾无条件追加的 `mystx.ext.github_readme_stats` 与 autoapi 源目录都依赖包本身），保留它只会在 `conf.py` 内留下 `DEFAULT_SITE_CONFIG` 的第二份字面量，重现本仓反复修复的「双源漂移」缺陷。
+- **`doc/conf.py` 原子化为 `doc/_conf/` 六个分组。** 原单文件承载元信息、外观、扩展装配、MyST 配置与 `setup()` 五类职责，扩展清单的多次追加与若干注释性依赖（装配顺序、epub 对 `version` 的要求）交织在一起，改动一处需通读全文。现按主题切分：`common`（路径与可选依赖探测）、`meta`（元信息与国际化）、`appearance`（主题、静态资源、字体增强）、`extensions`（扩展清单与各扩展配置）、`myst`（MyST、交叉引用、警告抑制）、`guard`（`setup()` 与并行守卫）；`conf.py` 保留 `sys.path` 引导并按依赖顺序显式再导出，不再自行实现任何配置逻辑。取值逐字未改：完整单测 105 passed，`sphinx -b html` 构建通过，`ruff check doc/` 零告警。
 
 ### 修复
 
