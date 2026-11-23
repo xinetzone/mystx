@@ -8,7 +8,7 @@
 import os
 from typing import Any
 
-from ..themes import BOOK_THEME_NAMES, DEFAULT_BOOK_THEME_OPTIONS
+from ..themes import DEFAULT_BOOK_THEME_OPTIONS
 from ..utils import deep_merge, sitemap_enabled_by_env
 
 DEFAULT_MYST_CONFIG: dict[str, Any] = {
@@ -90,7 +90,12 @@ DEFAULT_SITE_CONFIG: dict[str, Any] = {
 
 
 def _resolve_html_baseurl(params: dict[str, Any]) -> str | None:
-    """从环境变量 / 项目参数中推断 ``html_baseurl`` 的取值（sitemap + ogp 需要）。"""
+    """preset 场景的 ``html_baseurl``：非 RTD 生效，``site_url`` 可兜底 CI 缺失值。
+
+    与 :func:`mystx.utils.resolve_site_url` 的分工：本函数服务 ``build_base_config``
+    的预置站点，允许 ``site_url`` 作为 CI 回退；站点侧则要求 CI 显式声明
+    ``SITEMAP_URL_BASE``。二者共享 :func:`sitemap_enabled_by_env` 的 RTD 判据。
+    """
     if not sitemap_enabled_by_env():
         return None
     if os.environ.get("GITHUB_ACTIONS"):
@@ -119,16 +124,9 @@ def build_base_config(params: dict[str, Any] | None = None) -> dict[str, Any]:
     return deep_merge(merged, params.get("config_override") or {})
 
 
-# 书系主题名单与结构性默认均来自 ``themes``（唯一权威源）。
-# pydata-sphinx-theme 0.16+ 在 builder-inited 阶段会向未声明
-# ``navbar_persistent`` 的项目自动注入 ``["search-button-field"]``，
-# 使顶栏出现搜索按钮；而书系主题的主侧边栏已内置同一搜索按钮
-# （theme.toml sidebars 中的 search-button-field.html），两者叠加即
-# 产生双搜索框。书系主题的设计意图是只保留侧边栏搜索，故在
-# config-inited（早于 builder-inited）补齐空列表默认；仅在用户未
-# 显式声明时生效，用户配置（conf.py / _config.toml）优先。
-# 单一权威源：取值引用 ``themes.DEFAULT_BOOK_THEME_OPTIONS``，避免同一默认值
-# 在本包内出现两份副本（曾因两侧各自维护而在 preset 路径与服务路径之间产生分歧）。
+# pydata 0.16+ 会在 builder-inited 注入 navbar_persistent=["search-button-field"]，
+# 与书系侧栏内置搜索按钮叠加成双搜索框；故在 config-inited 以 setdefault 语义补空列表。
+# 取值引用 themes.DEFAULT_BOOK_THEME_OPTIONS（唯一权威源），包内不另存副本。
 BOOK_THEME_OPTION_DEFAULTS: dict[str, object] = {
     "navbar_persistent": DEFAULT_BOOK_THEME_OPTIONS["navbar_persistent"],
 }

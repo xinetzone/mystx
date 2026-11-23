@@ -42,3 +42,13 @@ def test_other_themes_are_untouched():
     config = _make_config("alabaster")
     apply_book_theme_option_defaults(config)
     assert "navbar_persistent" not in config.html_theme_options
+
+
+def test_book_theme_names_are_single_sourced_from_themes():
+    """门面与运行期须直接引用 ``themes`` 的名单，不经 ``defaults`` 中转副本。"""
+    import mystx.themes as themes
+    from mystx import config
+    from mystx.config import runtime
+
+    assert config.BOOK_THEME_NAMES is themes.BOOK_THEME_NAMES
+    assert runtime.BOOK_THEME_NAMES is themes.BOOK_THEME_NAMES

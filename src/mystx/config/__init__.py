@@ -8,8 +8,8 @@
   由 ``config-inited`` 事件驱动。
 """
 
+from ..themes import BOOK_THEME_NAMES
 from .defaults import (
-    BOOK_THEME_NAMES,
     BOOK_THEME_OPTION_DEFAULTS,
     DEFAULT_BUILD_CONFIG,
     DEFAULT_EXT_CONFIG,
