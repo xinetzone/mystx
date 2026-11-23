@@ -89,3 +89,21 @@ def test_register_docs_directives_raises_informative_import_error(monkeypatch):
 
     with pytest.raises(ImportError, match="myst-parser"):
         register_docs_directives(MagicMock())
+
+
+def test_missing_upstream_symbol_raises_informative_import_error(monkeypatch):
+    import sys
+    import types
+
+    # 上游模块存在但缺少 _DIRECTIVE_SPEC 声明的符号：应转成同一安装提示
+    monkeypatch.setitem(sys.modules, "myst_parser._docs", types.ModuleType("myst_parser._docs"))
+
+    with pytest.raises(ImportError, match="myst-parser"):
+        register_docs_directives(MagicMock())
+
+
+def test_directive_names_are_derived_from_single_spec():
+    import mystx.myst_docs as mod
+
+    assert DOCS_DIRECTIVE_NAMES == tuple(name for name, _, _ in mod._DIRECTIVE_SPEC)
+    assert len(set(DOCS_DIRECTIVE_NAMES)) == len(DOCS_DIRECTIVE_NAMES)

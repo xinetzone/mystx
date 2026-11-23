@@ -1,15 +1,11 @@
 """把 ``myst_parser._docs`` 自带的文档工具指令注册到 Sphinx 项目。
 
-``myst_parser._docs`` 内部实现了一批「用文档说明 MyST 自身」的指令、
-后置变换与词法器，但没有提供公开的注册入口——上游自己的文档站直接在
-``conf.py`` 的 ``setup()`` 里逐条 ``app.add_directive(...)``。任何想要
-展示 MyST 配置项、告警清单或「源码／渲染双栏示例」的项目都得复制这一段。
-
-本模块把该段收拢为 :func:`register_docs_directives`，并把示例指令的
-三个 CSS 类名参数化：下游只需给出类名前缀，即可让样式表继续作用于
-``<prefix>`` / ``<prefix>-source`` / ``<prefix>-render`` 三个容器。
+上游没有公开注册入口，其文档站直接在 ``conf.py`` 里逐条 ``add_directive``。
+本模块把该段收拢为 :func:`register_docs_directives`，并把示例指令的三个
+CSS 类名参数化：``<prefix>`` / ``<prefix>-source`` / ``<prefix>-render``。
 """
 
+import importlib
 from typing import Any
 
 from sphinx.application import Sphinx
@@ -17,15 +13,21 @@ from sphinx.application import Sphinx
 #: 示例指令的默认类名前缀，与 mystx 文档的 ``local.css`` 契约一致。
 DEFAULT_EXAMPLE_PREFIX = "myst-example"
 
+#: ``(指令名, 上游符号名, 是否包装为示例指令)``——注册顺序即最终顺序。
+#: 指令名列表由本表派生，不再维护第二份名单。
+_DIRECTIVE_SPEC: tuple[tuple[str, str, bool], ...] = (
+    ("myst-config", "MystConfigDirective", False),
+    ("docutils-cli-help", "DocutilsCliHelpDirective", False),
+    ("doc-directive", "DirectiveDoc", False),
+    ("myst-warnings", "MystWarningsDirective", False),
+    ("myst-example", "SyntaxExampleDocsDirective", True),
+    ("myst-admonitions", "MystAdmonitionDirective", False),
+    ("myst-to-html", "MystToHTMLDirective", False),
+)
+
 #: 默认注册的指令名，供文档或测试引用（顺序与注册顺序一致）。
-DOCS_DIRECTIVE_NAMES: tuple[str, ...] = (
-    "myst-config",
-    "docutils-cli-help",
-    "doc-directive",
-    "myst-warnings",
-    "myst-example",
-    "myst-admonitions",
-    "myst-to-html",
+DOCS_DIRECTIVE_NAMES: tuple[str, ...] = tuple(
+    name for name, _, _ in _DIRECTIVE_SPEC
 )
 
 
@@ -64,6 +66,19 @@ def make_example_directive(
     )
 
 
+def _resolve_directives(upstream: Any, example_prefix: str) -> dict[str, Any]:
+    """按 ``_DIRECTIVE_SPEC`` 从上游模块取出指令类，示例指令就地包装。"""
+    directives: dict[str, Any] = {}
+    for name, symbol, wrap_example in _DIRECTIVE_SPEC:
+        directive = getattr(upstream, symbol)
+        directives[name] = (
+            make_example_directive(example_prefix, base=directive)
+            if wrap_example
+            else directive
+        )
+    return directives
+
+
 def register_docs_directives(
     app: Sphinx,
     *,
@@ -73,48 +88,23 @@ def register_docs_directives(
 ) -> None:
     """注册 MyST 文档工具指令、后置变换与词法器。
 
-    依赖 ``myst_parser >= 5.1``（``myst_parser._docs`` 在该版本提供
-    上述符号）；未安装时抛出带安装提示的 :class:`ImportError`。
-
-    Args:
-        app: Sphinx 应用实例。
-        example_prefix: 示例指令的 CSS 类名前缀。
-        register_transforms: 是否同时注册 ``StripUnsupportedLatex`` /
-            ``NumberSections`` 两个后置变换。
-        register_lexer: 是否同时注册 ``myst`` 词法器。
+    依赖 ``myst_parser >= 5.1``（``myst_parser._docs`` 在该版本提供所需符号）；
+    模块或符号缺失时抛出带安装提示的 :class:`ImportError`。
     """
     try:
-        from myst_parser._docs import (
-            DirectiveDoc,
-            DocutilsCliHelpDirective,
-            MystAdmonitionDirective,
-            MystConfigDirective,
-            MystLexer,
-            MystToHTMLDirective,
-            MystWarningsDirective,
-            NumberSections,
-            StripUnsupportedLatex,
-            SyntaxExampleDocsDirective,
-        )
-    except ImportError as exc:  # pragma: no cover - 由缺依赖触发
+        upstream = importlib.import_module("myst_parser._docs")
+        directives = _resolve_directives(upstream, example_prefix)
+        transforms = (upstream.StripUnsupportedLatex, upstream.NumberSections)
+        lexer = upstream.MystLexer
+    except (ImportError, AttributeError) as exc:
         raise ImportError(
             "myst_parser._docs 不可用：请安装 myst-parser>=5.1 后重试。"
         ) from exc
 
-    directives: dict[str, Any] = {
-        "myst-config": MystConfigDirective,
-        "docutils-cli-help": DocutilsCliHelpDirective,
-        "doc-directive": DirectiveDoc,
-        "myst-warnings": MystWarningsDirective,
-        "myst-example": make_example_directive(example_prefix, base=SyntaxExampleDocsDirective),
-        "myst-admonitions": MystAdmonitionDirective,
-        "myst-to-html": MystToHTMLDirective,
-    }
     for name, directive in directives.items():
         app.add_directive(name, directive)
-
     if register_transforms:
-        app.add_post_transform(StripUnsupportedLatex)
-        app.add_post_transform(NumberSections)
+        for transform in transforms:
+            app.add_post_transform(transform)
     if register_lexer:
-        app.add_lexer("myst", MystLexer)
+        app.add_lexer("myst", lexer)
