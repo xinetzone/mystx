@@ -59,8 +59,8 @@ DEFAULT_OPTIONAL_EXTENSIONS: tuple[str, ...] = (
     "sphinx.ext.graphviz",
     "sphinx_contributors",
     "sphinxext.opengraph",
-    # Removed: not in mystx [doc] optional-dependencies, avoid has_module false-negative
-    # "sphinxcontrib.mermaid",
+    # 已在 [doc] extras 与 dependency-groups 声明；has_module 守卫保证非文档环境静默跳过
+    "sphinxcontrib.mermaid",
 )
 
 

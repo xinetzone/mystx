@@ -34,7 +34,10 @@ classifiers = [
     "Topic :: Documentation :: Sphinx",
     "Topic :: Software Development :: Libraries :: Python Modules"
 ]
-dependencies = []
+dependencies = [
+    "sphinx>=8.0",
+    "sphinx-book-theme>=1.1",
+]
 
 [project.urls]
 Repository = "https://github.com/xinetzone/mystx"
