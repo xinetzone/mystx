@@ -43,6 +43,34 @@ def sitemap_enabled_by_env() -> bool:
     return bool(os.environ.get("GITHUB_ACTIONS")) or not os.environ.get("READTHEDOCS")
 
 
+def resolve_site_url(
+    *,
+    local_fallback: str = "http://127.0.0.1:8000/",
+    require_on_ci: bool = False,
+) -> str | None:
+    """解析站点根 URL（sitemap、canonical 链接共用）。
+
+    回退链：``SITEMAP_URL_BASE`` → ``local_fallback``（仅限无 CI 的本地构建）；
+    ReadTheDocs 自带 sitemap，直接返回 None。
+
+    项目型 GitHub Pages 的站点根带仓库前缀（如
+    ``https://xinetzone.github.io/mystx/``），无法由包推断，故 CI 侧要求显式
+    提供。``require_on_ci=True`` 时，GitHub Actions 缺少该变量即抛错，避免把
+    localhost 地址写进线上 sitemap。
+    """
+    if not sitemap_enabled_by_env():
+        return None
+    value = os.environ.get("SITEMAP_URL_BASE")
+    if value:
+        return value
+    if require_on_ci and os.environ.get("GITHUB_ACTIONS"):
+        raise RuntimeError(
+            "[mystx] GITHUB_ACTIONS 下必须设置 SITEMAP_URL_BASE"
+            "（站点根，如 https://xinetzone.github.io/mystx/）"
+        )
+    return local_fallback
+
+
 def has_module(mod: str) -> bool:
     """探测模块是否可导入，不触发模块副作用。
 

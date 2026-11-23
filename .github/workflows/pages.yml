@@ -79,7 +79,11 @@ jobs:
           pip install .[doc,dev]
       
       # 构建 HTML 文档（doc 子命名空间的默认任务，产物 doc/_build/html）
+      # SITEMAP_URL_BASE 为项目型 Pages 的站点根，必须显式提供：
+      # mystx 在 GITHUB_ACTIONS 下缺此变量会直接报错，避免把 localhost 写进 sitemap。
       - name: 🔧 构建 HTML 文档
+        env:
+          SITEMAP_URL_BASE: https://xinetzone.github.io/mystx/
         run: invoke doc.build
       
       # 验证构建结果

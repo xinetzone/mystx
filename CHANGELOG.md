@@ -12,6 +12,7 @@
 
 ### 变更
 
+- **文档站配置薄化：`doc/_conf` 改为复用包内决策，不再保留平行实现。** `has_module` 再导出 `mystx.utils.has_module`；主题回退改用 `themes.resolve_theme()`；`numfig`、`myst_enable_extensions`、`copybutton_exclude`、`copybutton_selector` 取自 `config.defaults` 的默认字典。装配结果逐键比对前后完全一致；新增 `tests/unit/test_conf_py.py::test_conf_reuses_package_decisions_instead_of_inline_copies` 固化该契约。
 - **配置层：`config.py` 与 `configs.py` 合并为 `mystx.config` 包。** 两者文件名仅差一个 `s`，但职责分属不同生效时点：原 `configs.py` 服务构建期的 conf.py 字典组装，原 `config.py` 服务运行期 `config-inited` 对 Sphinx `Config` 的注入。现按该正交轴拆为 `mystx.config.defaults`（静态默认与 `build_base_config`）与 `mystx.config.runtime`（`ConfigManager`、`config_inited_handler` 等），由包 `__init__` 统一导出；`mystx.config.*` 的既有导入路径不变。
 - **默认值：书系主题 `navbar_persistent` 改为单一权威源。** `BOOK_THEME_OPTION_DEFAULTS` 取值改为引用 `themes.DEFAULT_BOOK_THEME_OPTIONS`，消除同一默认值两处副本，避免 preset 路径与运行期注入路径分叉后重现双搜索框回归。
 - **主题默认值：`theme.toml` 与 `themes.DEFAULT_BOOK_THEME_OPTIONS` 对齐并加机检守卫。** 二者对 13 个同名键各自声明，其中 8 个已分歧（`use_repository_button`/`use_source_button`/`use_issues_button`、`show_navbar_depth`、`max_navbar_depth`、`toc_title`、`navbar_persistent`），导致纯主题接入与 preset 接入呈现不同行为。现将 `theme.toml` 对齐到 Python 侧意图值，并新增 `tests/unit/test_theme_toml_consistency.py`，把"同名键取值必须一致"固化为机检门禁。
@@ -31,6 +32,7 @@
 
 ### 修复
 
+- **sitemap：GitHub Pages 产线恢复生成 `sitemap.xml`，站点根与 URL 模板修正。** 原站点侧在 `GITHUB_ACTIONS` 下只设 `html_baseurl`、不装配 `sphinx_sitemap`，且默认根为 org 根（缺 `/mystx/` 前缀）、模板为 `{lang}{version}{link}`（Pages 无语言/版本子目录），三项叠加使 Pages 从未产出可用 sitemap。现统一为包内单一规则 `utils.resolve_site_url()`：非 RTD 环境一律装配 `sphinx_sitemap` 并使用 `{link}` 模板；`GITHUB_ACTIONS` 下缺少 `SITEMAP_URL_BASE` 直接报错，防止把 localhost 写进线上 sitemap。`pages.yml` 显式传入 `https://xinetzone.github.io/mystx/`。另修正原子化引入的 RTD 回归：RTD 分支下 `html_baseurl` 缺失导致 `conf.py` 导入失败，现以空字符串（Sphinx 默认值）占位。
 - **扩展：`github-pinned-repo` 的 `:link:` 与图片地址统一经 HTML 转义。** 原实现以 f-string 直接拼接 `<a href>`/`<img src>`，含 `"`、`<`、`&` 的链接可破坏标签结构。现统一经 `BaseGitHubCardDirective.create_image_node(..., link=...)` 生成，`link`、`url`、`alt` 均走 `html.escape`；无 `link` 时输出与旧实现一致。
 - **文档：README 配置示例拼写修正。** Python 代码块内 `static_path` 改为 `html_static_path`，`"home_page_in_toc": false` 改为 `False`，避免照抄示例即报 `NameError` 或配置不生效。
 - **脚本：`invoke doc.tree` 子目录重复打印与 `doc.browse` 启动顺序。** `tree` 原对同一子目录打印两次（枚举一次、递归一次），现仅由递归打印；`browse` 改为先启动 HTTP 服务器再打开浏览器，避免浏览器先于服务就绪。

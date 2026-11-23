@@ -1,7 +1,7 @@
 """MyST 解析、交叉引用、短链接与告警抑制配置。"""
 import os
 
-from mystx.config import DEFAULT_SITE_CONFIG
+from mystx.config import DEFAULT_BUILD_CONFIG, DEFAULT_MYST_CONFIG, DEFAULT_SITE_CONFIG
 
 # =============================================================================
 # 高级配置
@@ -27,18 +27,11 @@ suppress_warnings = [
     "docutils",
 ]
 
-# 启用编号功能
-numfig = True
+# 启用编号功能（取值来自包内 DEFAULT_BUILD_CONFIG）
+numfig = DEFAULT_BUILD_CONFIG["numfig"]
 
-# MyST 扩展配置
-myst_enable_extensions = [
-    "dollarmath",  # 数学公式支持
-    "amsmath",  # 高级数学支持
-    "deflist",  # 定义列表
-    "colon_fence",  # 冒号分隔的围栏
-    "replacements",  # 文本替换
-    "substitution",  # 变量替换
-]
+# MyST 扩展配置（取值来自包内 DEFAULT_MYST_CONFIG，复制一份以免站点侧改动污染默认值）
+myst_enable_extensions = list(DEFAULT_MYST_CONFIG["myst_enable_extensions"])
 
 # 交叉引用配置
 intersphinx_mapping = {

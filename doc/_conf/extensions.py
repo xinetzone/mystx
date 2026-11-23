@@ -3,9 +3,8 @@
 装配顺序即 ``extensions`` 列表的最终顺序，改动前先确认扩展间依赖
 （例如 ``myst_parser`` 与 ``myst_nb`` 互斥，见 tests/unit/test_doc_parallel_extensions_p1.py）。
 """
-import os
-
-from mystx.config import DEFAULT_SITE_CONFIG
+from mystx.config import DEFAULT_EXT_CONFIG, DEFAULT_SITE_CONFIG
+from mystx.utils import resolve_site_url
 
 from .common import ROOT, has_module
 from .meta import project
@@ -25,10 +24,9 @@ for _mod in [
         extensions.append(_mod)
 
 # ================================= 可选功能配置 =================================
-# 1. 代码复制按钮配置
-copybutton_exclude = ".linenos, .gp"  # 排除行号和提示符
-# 选择器配置，避免复制按钮出现在笔记本单元格编号上
-copybutton_selector = ":not(.prompt) > div.highlight pre"
+# 1. 代码复制按钮配置（取值来自包内 DEFAULT_EXT_CONFIG，避免与 preset 侧分歧）
+copybutton_exclude = DEFAULT_EXT_CONFIG["copybutton_exclude"]
+copybutton_selector = DEFAULT_EXT_CONFIG["copybutton_selector"]
 # 2. 评论系统配置
 comments_config = {
     "hypothesis": True,  # 启用 Hypothesis 注释
@@ -38,14 +36,18 @@ comments_config = {
     },  # 启用 Utterances 评论
 }
 
-# ReadTheDocs has its own way of generating sitemaps, etc.
-sitemap_url_scheme = "{lang}{version}{link}"
-if os.environ.get("GITHUB_ACTIONS"):
-    html_baseurl = os.environ.get("SITEMAP_URL_BASE", "https://xinetzone.github.io/")
-elif not os.environ.get("READTHEDOCS"):
-    extensions += ["sphinx_sitemap"]
-    html_baseurl = os.environ.get("SITEMAP_URL_BASE", "http://127.0.0.1:8000/")
-    sitemap_url_scheme = "{link}"
+# sitemap：判定与站点根解析统一由包内 utils 提供——非 RTD 环境（GitHub Pages
+# 与本地）由 mystx 生成；CI 必须显式给出 SITEMAP_URL_BASE，因为项目型 Pages
+# 的站点根带仓库前缀（/mystx/），包无法推断。RTD 自带 sitemap，不重复装配。
+site_url = resolve_site_url(require_on_ci=True)
+# RTD 侧保持 Sphinx 默认值空字符串（等价于未设置），避免 conf.py 再导出时缺失该键
+html_baseurl = ""
+if site_url:
+    extensions.append("sphinx_sitemap")
+    html_baseurl = site_url
+    sitemap_url_scheme = "{link}"  # Pages 与本地均无语言/版本子目录
+else:
+    sitemap_url_scheme = "{lang}{version}{link}"  # 仅供 RTD 语义参考
 
 sitemap_locales = DEFAULT_SITE_CONFIG["sitemap_locales"]  # 语言列表
 

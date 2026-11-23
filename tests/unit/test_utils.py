@@ -2,7 +2,9 @@ import copy
 import importlib.metadata
 import importlib.util
 
-from mystx.utils import deep_merge, has_module, resolve_release
+import pytest
+
+from mystx.utils import deep_merge, has_module, resolve_release, resolve_site_url
 
 
 def test_deep_merge_nested_2level():
@@ -68,3 +70,34 @@ def test_resolve_release_empty_env_value_is_skipped(monkeypatch):
         resolve_release("___no_such_distribution___", env_var="MYSTX_TEST_VERSION", fallback="1.2.3")
         == "1.2.3"
     )
+
+
+def test_resolve_site_url_returns_none_on_rtd(monkeypatch):
+    """RTD 自带 sitemap，包不再注入站点根。"""
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    monkeypatch.setenv("READTHEDOCS", "True")
+    assert resolve_site_url() is None
+    # RTD 不是缺配置，故强校验也不应报错
+    assert resolve_site_url(require_on_ci=True) is None
+
+
+def test_resolve_site_url_prefers_explicit_env(monkeypatch):
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setenv("SITEMAP_URL_BASE", "https://xinetzone.github.io/mystx/")
+    assert resolve_site_url(require_on_ci=True) == "https://xinetzone.github.io/mystx/"
+
+
+def test_resolve_site_url_requires_explicit_value_on_ci(monkeypatch):
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.delenv("SITEMAP_URL_BASE", raising=False)
+    with pytest.raises(RuntimeError, match="SITEMAP_URL_BASE"):
+        resolve_site_url(require_on_ci=True)
+    # 未开启强校验时退回本地地址（仅本地构建路径）
+    assert resolve_site_url() == "http://127.0.0.1:8000/"
+
+
+def test_resolve_site_url_local_fallback(monkeypatch):
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    monkeypatch.delenv("READTHEDOCS", raising=False)
+    monkeypatch.delenv("SITEMAP_URL_BASE", raising=False)
+    assert resolve_site_url() == "http://127.0.0.1:8000/"

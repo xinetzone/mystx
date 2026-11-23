@@ -38,6 +38,20 @@ def test_conf_consumes_package_layer():
     assert conf.tippy_rtd_urls == conf.DEFAULT_SITE_CONFIG["tippy_rtd_urls"]
 
 
+def test_conf_reuses_package_decisions_instead_of_inline_copies():
+    """站点侧不得为「机制」另留一份实现：主题回退、默认值均取自包内。"""
+    from mystx.config import DEFAULT_BUILD_CONFIG, DEFAULT_EXT_CONFIG, DEFAULT_MYST_CONFIG
+    from mystx.themes import resolve_theme
+
+    conf = _load_conf()
+
+    assert conf.html_theme == resolve_theme()
+    assert conf.numfig == DEFAULT_BUILD_CONFIG["numfig"]
+    assert conf.myst_enable_extensions == DEFAULT_MYST_CONFIG["myst_enable_extensions"]
+    assert conf.copybutton_exclude == DEFAULT_EXT_CONFIG["copybutton_exclude"]
+    assert conf.copybutton_selector == DEFAULT_EXT_CONFIG["copybutton_selector"]
+
+
 def test_conf_setup_registers_docs_directives_and_parallel_guard():
     _require_upstream_docs()
     conf = _load_conf()

@@ -1,7 +1,8 @@
 """主题、静态资源、字体增强与站点前端配置。"""
 from mystx.fonts import configure_optional_matplotlib_fonts
+from mystx.themes import resolve_theme
 
-from .common import ROOT, has_module
+from .common import ROOT
 
 # 排除文件和目录模式
 # README.md 面向仓库读者（徽章 / 安装命令 / 特性列表），不参与站点构建；
@@ -20,13 +21,8 @@ html_css_files = ["local.css", "font.css"]
 html_last_updated_fmt = "%Y-%m-%d, %H:%M:%S"
 templates_path = ["_templates"]
 
-# 主题选择：mystx 优先，其次书系主题，最后退到 alabaster
-if has_module("mystx"):
-    html_theme = "mystx"
-elif has_module("sphinx_book_theme"):
-    html_theme = "sphinx_book_theme"
-else:
-    html_theme = "alabaster"
+# 主题选择：回退链（mystx → sphinx_book_theme → alabaster）由包内 themes 唯一维护
+html_theme = resolve_theme()
 html_title = "Sphinx mystx Theme"  # 文档标题
 html_logo = "_static/images/logo.jpg"  # 文档logo
 html_favicon = "_static/images/favicon.jpg"  # 文档favicon
