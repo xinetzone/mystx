@@ -39,10 +39,13 @@ locale_dirs = ["../locales/"]
 gettext_compact = False
 
 # ================================= 扩展装配 =================================
-# 站点可选扩展 = 包内清单（剔除 sitemap，改由环境条件决定）＋ 本站增量；
+# 站点可选扩展 = 包内清单（剔除 sitemap 与 mermaid）＋ 本站增量；
 # resolve_extensions 负责 has_module 探测与去重，列表顺序即加载顺序。
+# sitemap 改由环境条件决定；mermaid 虽在包内清单中，但本站正文无图表，而该扩展
+# 会向每页注入约 358 行引导脚本并从 CDN 拉 ESM（全站 +568 KB），故站点剔除。
 _SITE_OPTIONAL_EXTENSIONS = tuple(
-    ext for ext in DEFAULT_OPTIONAL_EXTENSIONS if ext != "sphinx_sitemap"
+    ext for ext in DEFAULT_OPTIONAL_EXTENSIONS
+    if ext not in {"sphinx_sitemap", "sphinxcontrib.mermaid"}
 ) + (
     "sphinx.ext.viewcode",
     "sphinx_comments",
