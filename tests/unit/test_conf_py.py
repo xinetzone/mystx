@@ -53,6 +53,8 @@ def test_conf_keeps_no_inline_mechanism_copies():
 
     for name in ("register_docs_directives", "connect_parallel_guard", "resolve_extensions"):
         assert not hasattr(conf, name)
+    # 预设返回值一次性并入命名空间，不应留下中间字典变量
+    assert not hasattr(conf, "conf")
     assert conf.html_theme == resolve_theme()
     assert conf.numfig == DEFAULT_BUILD_CONFIG["numfig"]
     assert conf.myst_enable_extensions == DEFAULT_MYST_CONFIG["myst_enable_extensions"]

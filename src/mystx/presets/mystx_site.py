@@ -60,6 +60,8 @@ def build_config(
     version_env_var: str = "MYSTX_VERSION",
     version_fallback: str = "0.0.0",
     font_families: Sequence[str] = DEFAULT_FONT_FAMILIES,
+    nitpick_ignore: Sequence[tuple[str, str]] = (),
+    suppress_warnings: Sequence[str] = (),
     parallel_safe_overrides: ParallelSafeOverrides | None = None,
 ) -> dict[str, Any]:
     """组装完整 mystx 文档站的 conf.py 风格配置字典。
@@ -77,6 +79,8 @@ def build_config(
         version_env_var: 读取版本号的优先环境变量。
         version_fallback: 版本号最终兜底值。
         font_families: matplotlib 字体族优先级列表。
+        nitpick_ignore: 追加到包内基线之后的本站 nitpick 豁免。
+        suppress_warnings: 追加到包内基线之后的本站告警抑制。
         parallel_safe_overrides: 扩展名到 ``(read_safe, write_safe)`` 的覆写表。
 
     Returns:
@@ -134,8 +138,8 @@ def build_config(
         "inheritance_graph_attrs": dict(DEFAULT_SITE_CONFIG["inheritance_graph_attrs"]),
         "tippy_rtd_urls": list(DEFAULT_SITE_CONFIG["tippy_rtd_urls"]),
         "html_theme": theme,
-        "nitpick_ignore": list(DEFAULT_SITE_CONFIG["nitpick_ignore"]),
-        "suppress_warnings": list(DEFAULT_SITE_CONFIG["suppress_warnings"]),
+        "nitpick_ignore": [*DEFAULT_SITE_CONFIG["nitpick_ignore"], *nitpick_ignore],
+        "suppress_warnings": [*DEFAULT_SITE_CONFIG["suppress_warnings"], *suppress_warnings],
         "numfig": DEFAULT_BUILD_CONFIG["numfig"],
         "myst_enable_extensions": list(DEFAULT_MYST_CONFIG["myst_enable_extensions"]),
         "setup": setup,

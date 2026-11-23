@@ -142,32 +142,28 @@ extlinks = {
 # 会放过「CI 未声明 SITEMAP_URL_BASE」的情形，把 localhost 写进线上 sitemap。
 site_url = resolve_site_url(require_on_ci=True)
 
-conf = build_mystx_site_config(
-    root=ROOT,
-    site_url=site_url,
-    # 站点增量：包内可选清单（默认剔除 sitemap 与 mermaid）之外，本站另需 8 项。
-    optional_extensions=(
-        "sphinx.ext.viewcode",
-        "sphinx_comments",
-        "mystx.ext.gallery",
-        "sphinxcontrib.bibtex",
-        "autoapi.extension",
-        "sphinx_examples",
-        "sphinx_pyscript",
-        "mystx.ext.github_readme_stats",
-    ),
-)
-
-# 上游通用噪声已由预设下放；这里只追加本站增量
-conf["nitpick_ignore"] = [
-    *conf["nitpick_ignore"],
-    ("py:class", "invoke.Collection"),
-]
-conf["suppress_warnings"] = [
-    *conf["suppress_warnings"],
-    "epub.unknown_project_files",  # epub 扫描 _static/switcher.json 的误报
-]
-
 nitpicky = os.environ.get("SPHINX_NITPICK", "").lower() in {"1", "true", "yes"}
 
-globals().update(conf)
+# 预设返回 Sphinx 配置键与 setup 钩子，一次性并入本模块命名空间；
+# 站点增量经参数传入，避免「返回后再改字典」的二段式写法。
+globals().update(
+    build_mystx_site_config(
+        root=ROOT,
+        site_url=site_url,
+        # 站点增量：包内可选清单（默认剔除 sitemap 与 mermaid）之外，本站另需 8 项。
+        optional_extensions=(
+            "sphinx.ext.viewcode",
+            "sphinx_comments",
+            "mystx.ext.gallery",
+            "sphinxcontrib.bibtex",
+            "autoapi.extension",
+            "sphinx_examples",
+            "sphinx_pyscript",
+            "mystx.ext.github_readme_stats",
+        ),
+        # 上游通用噪声由预设下放，这里只追加本站增量
+        nitpick_ignore=(("py:class", "invoke.Collection"),),
+        # epub 扫描 _static/switcher.json 的误报
+        suppress_warnings=("epub.unknown_project_files",),
+    )
+)

@@ -73,6 +73,18 @@ def test_site_preset_without_site_url_disables_sitemap(tmp_path):
     assert "sphinx_sitemap" not in conf["extensions"]
 
 
+def test_site_preset_appends_site_increments(tmp_path):
+    conf = build_mystx_site_config(
+        root=tmp_path,
+        site_url=None,
+        nitpick_ignore=(("py:class", "invoke.Collection"),),
+        suppress_warnings=("epub.unknown_project_files",),
+    )
+
+    assert ("py:class", "invoke.Collection") in conf["nitpick_ignore"]
+    assert conf["suppress_warnings"][-1] == "epub.unknown_project_files"
+
+
 def test_site_preset_skips_missing_optional_extensions(tmp_path):
     conf = build_mystx_site_config(
         root=tmp_path,
