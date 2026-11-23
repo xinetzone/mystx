@@ -12,6 +12,7 @@
 
 ### 变更
 
+- **`myst_compat` 开关解析收敛：133 → 113 行，别名移除条件显式化。** 两段逐行重复的 `SW_MYST_COMPAT_*` 读取块合并为 `_read_switch()`（规范前缀优先、过渡别名次之、缺省启用），弃用文案抽为常量并绑定 `mystx>=0.7`，到期只需删 `for` 循环中的一项；模块文档与 `_read_switch` docstring 双重写明优先级。恢复 `re` 正常导入，去掉 `_re` 别名；新增 `test_canonical_prefix_wins_over_deprecated_alias` 锁定「同时设置时规范前缀优先」语义。115 条测试全绿。
 - **`ext/gallery` 指令层去重：正文与选项拼装收敛为两个纯函数（145 → 132 行）。** `header`/`image`/`content` 三段拼装抽为 `_card_body()`（就地消费三键，其余键自然成为卡片选项），`:选项: 值` 渲染抽为 `_as_options()`（原两处 `join` 副本）；缺失数据文件的提示只构造一次；容器类名改用 `join` 过滤，消除 `gallery-directive ` 的尾随空格。新增 4 条拼装单测（含键消费副作用断言）；文档站三个 gallery 页面改动前后逐页对比仅时间戳与 tippy 哈希不同，卡片 DOM 一致。
 - **配置层同源核查：`runtime.py` 185 → 110 行，`BOOK_THEME_NAMES` 直连 `themes`。** 删除 `defaults.py` 对 `BOOK_THEME_NAMES` 的中转导入（即该文件长期 `F401` 告警的根因），门面与运行期改为直接引用 `themes`，新增测试用 `is` 断言锁定单一来源；`ConfigManager.load_custom_config` 合并重复的成功日志与两级异常日志，`config_inited_handler` 去掉只记录再抛出的外层 `try/except` 与重复默认注释；`thebe_setup` 复用模块级 logger。`_resolve_html_baseurl` 与 `utils.resolve_site_url` 经裁决**不合并**：前者服务预置站点、允许 `site_url` 兜底 CI 缺失值，后者要求 CI 显式声明 `SITEMAP_URL_BASE`，差异已写入 docstring，并以 6 组环境矩阵（本地/CI/RTD × 有无 `site_url`、`SITEMAP_URL_BASE`）实测确认行为不变。
 - **`tasks/doc` 结构优化：服务器生命周期独立成 `_serve`，命令组装收敛为单点。** `builder.browse` 的端口探测、`http.server` 子进程托管与浏览器唤起迁入 `_serve.serve()`，任务层只保留「目录不存在」守卫；`build` 与 `doctest` 共用 `_core._builder_tokens()`，消除两处 `sphinx-build` 参数拼接；三个 `-M` 包装任务共用 `_m_paths()`。命令 token 顺序、错误信息与 8 个任务签名均不变，110 条测试全绿。

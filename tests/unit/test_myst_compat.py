@@ -60,6 +60,17 @@ def test_env_turnoff_quote(monkeypatch):
     assert source[0] == original
 
 
+def test_canonical_prefix_wins_over_deprecated_alias(monkeypatch):
+    monkeypatch.setenv("MYSTX_MYST_COMPAT_QUOTE_DATES", "1")
+    monkeypatch.setenv("SW_MYST_COMPAT_QUOTE_DATES", "0")
+    _reload_env_settings()
+
+    source = ["---\ndate: 2026-09-03\n---\n"]
+    quote_frontmatter_dates(None, "test", source)
+
+    assert '"2026-09-03"' in source[0]
+
+
 def test_sw_alias_works_and_emits_deprecation_log(monkeypatch, caplog):
     # sphinx.util.logging 会给第三方 logger 加 "sphinx." 命名空间前缀；
     # Sphinx app 一旦初始化（如本测试在全套件中晚于真实 app 用例执行），
