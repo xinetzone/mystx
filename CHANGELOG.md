@@ -8,7 +8,7 @@
 
 ### 新增
 
-- **CI：新增 `tests` 工作流与覆盖率门禁。** `.github/workflows/tests.yml` 在 push / PR 到 `main` 时执行 `pytest tests/unit --cov=mystx --cov-fail-under=70`。`checkout` 取完整历史（setuptools-scm 依 git 标签推算版本，浅克隆会让版本号退化）；安装 `.[test,doc]`——`test_doc_parallel_extensions_p1` 会加载 16 个可选扩展，doc 额外依赖是其硬前置。门禁下限取 70%：2026-11-23 本地实测 83%（105 passed），留 13 点缓冲，待 CI 稳定后再逐步上调。
+- **CI：新增 `tests` 工作流与覆盖率门禁（下限 85%）。** `.github/workflows/tests.yml` 在 push / PR 到 `main` 时执行 `pytest tests/unit --cov=mystx --cov-fail-under=85`。`checkout` 取完整历史（setuptools-scm 依 git 标签推算版本，浅克隆会让版本号退化）；安装 `.[test,doc]`——`test_doc_parallel_extensions_p1` 会加载 16 个可选扩展，doc 额外依赖是其硬前置。门禁起步为 70%，结构优化后本地实测 86.49%（117 passed，792 语句 / 107 未覆盖），2026-11-23 上调至 85%，仅留约 1 点缓冲；再上调需先补低覆盖模块（`wakatime` 25%、`stats`/`top_langs` 62%、`tasks/doc/_core` 76%）。
 
 ### 变更
 

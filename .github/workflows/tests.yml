@@ -26,10 +26,11 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -e ".[test,doc]"
       - name: Run tests with coverage gate
-        # 门禁下限 70%（交付总结 A4）：2026-11-23 本地实测 83%（105 passed），留 13 点缓冲，
-        # 待 CI 稳定后再逐步上调
+        # 门禁下限 85%：2026-11-23 结构优化后本地实测 86%（117 passed，792 语句 / 107 未覆盖），
+        # 允许 8 条语句的波动（≈1 点）。再上调前需先补低覆盖模块
+        # （wakatime 25%、stats/top_langs 62%、_core 76%）
         run: |
           python -m pytest tests/unit \
             --cov=mystx \
             --cov-report=term-missing \
-            --cov-fail-under=70
+            --cov-fail-under=85
