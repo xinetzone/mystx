@@ -91,7 +91,7 @@ def test_register_docs_directives_raises_informative_import_error(monkeypatch):
         register_docs_directives(MagicMock())
 
     message = str(excinfo.value)
-    assert "myst-parser>=5.1" in message
+    assert "myst-parser>=5.2" in message
     assert "mystx[doc]" in message
 
 
