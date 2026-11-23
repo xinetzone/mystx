@@ -1,3 +1,33 @@
+# 站点配置：纯取值集中在此，机制（扩展装配、主题决策、环境分支）留在 doc/_conf/。
+# 由包内 mystx.config.runtime.ConfigManager 在 config-inited 合并进 Sphinx Config。
+
+# ---- 站点元信息（原 _conf/meta.py 的纯取值）----
+# 注意：language / locale_dirs / gettext_compact 必须留在 _conf/meta.py——
+# Sphinx 在 config-inited 之前就要初始化 i18n，延迟合并会导致译文不加载。
+project = "mystx"
+author = "xinetzone"
+copyright = "2026, xinetzone"
+
+# ---- 外观与静态资源（原 _conf/appearance.py 的纯取值）----
+# README.md 面向仓库读者，站点根入口为 index.md
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store", "README.md"]
+html_static_path = ["_static"]
+html_css_files = ["local.css", "font.css"]
+html_last_updated_fmt = "%Y-%m-%d, %H:%M:%S"
+templates_path = ["_templates"]
+html_title = "Sphinx mystx Theme"
+html_logo = "_static/images/logo.jpg"
+html_favicon = "_static/images/favicon.jpg"
+html_copy_source = true
+
+# 用相对路径读本地清单：绝对 URL 会让 pydata 在构建期发请求校验，CI 阻网恒失败
+version_switcher_json_url = "_static/switcher.json"
+
+# ---- 站点专属的扩展配置 ----
+comments_config = { hypothesis = true, utterances = { repo = "xinetzone/mystx", optional = "config" } }
+ogp_site_url = "https://mystx.readthedocs.io/zh-cn/latest/"
+ogp_social_cards = { site_url = "mystx.readthedocs.io", image = "_static/images/logo.jpg", font = "Maple Mono NF CN, SimHei, Microsoft YaHei", line_colors = "#4078c0" }
+
 # 主题选项配置
 [html_theme_options]
 # 公告栏设置

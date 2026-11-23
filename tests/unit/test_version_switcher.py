@@ -96,16 +96,19 @@ def test_switcher_json_url_is_relative(monkeypatch):
 
 
 def test_repo_conf_points_at_local_manifest():
-    """仓库文档站的数据源必须是相对路径，否则 CI（阻断出网）的构建期校验必然 warning。"""
-    import importlib.util
+    """仓库文档站的数据源必须是相对路径，否则 CI（阻断出网）的构建期校验必然 warning。
 
-    conf_path = _REPO_ROOT / "doc" / "conf.py"
-    spec = importlib.util.spec_from_file_location("mystx_doc_conf_switcher", conf_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    assert module.version_switcher_json_url == "_static/switcher.json", (
-        "文档站配置未把切换清单指向本地文件"
-    )
+    取值已迁至 ``doc/_config.toml``，由包内 ``ConfigManager`` 在 config-inited 合并，
+    故此处断言配置文件本身。
+    """
+    import tomllib
+
+    config_path = _REPO_ROOT / "doc" / "_config.toml"
+    with config_path.open("rb") as f:
+        site = tomllib.load(f)
+    url = site["version_switcher_json_url"]
+    assert url == "_static/switcher.json", "文档站配置未把切换清单指向本地文件"
+    assert (_REPO_ROOT / "doc" / url).is_file(), f"相对路径未指向真实文件：{url}"
 
 
 # -- 注入语义 ---------------------------------------------------------------

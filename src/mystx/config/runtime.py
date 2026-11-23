@@ -47,10 +47,21 @@ class ConfigManager:
             raise
 
     def apply_config(self) -> None:
-        """把自定义配置应用到 ``Config``（当前仅 ``html_theme_options``）。"""
+        """把 ``_config.toml`` 的顶层键与 ``html_theme_options`` 应用到 ``Config``。"""
         custom_config = self.load_custom_config()
-        if custom_config:
-            self._merge_html_theme_options(custom_config)
+        if not custom_config:
+            return
+        self._apply_top_level(custom_config)
+        self._merge_html_theme_options(custom_config)
+
+    def _apply_top_level(self, custom_config: dict[str, Any]) -> None:
+        """写入非主题选项的顶层键；Sphinx 未注册的键告警但仍写入。"""
+        for key, value in custom_config.items():
+            if key == "html_theme_options":
+                continue
+            if key not in self.config.values:
+                self.logger.warning("_config.toml 中的 %s 不是 Sphinx 已注册配置项", key)
+            setattr(self.config, key, value)
 
     def _merge_html_theme_options(self, custom_config: dict[str, Any]) -> None:
         """``deep_merge`` 自定义主题选项，用户配置覆盖包内预设。"""
@@ -96,15 +107,19 @@ def config_inited_handler(app: Sphinx, config: Config) -> None:
 
     触发于 conf.py 执行完毕之后、``builder-inited`` 之前；此时 ``extensions``
     已加载，动态装配新扩展必须走 ``app.setup_extension()``。
+
+    顺序要求：本函数自有的配置项须**先注册再合并**，否则 ``_config.toml``
+    中的同名键会被当作未注册项告警并丢失。
     """
+    app.add_config_value("use_thebe", False, "html")
+    app.add_config_value("version_switcher_json_url", "", "html")
+
     ConfigManager(app=app, config=config).apply_config()
     # 用户配置合并完成后再补默认，避免覆盖显式声明（如书系侧栏搜索按钮）
     apply_book_theme_option_defaults(config)
 
-    app.add_config_value("use_thebe", False, "html")
     if getattr(config, "use_thebe", False):
         thebe_setup(app, config)
 
-    app.add_config_value("version_switcher_json_url", "", "html")
     if getattr(config, "version_switcher_json_url", ""):
         version_switcher_setup(app, config)
