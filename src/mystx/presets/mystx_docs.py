@@ -156,36 +156,35 @@ def configure(namespace: MutableMapping[str, Any], *, root: str | Path) -> Setup
     猜测站点布局。
     """
     root = Path(root)
-    namespace.update(
-        {
-            "project": PROJECT,
-            "author": AUTHOR,
-            "copyright": COPYRIGHT,
-            # 取值注入副本：扩展（如版本切换器）会就地改写这些字典/列表，
-            # 共享模块常量会让同进程的第二次装配看到上一次的副作用。
-            "exclude_patterns": list(EXCLUDE_PATTERNS),
-            "html_static_path": list(HTML_STATIC_PATH),
-            "html_css_files": list(HTML_CSS_FILES),
-            "html_last_updated_fmt": HTML_LAST_UPDATED_FMT,
-            "templates_path": list(TEMPLATES_PATH),
-            "html_title": HTML_TITLE,
-            "html_logo": HTML_LOGO,
-            "html_favicon": HTML_FAVICON,
-            "html_copy_source": True,
-            "version_switcher_json_url": VERSION_SWITCHER_JSON_URL,
-            "comments_config": copy.deepcopy(COMMENTS_CONFIG),
-            "ogp_site_url": OGP_SITE_URL,
-            "ogp_social_cards": copy.deepcopy(OGP_SOCIAL_CARDS),
-            "html_theme_options": copy.deepcopy(THEME_OPTIONS),
-            "autoapi_dirs": [str(root / "src")],
-            "autoapi_root": "autoapi",
-            "autoapi_generate_api_docs": True,
-            "bibtex_bibfiles": list(BIBTEX_BIBFILES),
-            "intersphinx_mapping": copy.deepcopy(INTERSPHINX_MAPPING),
-            "extlinks": copy.deepcopy(EXTLINKS),
-            "nitpicky": os.environ.get("SPHINX_NITPICK", "").lower() in {"1", "true", "yes"},
-        }
-    )
+    # 先整体构造取值表（可引用模块常量），再对整表深拷贝一次：扩展会就地改写
+    # 字典/列表，统一副本保证与模块常量及同进程另一次装配互不共享。
+    values: dict[str, Any] = {
+        "project": PROJECT,
+        "author": AUTHOR,
+        "copyright": COPYRIGHT,
+        "exclude_patterns": EXCLUDE_PATTERNS,
+        "html_static_path": HTML_STATIC_PATH,
+        "html_css_files": HTML_CSS_FILES,
+        "html_last_updated_fmt": HTML_LAST_UPDATED_FMT,
+        "templates_path": TEMPLATES_PATH,
+        "html_title": HTML_TITLE,
+        "html_logo": HTML_LOGO,
+        "html_favicon": HTML_FAVICON,
+        "html_copy_source": True,
+        "version_switcher_json_url": VERSION_SWITCHER_JSON_URL,
+        "comments_config": COMMENTS_CONFIG,
+        "ogp_site_url": OGP_SITE_URL,
+        "ogp_social_cards": OGP_SOCIAL_CARDS,
+        "html_theme_options": THEME_OPTIONS,
+        "autoapi_dirs": [str(root / "src")],
+        "autoapi_root": "autoapi",
+        "autoapi_generate_api_docs": True,
+        "bibtex_bibfiles": BIBTEX_BIBFILES,
+        "intersphinx_mapping": INTERSPHINX_MAPPING,
+        "extlinks": EXTLINKS,
+        "nitpicky": os.environ.get("SPHINX_NITPICK", "").lower() in {"1", "true", "yes"},
+    }
+    namespace.update(copy.deepcopy(values))
 
     # 字体注册是副作用，显式调用；字体目录由站点给出，预设不假设布局
     configure_site_fonts(root / "doc" / "_static" / "fonts")

@@ -23,9 +23,7 @@ def build_project_meta(
     遵循 PRESET-SETUP 模式：白名单机制只覆盖已知键，防止 params 拼错字段时静默丢失——
     例如误写为 ``projecT`` 时不会出现在返回字典中，在类型检查或 Sphinx 配置层能暴露错误。
     """
-    d = dict(_COMMON_KEY_DEFAULTS)
-    if key_defaults:
-        d.update(key_defaults)
+    d = {**_COMMON_KEY_DEFAULTS, **(key_defaults or {})}
     for key, value in params.items():
         if key in d:
             d[key] = value
