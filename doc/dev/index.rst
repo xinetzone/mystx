@@ -5,6 +5,6 @@
    :maxdepth: 2
 
    architecture
-   design
+   design/index
    build
    roadmap
