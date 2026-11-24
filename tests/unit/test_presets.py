@@ -1,3 +1,5 @@
+import pytest
+
 from mystx.config import DEFAULT_MYST_CONFIG
 from mystx.presets import (
     apply_site_config,
@@ -5,7 +7,7 @@ from mystx.presets import (
     build_mystx_site_config,
     configure_site_fonts,
 )
-from mystx.presets._shared import build_setup_closure
+from mystx.presets._shared import build_project_meta, build_setup_closure
 from mystx.presets.mystx_site import SiteConfig
 
 
@@ -86,6 +88,40 @@ def test_site_config_type_is_type_checking_only():
 
     assert "SiteConfig" not in presets.__all__
     assert not hasattr(presets, "SiteConfig")
+
+
+def test_apply_site_config_rejects_undeclared_keys(monkeypatch):
+    """键集守卫是最后一道防线：产出未声明键时拒绝注入，且不留下半装配命名空间。"""
+    from mystx.presets import mystx_site
+
+    original = mystx_site.build_config
+
+    def _build_with_ghost(**kwargs):
+        values, setup = original(**kwargs)
+        values["ghost_key"] = True
+        return values, setup
+
+    monkeypatch.setattr(mystx_site, "build_config", _build_with_ghost)
+    namespace: dict[str, object] = {}
+
+    with pytest.raises(RuntimeError, match="ghost_key"):
+        mystx_site.apply_config(namespace, site_url=None)
+    assert namespace == {}
+
+
+def test_project_meta_applies_key_defaults():
+    """key_defaults 覆盖分支：站点级默认值优先于通用默认值。"""
+    meta = build_project_meta({}, {"html_title": "T", "language": "zh_CN"})
+
+    assert meta["html_title"] == "T"
+    assert meta["language"] == "zh_CN"
+
+
+def test_project_meta_fills_none_theme_options():
+    """html_theme_options 为 None 时落为空字典，避免 Sphinx 收到 None。"""
+    meta = build_project_meta({})
+
+    assert meta["html_theme_options"] == {}
 
 
 def test_apply_site_config_injects_values_and_returns_setup():

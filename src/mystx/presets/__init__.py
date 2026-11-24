@@ -12,6 +12,9 @@
     from mystx.presets import apply_site_config
     setup = apply_site_config(globals(), site_url="https://example.com/docs/")
 
+``SiteConfig`` 只对类型检查器可见（``if TYPE_CHECKING``）；运行时请从
+``mystx.presets.mystx_site`` 导入——门面不建同名第二定义，以免 autoapi 重复目标。
+
 预设定位：
   - build_minimal_myst_config（来自 presets.minimal_myst）：仅 myst_parser + 双 MyST 兼容钩子，适合个人轻量笔记
   - build_mystx_site_config（来自 presets.mystx_site）：完整文档站机制（扩展装配、默认值下放、主题回退），返回 (SiteConfig, setup)
