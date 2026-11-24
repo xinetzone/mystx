@@ -34,7 +34,7 @@ PAGES = {
 }
 
 
-def build_site(tmp_path, *, options: dict | None = None) -> str:
+def build_site(tmp_path, *, options: dict | None = None, context: dict | None = None) -> str:
     src = tmp_path / "src"
     src.mkdir()
     for name, body in PAGES.items():
@@ -43,11 +43,13 @@ def build_site(tmp_path, *, options: dict | None = None) -> str:
         path.write_text(dedent(body), encoding="utf-8")
 
     extra = repr(options or {})
+    html_context = repr(context or {})
     (src / "conf.py").write_text(
         "extensions = ['mystx']\n"
         "html_theme = 'mystx'\n"
         "exclude_patterns = ['_build']\n"
-        f"html_theme_options = {extra}\n",
+        f"html_theme_options = {extra}\n"
+        f"html_context = {html_context}\n",
         encoding="utf-8",
     )
 
@@ -100,3 +102,28 @@ def test_section_scope_hides_other_chapters(tmp_path):
     assert ">Guide<" in html
     assert ">Setup<" in html
     assert ">API<" not in html
+
+
+def test_header_buttons_without_repo(tmp_path):
+    out = build_site(tmp_path)
+    html = open(f"{out}/guide/setup.html", encoding="utf-8").read()
+    assert "book-header-buttons" in html
+    assert "toggleFullscreen()" in html
+    assert "issues/new" not in html
+
+
+def test_header_buttons_with_repo(tmp_path):
+    out = build_site(
+        tmp_path,
+        context={
+            "github_user": "acme",
+            "github_repo": "docs",
+            "github_version": "main",
+            "doc_path": "doc",
+        },
+    )
+    html = open(f"{out}/guide/setup.html", encoding="utf-8").read()
+    assert "https://github.com/acme/docs/edit/main/doc/guide/setup.rst" in html
+    assert "https://github.com/acme/docs/blob/main/doc/guide/setup.rst?plain=1" in html
+    assert "https://github.com/acme/docs/issues/new" in html
+    assert "js/book.js" in html
