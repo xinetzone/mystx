@@ -66,6 +66,27 @@ pydata-sphinx-theme 在 ``setup()`` 中会把自己的 ``components/`` 追加到
 不用父主题同名组件的代价是：父主题那套“空侧栏自动移除”逻辑不会作用于本组件。
 mystx 用逐页 scope 解析补上这一点。
 
+数据协议
+--------
+
+模板只做循环，不做判断。两类数据都由 Python 生成：
+
+.. list-table::
+   :header-rows: 1
+   :widths: 22 78
+
+   * - 数据
+     - 字段
+   * - 页眉按钮
+     - ``label`` / ``tooltip`` / ``icon``；链接用 ``href``（下载按钮另带
+       ``download: True``），脚本用 ``javascript``。有 ``javascript`` 输出
+       ``<button>``，否则输出 ``<a>``
+   * - 页脚条目
+     - ``type`` / ``text``；``type`` 同时决定 CSS 类名与前缀标签
+
+``href`` 一律交给 ``pathto()`` 解析：既支持 ``_sources/...`` 这类相对资源，
+也直接放行 ``https://`` 绝对地址。
+
 与 sphinx-book-theme 的关系
 ---------------------------
 
