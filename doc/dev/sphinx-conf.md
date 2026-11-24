@@ -5,7 +5,7 @@
 > R（事实）→ I（洞察）→ E（萃取），V 与 C 按需未执行。
 >
 > 结论先行：Sphinx 的配置系统本质是**「声明四元组 + 三源惰性合并 + 分类失效」**；
-> mystx 预设已实现「装配与钩子分离」，缺口在**声明单源、类型契约、失效档位**三项。
+> mystx 预设已实现「装配与钩子分离」与声明单源，缺口在**取值类型断言、失效档位的实际消费**两项。
 
 ## 研究范围与溯源
 
@@ -127,8 +127,8 @@
 
 ## 落地优先级
 
-1. **P0-a**：`SITE_CONFIG_SPEC` 单源化（默认值、类型、失效档、描述），`build_config` 由 spec 生成取值，`SiteConfig` 与 spec 保持一致并有测试兜底。**已落地**：`src/mystx/presets/mystx_site.py` 的 `SITE_CONFIG_SPEC` 与 `_assert_spec_contract()`。
-2. **P0-b**：`apply_config` 增加取值类型断言（键集断言已具备）。
+1. **P0-a**：`SITE_CONFIG_SPEC` 单源化（默认值、类型、失效档、描述），`build_config` 由 spec 生成取值，`SiteConfig` 与 spec 保持一致并有测试兜底。**已落地**：`src/mystx/presets/mystx_site.py` 的 `SITE_CONFIG_SPEC` 与导入期执行一次的 `_check_spec_contract()`。
+2. **P0-b**：`apply_config` 增加取值类型断言（键集契约已在导入期校验）。
 3. **P1**：预设键标注 rebuild 档位；conf.py 相关文档补充「哪些键改动需 `--fresh-env`」。
 4. **P2**：`config_fingerprint()` 与序列化卫生检查。
 
