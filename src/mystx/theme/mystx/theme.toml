@@ -10,6 +10,9 @@ inherit = "sphinx_book_theme"
 # HTML 元素及其类的结构目前并不是定义良好的公共 API。
 # 请通过检查生成的 HTML 页面来推断它们。虽然无法保证完全的稳定性，但它们通常是比较稳定的。
 stylesheets = [
+    # 主题内置的默认样式：站点无需在 doc/_static 自带同名文件
+    "css/local.css",
+    "css/font.css",
     "css/custom.css",
     "css/tippy.css",
     "css/try_examples.css",

@@ -58,7 +58,8 @@ DEFAULT_EXT_CONFIG: dict[str, Any] = {
 
 DEFAULT_HTML_CONFIG: dict[str, Any] = {
     "html_static_path": ["_static"],
-    "html_css_files": ["local.css"],
+    # local.css / font.css 已随 mystx 主题内置（theme.toml 的 stylesheets），站点无需再声明
+    "html_css_files": [],
     "html_last_updated_fmt": "%Y-%m-%d, %H:%M:%S",
 }
 

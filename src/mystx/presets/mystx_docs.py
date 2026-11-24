@@ -45,7 +45,6 @@ def build_config(*, root: str | Path) -> tuple[dict[str, Any], SetupFunction]:
         # README.md 面向仓库读者，站点根入口为 index.md
         "exclude_patterns": ["_build", "Thumbs.db", ".DS_Store", "README.md"],
         "html_static_path": ["_static"],  # 包含自定义静态文件（如样式表或脚本文件）的路径列表
-        "html_css_files": ["local.css", "font.css"],
         "html_last_updated_fmt": "%Y-%m-%d, %H:%M:%S",
         "templates_path": ["_templates"],
         "html_title": "Sphinx mystx Theme",
