@@ -76,7 +76,7 @@
 - **现象**：类型不符只 warning 一次；`list→tuple`、`list/tuple/set→frozenset` 自动转换；共享非平凡基类即视为兼容。
 - **根因**：`check_confval_types` 定位为兼容性守门而非契约执行（`sphinx/config.py:777-851`）。
 - **影响**：mystx 的 `SiteConfig` 是 `TypedDict`，运行时零校验；与 Sphinx 的宽松策略叠加后，错误取值会一路带到构建期才以怪异形式暴露。
-- **建议**：在 `apply_config` 现有「键集断言」之外补「取值类型断言」，复用 `frozenset`/`ENUM` 的表达能力，写入前抛 `TypeError`。
+- **建议**：在 `assemble_config` 现有「键集断言」之外补「取值类型断言」，复用 `frozenset`/`ENUM` 的表达能力，注入前抛 `TypeError`。
 
 ### I-4 conf.py 是脚本而非声明文件，命名空间与工作目录都被改写
 
@@ -117,7 +117,7 @@
 | 优先级 | Sphinx 接口                                                          | 语义要点                                                        | mystx 落点                                                                                       |
 | --- | ------------------------------------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | P0  | `app.add_config_value(name, default, rebuild, types, description)` | 声明即契约：默认值/失效档/类型/描述四元组                                      | 现有 `SiteConfig` 为手写 `TypedDict` 加手写 values，缺失效档与类型；建议引入 `SITE_CONFIG_SPEC` 单源，由 spec 生成 values |
-| P0  | `check_confval_types` 的宽松策略（反向使用）                                  | 类型不符仅 warning                                               | 在 `apply_config` 键集断言之外补取值类型断言，把 warning 级问题前移为写入前异常                                           |
+| P0  | `check_confval_types` 的宽松策略（反向使用）                                  | 类型不符仅 warning                                               | 在 `assemble_config` 键集断言之外补取值类型断言，把 warning 级问题前移为注入前异常                                           |
 | P1  | `_ConfigRebuild` 类别加 `Config.filter`                               | `env/html/''` 三档决定增量边界                                      | 为每个预设键标注档位；未注册键在文档中声明需 fresh-env                                                               |
 | P1  | `Config.__getattr__` 三源优先级                                         | override > conf.py > default                                | 预设可提供 `resolve(namespace, overrides)`，保证 CI 的 `-D` 覆盖仍优先于预设注入值                                 |
 | P1  | `Config.__setattr__` 别名同步                                          | `copyright` 与 `project_copyright`、`master_doc` 与 `root_doc` | 预设不必同时写两个名字，文档注明由 Sphinx 同步                                                                    |
@@ -128,7 +128,7 @@
 ## 落地优先级
 
 1. **P0-a**：`SITE_CONFIG_SPEC` 单源化（默认值、类型、失效档、描述），`build_config` 由 spec 生成取值，`SiteConfig` 与 spec 保持一致并有测试兜底。**已落地**：`src/mystx/presets/mystx_site.py` 的 `SITE_CONFIG_SPEC` 与导入期执行一次的 `_check_spec_contract()`。
-2. **P0-b**：`apply_config` 增加取值类型断言（键集契约已在导入期校验）。
+2. **P0-b**：`assemble_config` 增加取值类型断言（键集契约已在导入期校验）。
 3. **P1**：预设键标注 rebuild 档位；conf.py 相关文档补充「哪些键改动需 `--fresh-env`」。
 4. **P2**：`config_fingerprint()` 与序列化卫生检查。
 
