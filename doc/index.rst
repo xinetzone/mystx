@@ -36,7 +36,7 @@ mystx 是面向书籍阅读的 Sphinx HTML 主题。它以 `pydata-sphinx-theme
 
    guide/index
    reference/index
-   development/index
+   dev/index
 
 .. toctree::
    :hidden:

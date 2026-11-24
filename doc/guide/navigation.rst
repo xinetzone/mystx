@@ -38,7 +38,7 @@ mystx 的侧栏仍然使用 pydata-sphinx-theme 的 toctree 算法，只改两�
 
       guide/index
       reference/index
-      development/index
+      dev/index
 
 嵌套章节由各自页面的 ``toctree`` 展开：
 

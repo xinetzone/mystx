@@ -276,7 +276,7 @@ PST 基座 + SBT 三项能力：洞察、假设攻击、方案与落地记录。
    │       └── static/css/{book,sidenotes,mystx}.css
    ├── doc/conf.py + index.md
    ├── tests/{test_buttons.py,test_build.py,test_sidenotes.py}
-   └── doc/development/design.rst（本文件）
+   └── doc/dev/design.rst（本文件）
 
 4.7 阶段计划
 ~~~~~~~~~~~~
