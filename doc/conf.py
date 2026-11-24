@@ -1,14 +1,21 @@
 #!/usr/bin/env python3
 """Sphinx 文档配置入口。
 
-站点取值与装配顺序整体在 ``mystx.presets.mystx_docs``；本文件负责定位仓库根
-目录，并把画像逐键赋给本模块的顶层名字。
+站点取值与装配顺序整体在 ``mystx.presets.mystx_docs``；本文件只做两件事：定位
+仓库根目录，以及把画像分两段交给 Sphinx。
 
 Sphinx 的契约是「conf.py 的模块命名空间即配置」：``sphinx.config`` 先 ``exec``
-本文件，再以该命名空间构造 ``Config``。因此取值必须以模块级名字出现。这里选择
-逐键显式赋值而不是往 ``globals()`` 里批量注入：名字在源码里可见、可检索，注入
-时机与先后顺序也与普通 conf.py 完全一致，不依赖任何隐式副作用。
+本文件，再以该命名空间构造 ``Config``。但只有少数键必须在那个时刻就位——
+``extensions`` 用于加载扩展，``language`` / ``locale_dirs`` / ``gettext_compact``
+用于初始化 i18n，都发生在 ``config-inited`` 之前；站点身份字段
+（``project`` / ``author`` / ``copyright`` / ``version`` / ``release``）一并显式
+给出，让 conf.py 保持一眼可见的站点门面。
+
+其余键在 ``setup`` 注册的 ``config-inited`` 监听器里统一下发：该事件晚于扩展
+加载、早于构建器创建与源文件扫描，核心校验（优先级 790-800）与各扩展的处理
+都在其后，因此读到的是最终值。
 """
+
 import sys
 from pathlib import Path
 
@@ -17,63 +24,44 @@ from mystx.presets.mystx_docs import build_config
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "doc"))
 
-_config, setup = build_config(root=ROOT)
+_profile, _setup = build_config(root=ROOT)
 
-# 项目身份
-project = _config["project"]
-author = _config["author"]
-copyright = _config["copyright"]
-version = _config["version"]
-release = _config["release"]
+# 早读键：Sphinx 在 config-inited 之前就要用，必须在模块层可见
+extensions = _profile["extensions"]
+language = _profile["language"]
+locale_dirs = _profile["locale_dirs"]
+gettext_compact = _profile["gettext_compact"]
+project = _profile["project"]
+author = _profile["author"]
+copyright = _profile["copyright"]
+version = _profile["version"]
+release = _profile["release"]
 
-# 源文件与构建
-exclude_patterns = _config["exclude_patterns"]
-nitpicky = _config["nitpicky"]
-gettext_compact = _config["gettext_compact"]
+# 由本集合界定哪些键已显式给出；测试据此比对画像是否被完整下发
+_EARLY_KEYS = frozenset(
+    {
+        "extensions",
+        "language",
+        "locale_dirs",
+        "gettext_compact",
+        "project",
+        "author",
+        "copyright",
+        "version",
+        "release",
+    }
+)
 
-# 语言
-language = _config["language"]
-locale_dirs = _config["locale_dirs"]
 
-# 主题与静态资源
-html_theme = _config["html_theme"]
-html_theme_options = _config["html_theme_options"]
-html_static_path = _config["html_static_path"]
-html_css_files = _config["html_css_files"]
-templates_path = _config["templates_path"]
-html_title = _config["html_title"]
-html_logo = _config["html_logo"]
-html_favicon = _config["html_favicon"]
-html_copy_source = _config["html_copy_source"]
-html_last_updated_fmt = _config["html_last_updated_fmt"]
-html_baseurl = _config["html_baseurl"]
+def _apply_profile(app, config):
+    """把画像中非早读的键写入 ``config``（config-inited 阶段，先于任何消费者）。"""
+    for name, value in _profile.items():
+        if name not in _EARLY_KEYS:
+            setattr(config, name, value)
 
-# 扩展
-extensions = _config["extensions"]
-myst_enable_extensions = _config["myst_enable_extensions"]
-copybutton_exclude = _config["copybutton_exclude"]
-copybutton_selector = _config["copybutton_selector"]
-graphviz_output_format = _config["graphviz_output_format"]
-numfig = _config["numfig"]
-suppress_warnings = _config["suppress_warnings"]
-nitpick_ignore = _config["nitpick_ignore"]
 
-# 站点集成
-comments_config = _config["comments_config"]
-ogp_site_url = _config["ogp_site_url"]
-ogp_social_cards = _config["ogp_social_cards"]
-version_switcher_json_url = _config["version_switcher_json_url"]
-sitemap_url_scheme = _config["sitemap_url_scheme"]
-sitemap_locales = _config["sitemap_locales"]
-tippy_rtd_urls = _config["tippy_rtd_urls"]
-intersphinx_mapping = _config["intersphinx_mapping"]
-extlinks = _config["extlinks"]
-inheritance_graph_attrs = _config["inheritance_graph_attrs"]
-
-# API 文档
-autoapi_dirs = _config["autoapi_dirs"]
-autoapi_root = _config["autoapi_root"]
-autoapi_generate_api_docs = _config["autoapi_generate_api_docs"]
-
-# 参考文献
-bibtex_bibfiles = _config["bibtex_bibfiles"]
+def setup(app):
+    # 优先级 0 先于核心校验与各扩展的 config-inited 处理（500-900），
+    # 让类型检查与路径校验看到最终取值。
+    app.connect("config-inited", _apply_profile, priority=0)
+    return _setup(app)

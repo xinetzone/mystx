@@ -3,8 +3,10 @@
 本文件只做「装配面」断言，不启动 Sphinx 构建：目标是把 conf.py 与
 ``mystx`` 包之间的复用关系固化为机检门禁，避免日后又长回一份内联实现。
 """
+
 import importlib.util
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -13,7 +15,6 @@ from mystx.config import (
     DEFAULT_BUILD_CONFIG,
     DEFAULT_EXT_CONFIG,
     DEFAULT_MYST_CONFIG,
-    DEFAULT_SITE_CONFIG,
 )
 from mystx.presets.mystx_docs import build_config
 from mystx.themes import resolve_theme
@@ -35,25 +36,34 @@ def _require_upstream_docs():
         pytest.skip("本机 myst-parser < 5.1，缺少 SyntaxExampleDocsDirective")
 
 
-def test_conf_consumes_site_preset():
+def test_conf_exposes_early_keys_and_defers_the_rest():
+    """早读键在模块层可见；其余键由 config-inited 监听器整体下发，一个不漏。"""
     conf = _load_conf()
+    expected, _ = build_config(root=CONF_PATH.parents[1])
 
     assert conf.build_config is build_config
     assert callable(conf.setup)
-    # 画像每新增一个键，conf.py 必须显式赋值，否则此处失败
-    expected, _ = build_config(root=CONF_PATH.parents[1])
-    missing = set(expected) - set(vars(conf))
-    assert not missing, f"conf.py 未显式赋值：{sorted(missing)}"
-    assert conf.release and conf.version == conf.release
+    # 早读键必须在模块命名空间里，取值与画像一致
+    for name in conf._EARLY_KEYS:
+        assert getattr(conf, name) == expected[name], name
+
+    config = SimpleNamespace()
+    conf._apply_profile(None, config)
+    applied = vars(config)
+    assert set(applied) == set(expected) - set(conf._EARLY_KEYS)
+    for name, value in applied.items():
+        assert value == expected[name], name
+    # 延迟下发的键不在模块层留第二份，避免两处取值漂移
+    assert not set(applied) & set(vars(conf))
     assert "mystx.ext.gallery" in conf.extensions
-    assert ("py:class", "invoke.Collection") in conf.nitpick_ignore
-    assert conf.graphviz_output_format == DEFAULT_SITE_CONFIG["graphviz_output_format"]
-    assert conf.tippy_rtd_urls == DEFAULT_SITE_CONFIG["tippy_rtd_urls"]
+    assert ("py:class", "invoke.Collection") in applied["nitpick_ignore"]
 
 
 def test_conf_keeps_no_inline_mechanism_copies():
     """机制已迁入预设：conf.py 命名空间不再暴露实现符号，取值仍与包内同源。"""
     conf = _load_conf()
+    config = SimpleNamespace()
+    conf._apply_profile(None, config)
 
     for name in (
         "register_docs_directives",
@@ -66,14 +76,14 @@ def test_conf_keeps_no_inline_mechanism_copies():
     # 装配是单次调用，命名空间里不应残留中间变量或 update 痕迹
     assert not hasattr(conf, "conf")
     assert not hasattr(conf, "_site")
-    assert conf.html_theme == resolve_theme()
-    assert conf.numfig == DEFAULT_BUILD_CONFIG["numfig"]
-    assert conf.myst_enable_extensions == DEFAULT_MYST_CONFIG["myst_enable_extensions"]
-    assert conf.copybutton_exclude == DEFAULT_EXT_CONFIG["copybutton_exclude"]
-    assert conf.copybutton_selector == DEFAULT_EXT_CONFIG["copybutton_selector"]
+    assert config.html_theme == resolve_theme()
+    assert config.numfig == DEFAULT_BUILD_CONFIG["numfig"]
+    assert config.myst_enable_extensions == DEFAULT_MYST_CONFIG["myst_enable_extensions"]
+    assert config.copybutton_exclude == DEFAULT_EXT_CONFIG["copybutton_exclude"]
+    assert config.copybutton_selector == DEFAULT_EXT_CONFIG["copybutton_selector"]
 
 
-def test_conf_setup_registers_docs_directives_and_parallel_guard():
+def test_conf_setup_registers_config_inited_docs_directives_and_parallel_guard():
     _require_upstream_docs()
     conf = _load_conf()
     app = MagicMock()
@@ -83,6 +93,14 @@ def test_conf_setup_registers_docs_directives_and_parallel_guard():
     registered = [call.args[0] for call in app.add_directive.call_args_list]
     assert "myst-config" in registered
     assert "myst-example" in registered
-    app.connect.assert_called_once()
+    events = [call.args[0] for call in app.connect.call_args_list]
+    assert events == ["config-inited", "env-before-read-docs"]
+    assert app.connect.call_args_list[0].kwargs["priority"] == 0
+    # 注册到 Sphinx 的正是下发剩余画像的那个监听器
+    config = SimpleNamespace()
+    listener = app.connect.call_args_list[0].args[1]
+    listener(app, config)
+    expected, _ = build_config(root=CONF_PATH.parents[1])
+    assert set(vars(config)) == set(expected) - set(conf._EARLY_KEYS)
     assert meta["version"] == conf.release
     assert meta["parallel_read_safe"] is True
