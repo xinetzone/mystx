@@ -145,6 +145,19 @@ def test_docs_profile_returns_fresh_copies(tmp_path):
     assert isinstance(first, dict) and "setup" not in first
 
 
+def test_docs_profile_ogp_font_uses_installed_family_only(tmp_path, monkeypatch):
+    """社交卡片只传本机已安装的字体族；全部缺失时不设 font，交给 opengraph 内置字体。"""
+    from mystx.presets import mystx_docs
+
+    monkeypatch.setattr(mystx_docs, "_available_ogp_font", lambda: None)
+    values, _ = mystx_docs.build_config(root=tmp_path)
+    assert "font" not in values["ogp_social_cards"]
+
+    monkeypatch.setattr(mystx_docs, "_available_ogp_font", lambda: "Test CJK")
+    values, _ = mystx_docs.build_config(root=tmp_path)
+    assert values["ogp_social_cards"]["font"] == "Test CJK"
+
+
 def test_configure_site_fonts_is_explicit_side_effect(tmp_path):
     """字体注册是显式调用的独立副作用，缺目录时静默返回而非抛错。"""
     assert callable(configure_site_fonts)

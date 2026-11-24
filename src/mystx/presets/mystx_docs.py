@@ -21,6 +21,7 @@
 """
 
 import os
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -28,19 +29,56 @@ from ..utils import resolve_site_url
 from .mystx_site import SetupFunction, configure_site_fonts
 from .mystx_site import build_config as build_site_config
 
+#: 社交卡片按序尝试的字体族：取构建机上第一个已安装者，全部缺失时回退
+#: sphinxext-opengraph 内置的 Roboto Flex。
+OGP_FONT_CANDIDATES: tuple[str, ...] = (
+    "Maple Mono NF CN",
+    "SimHei",
+    "Microsoft YaHei",
+    "Noto Sans CJK SC",
+    "WenQuanYi Zen Hei",
+)
+
+
+def _available_ogp_font(
+    candidates: Sequence[str] = OGP_FONT_CANDIDATES,
+) -> str | None:
+    """返回构建机已安装的首个候选字体族，无法探测或全部缺失时返回 ``None``。
+
+    matplotlib 会对 ``font.family`` 里每个未安装的字体族在每次文字排版时输出
+    ``findfont: Font family ... not found``。把整串候选直接交给 opengraph，
+    会让缺字体的机器在逐页生成社交卡片时刷出成千上万行日志；这里先查
+    matplotlib 已索引的字体族，只传真正可用的一项。
+    """
+    try:
+        from matplotlib import font_manager
+    except ImportError:
+        return None
+    installed = {font.name for font in font_manager.fontManager.ttflist}
+    return next((name for name in candidates if name in installed), None)
+
 
 def build_config(*, root: str | Path) -> tuple[dict[str, Any], SetupFunction]:
     """返回本项目文档站的取值表与 ``setup`` 钩子，不写调用方命名空间。
 
     ``root`` 是仓库根目录：``autoapi_dirs`` 与字体目录都相对它定位，避免包内
-    猜测站点布局。取值全部是本函数内新建的字面量，调用方或扩展就地改写时不会
-    影响另一次装配。
+    猜测站点布局。取值全部在函数内新建，调用方或扩展就地改写时不会影响另一次
+    装配。
 
     写入命名空间由 ``conf.py`` 负责：Sphinx 先 ``exec`` conf.py，再以其模块
     命名空间构造 ``Config``（``sphinx.config.eval_config_file``），注入点是
     站点自己的契约，库只产出取值。唯一副作用是注册站点字体。
     """
     root = Path(root)
+    ogp_social_cards: dict[str, Any] = {
+        "site_url": "mystx.readthedocs.io",
+        "image": "_static/images/logo.jpg",
+        "line_colors": "#4078c0",
+    }
+    # 只指定本机真正安装的字体族；缺字体时留空，交给 opengraph 内置字体，
+    # 避免 matplotlib 在逐页生成卡片时对每个缺失族输出 findfont 告警
+    if (ogp_font := _available_ogp_font()) is not None:
+        ogp_social_cards["font"] = ogp_font
     values: dict[str, Any] = {
         "exclude_patterns": ["_build", "Thumbs.db", ".DS_Store"],
         "html_static_path": ["_static"],  # 包含自定义静态文件（如样式表或脚本文件）的路径列表
@@ -57,12 +95,7 @@ def build_config(*, root: str | Path) -> tuple[dict[str, Any], SetupFunction]:
             "utterances": {"repo": "xinetzone/mystx", "optional": "config"},
         },
         "ogp_site_url": "https://mystx.readthedocs.io/zh-cn/latest/",
-        "ogp_social_cards": {
-            "site_url": "mystx.readthedocs.io",
-            "image": "_static/images/logo.jpg",
-            "font": "Maple Mono NF CN, SimHei, Microsoft YaHei",
-            "line_colors": "#4078c0",
-        },
+        "ogp_social_cards": ogp_social_cards,
         "html_theme_options": {
             # 公告栏
             "announcement": "欢迎使用 mystx 主题！它是现代化文档主题。",
