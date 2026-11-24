@@ -4,6 +4,7 @@
 包之间的复用关系固化为机检门禁，避免日后又长回一份隐式注入实现。
 """
 
+import ast
 import importlib.util
 from pathlib import Path
 from unittest.mock import MagicMock
@@ -76,6 +77,23 @@ def test_conf_values_match_package_defaults():
         "launch_buttons",
     }
     assert conf.html_theme_options["icon_links"] == conf._icon_links()
+
+
+def test_conf_imports_from_mystx_use_private_aliases():
+    """包内导入必须以下划线别名引入：conf 的命名空间就是 Sphinx 的配置空间。
+
+    与配置键同名的导入会被 ``Config`` 直接读成取值（``intersphinx_mapping``
+    曾因此把函数对象写进配置），构建期不报错、只在消费端以怪异形式暴露。
+    """
+    tree = ast.parse(CONF_PATH.read_text(encoding="utf-8"))
+    offenders = [
+        alias.asname or alias.name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.ImportFrom) and (node.module or "").split(".")[0] == "mystx"
+        for alias in node.names
+        if not (alias.asname or alias.name).startswith("_")
+    ]
+    assert not offenders, f"以下导入会占用配置命名空间: {offenders}"
 
 
 def test_conf_setup_registers_docs_directives_and_parallel_guard():
