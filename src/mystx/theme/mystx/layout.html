@@ -5,3 +5,8 @@
   {{ super() }}
   <style>:root { --mystx-content-width: {{ theme_book_content_width | default("46rem") }}; }</style>
 {% endblock %}
+
+{# 含边注的页面挂上 body class，宽屏才能把右侧目录栏让给留白列。 #}
+{% block body_tag %}
+  <body data-default-mode="{{ default_mode }}"{% if mystx_has_margin %} class="mystx-has-margin"{% endif %}>
+{%- endblock %}

@@ -1,0 +1,146 @@
+/* 边注与 margin 块：宽屏进右侧留白，窄屏折回正文 */
+
+:root {
+  /* 正文右侧留白列的总宽度与其内的文字宽度 */
+  --mystx-margin-column: 15rem;
+  --mystx-margin-width: 13rem;
+  /* 低于此宽度不再挤占右侧目录栏，边注改为可点击展开 */
+  --mystx-margin-min: 1400px;
+}
+
+/* 宽屏：只有含边注的页面才让出右侧目录栏 */
+@media (min-width: 1400px) {
+  .mystx-has-margin .bd-sidebar-secondary {
+    display: none;
+  }
+
+  .mystx-has-margin .bd-main .bd-content .bd-article-container {
+    /* 正文 + 留白列 + 容器左右内边距 */
+    max-width: calc(var(--mystx-content-width) + var(--mystx-margin-column) + 2rem);
+    /* PST 默认 overflow-x: auto，会裁掉浮动到容器外的边注 */
+    overflow: visible;
+  }
+
+  .mystx-has-margin .bd-main .bd-content .bd-article-container .bd-article {
+    max-width: var(--mystx-content-width);
+  }
+
+  .mystx-has-margin span.sidenote,
+  .mystx-has-margin span.marginnote,
+  .mystx-has-margin aside.margin,
+  .mystx-has-margin div.margin,
+  .mystx-has-margin figure.margin,
+  .mystx-has-margin .margin.docutils.container {
+    float: right;
+    clear: right;
+    width: var(--mystx-margin-width);
+    margin: 0 calc(-1 * var(--mystx-margin-column)) 1rem 0;
+    font-size: 0.875em;
+    line-height: 1.5;
+    color: var(--pst-color-text-muted);
+  }
+
+  /* 宽屏只保留提到容器外的那一份 */
+  .mystx-has-margin .d-n {
+    display: none;
+  }
+
+  .mystx-has-margin label.margin-toggle {
+    cursor: default;
+  }
+
+  .mystx-has-margin label.margin-toggle.marginnote-label {
+    display: none;
+  }
+
+  .mystx-has-margin aside.margin {
+    padding: 0;
+    border: none;
+    background: transparent;
+  }
+
+  .mystx-has-margin aside.margin .sidebar-title {
+    margin-bottom: 0.5rem;
+    padding-left: 0;
+    border-bottom: none;
+    font-weight: 600;
+  }
+
+  .mystx-has-margin aside.margin .sidebar-title:empty {
+    display: none;
+  }
+}
+
+/* 行内边注的编号不参与选中，避免复制正文时带出边注编号 */
+span.sidenote sup,
+span.marginnote sup,
+label.margin-toggle sup {
+  user-select: none;
+}
+
+input.margin-toggle {
+  display: none;
+}
+
+/* 窄屏：正文里的边注默认收起，点编号展开 */
+@media (max-width: 1399.98px) {
+  span.sidenote,
+  span.marginnote {
+    display: none;
+  }
+
+  label.margin-toggle {
+    cursor: pointer;
+    color: var(--pst-color-link);
+  }
+
+  label.margin-toggle.marginnote-label {
+    display: inline;
+  }
+
+  label.margin-toggle.marginnote-label::after {
+    content: "⊕";
+    margin-left: 0.15em;
+  }
+
+  input.margin-toggle:checked + .sidenote,
+  input.margin-toggle:checked + .marginnote {
+    display: block;
+    float: none;
+    width: auto;
+    margin: 0.75rem 0;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--pst-color-border);
+    font-size: 0.95em;
+    color: var(--pst-color-text-muted);
+  }
+
+  /* margin 块折回正文流，用左边线区分于正文 */
+  aside.margin,
+  div.margin,
+  figure.margin,
+  .margin.docutils.container {
+    margin: 1rem 0;
+    padding: 0.25rem 0.75rem;
+    border-left: 3px solid var(--pst-color-border);
+    background: var(--pst-color-surface);
+  }
+}
+
+/* 打印：边注回到正文，只留提到容器外的那一份 */
+@media print {
+  span.sidenote,
+  span.marginnote,
+  aside.margin,
+  div.margin,
+  figure.margin {
+    float: none;
+    width: auto;
+    margin: 0.5rem 0;
+    font-size: 0.9em;
+  }
+
+  .d-n {
+    display: none;
+  }
+}

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from docutils import nodes
 from sphinx.application import Sphinx
 from sphinx.util import logging
 
@@ -19,6 +20,8 @@ logger = logging.getLogger(__name__)
 _LIST_OPTIONS = ("book_header_buttons", "book_footer_items")
 _INT_OPTIONS = ("book_nav_depth", "navigation_depth")
 _BOOL_OPTIONS = ("book_use_sidenotes",)
+#: 会让正文内容落到右侧留白的节点类名
+_MARGIN_CLASSES = frozenset({"sidenote", "marginnote", "margin"})
 
 
 def _as_list(value: Any) -> list[str]:
@@ -37,6 +40,18 @@ def _theme_options(app: Sphinx) -> dict[str, Any] | None:
     builder = getattr(app, "builder", None)
     options = getattr(builder, "theme_options", None)
     return options if isinstance(options, dict) else None
+
+
+def get_theme_option(app: Sphinx, key: str, default: Any = None) -> Any:
+    """读取单个主题选项（已由 :func:`normalize_theme_options` 归一化）。"""
+    options = _theme_options(app) or {}
+    return options.get(key, default)
+
+
+def config_flag(config: Any, key: str, default: bool = False) -> bool:
+    """从配置里读布尔选项：供只拿得到 ``config`` 的变换使用。"""
+    options = getattr(config, "html_theme_options", None) or {}
+    return _as_bool(options.get(key, default))
 
 
 def normalize_theme_options(app: Sphinx) -> None:
@@ -82,12 +97,26 @@ def resolve_nav_scope(app: Sphinx, pagename: str, scope: str) -> str:
 
 
 def update_page_context(app: Sphinx, pagename: str, templatename: str, context: dict, doctree) -> None:
-    """按页面决定侧栏范围与页眉按钮，写入模板上下文。"""
+    """按页面决定侧栏范围、页眉按钮与留白布局，写入模板上下文。"""
     options = _theme_options(app) or {}
     scope = str(options.get("book_nav_scope", context.get("theme_book_nav_scope", "book")))
     context["mystx_nav_scope"] = resolve_nav_scope(app, pagename, scope)
+    context["mystx_has_margin"] = page_has_margin(doctree)
 
     names = options.get("book_header_buttons") or context.get("theme_book_header_buttons") or []
     if isinstance(names, str):
         names = [item.strip() for item in names.split(",") if item.strip()]
     context["book_buttons"] = build_buttons(pagename, context, list(names))
+
+
+def page_has_margin(doctree) -> bool:
+    """页面是否含边注/margin 内容：决定宽屏是否让出右侧目录栏。"""
+    if doctree is None:
+        return False
+    findall = getattr(doctree, "findall", None)
+    nodes_iter = findall(nodes.Element) if findall is not None else doctree.traverse(nodes.Element)
+    for node in nodes_iter:
+        classes = set(node.get("classes") or ())
+        if classes & _MARGIN_CLASSES:
+            return True
+    return False
