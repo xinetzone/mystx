@@ -17,8 +17,8 @@
   当前运行期不参与取值，仅用于单源维护与后续扩展化；
 * :func:`assemble_config` 是站点装配入口：合并机制取值与站点画像、补全主题
   选项后返回 ``(values, setup)``，不写任何命名空间；
-* 字体注册是副作用，独立为 :func:`configure_site_fonts`，由站点显式调用并
-  给出目录，预设不假设 ``root/doc/_static`` 布局。
+* 字体注册是副作用，独立为 :func:`configure_site_fonts`，需要时由站点显式
+  调用并给出目录；预设不假设 ``root/doc/_static`` 布局，也不代站点注册。
 
 站点身份相关数据（项目名、仓库地址、intersphinx、extlinks、autoapi 目录、
 BibTeX 文件等）仍留在站点侧，避免预设对目录布局与外部链接做假设。
