@@ -8,6 +8,8 @@
 
 ### 新增
 
+- **`mystx.presets` 门面以 `TYPE_CHECKING` 条件导出 `SiteConfig`，包 docstring 补两套装配契约示例。** 原先前言写「返回 `(SiteConfig, setup)`」，但门面无法导入该类型，下游写注解须深入 `mystx.presets.mystx_site`。现由门面条件导出（类型检查器可见，运行时仍只有子模块一个定义——实测运行时导出会让 autoapi 生成两个同名目标，`-W` 构建报 `ref.python` 歧义告警）。docstring 分别给出极简预设（扁平 dict）与完整站点（`apply_site_config` 单次注入）各 3 行示例；新增单测固化「运行时不可见、不在 `__all__`」的设计。
+
 - **CI：新增 `tests` 工作流与覆盖率门禁（下限 85%）。** `.github/workflows/tests.yml` 在 push / PR 到 `main` 时执行 `pytest tests/unit --cov=mystx --cov-fail-under=85`。`checkout` 取完整历史（setuptools-scm 依 git 标签推算版本，浅克隆会让版本号退化）；安装 `.[test,doc]`——`test_doc_parallel_extensions_p1` 会加载 16 个可选扩展，doc 额外依赖是其硬前置。门禁起步为 70%，结构优化后本地实测 86.49%（117 passed，792 语句 / 107 未覆盖），2026-11-23 上调至 85%，仅留约 1 点缓冲；再上调需先补低覆盖模块（`wakatime` 25%、`stats`/`top_langs` 62%、`tasks/doc/_core` 76%）。
 
 ### 变更

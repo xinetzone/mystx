@@ -80,6 +80,14 @@ def test_site_preset_values_match_declared_contract():
     assert callable(setup)
 
 
+def test_site_config_type_is_type_checking_only():
+    """类型契约供类型检查器从门面解析；运行时不建第二个定义，避免 autoapi 重复目标。"""
+    import mystx.presets as presets
+
+    assert "SiteConfig" not in presets.__all__
+    assert not hasattr(presets, "SiteConfig")
+
+
 def test_apply_site_config_injects_values_and_returns_setup():
     """单次调用完成装配：键集合与 SiteConfig 一致，钩子不落进命名空间。"""
     namespace: dict[str, object] = {}
