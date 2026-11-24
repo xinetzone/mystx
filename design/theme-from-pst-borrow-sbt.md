@@ -274,6 +274,27 @@ P4 的两处收缩：
 2. **Notebook 只写 CSS，不引入 myst-nb**：按 `div.cell` / `tag_margin` /
    `tag_full-width` 这些稳定类名写样式；装了 myst-nb 才生效，没装时零成本。
 
+### 4.12 验收核对（对照 §6）
+
+| # | 标准 | 结果 | 证据 |
+|---|---|---|---|
+| 1 | `doc/` 在 `fail_on_warning` 下 0 新增 warning | 通过 | `-W` 构建 `build succeeded`，14 页 |
+| 2 | 直接依赖只有 `sphinx` + `pydata-sphinx-theme` | 通过 | `pyproject.toml` 的 `dependencies` 仅两项 |
+| 3 | 自有 Python < 900 行；模板覆盖 < 60 行 | 通过 | Python 598 行；模板 52 行（页脚 7 / 页眉 13 / 侧栏 9 / layout 23） |
+| 4 | 6 个 `book_*` 选项有默认值、类型转换与文档 | 通过 | `theme.toml` 默认值 + `normalize_theme_options` + options 页逐项说明 |
+| 5 | 关闭 `book_use_sidenotes` 时与 Pure PST 输出一致 | 通过 | `test_switch_off_keeps_plain_footnotes`（无 `margin-toggle`、有 `footnote-list`） |
+| 6 | 无 Node 构建步骤 | 通过 | 仓库无 `package.json` / 打包脚本，静态资源直接入库 |
+| 7 | `python -m build` 产 `py3-none-any`，安装后资源就位 | 通过 | wheel 解包到隔离目录后构建站点，7 项断言全过（主题 CSS、边注、margin 块、页脚、页眉） |
+| 8 | sdist 可解包离线构建；版本与 tag 一致 | 部分 | sdist 已排除测试沙箱（`tests/chaos`）与 `doc/_build`；未做断网重建；版本仍由仓库旧 tag 推导为 `0.3.9.dev*`，需打 `v0.0.1` 才符合 |
+
+为满足第 3 条做的一次重构：页眉按钮的"链接还是脚本"、下载路径、图标全部下沉到
+`book/buttons.py`（`href` / `download` / `javascript`），页脚前缀标签改为模板内
+一张小字典。模板从 74 行降到 52 行，且判断逻辑从模板移回可单测的 Python。
+
+同时修掉一个打包隐患：`sdist` 之前把 `tests/chaos/` 整个打进去（含第二份
+`theme.toml`），文件数从 144 降到 76；`pyproject` 的 `norecursedirs` 也排除
+`tests/chaos` 与 `tests/unit`，裸跑 `pytest` 只收主题的 34 项测试。
+
 ## 5. E｜可复用模式
 
 ### P-01 基座与体验层分离
