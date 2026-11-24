@@ -37,9 +37,9 @@
 
 - 🎨 基于 pydata-sphinx-theme 的基座 + 书籍化阅读层
 - 🛠️ 6 个书籍层选项 + pydata 原生选项，取值集中在 theme.toml
-- 📝 完善的 MyST Markdown 和 Jupyter Notebook 支持
-- 🚀 简单易用的主题注册和配置应用流程
-- 📚 丰富的可选扩展，用于增强文档功能
+- 📚 全书侧栏：每页渲染完整目录，而不是只显示当前章节子树
+- 🔗 页眉工具箱：下载 / 全屏 / 源码 / 编辑 / issue / 仓库
+- 📝 边注与 `{margin}` 块：脚注搬到右侧留白，窄屏折叠为点击展开
 
 ## 🔧 安装
 
@@ -73,9 +73,10 @@ pip install -ve .[dev]
 
 - `pydata-sphinx-theme>=0.24,<0.25` (主题基座)
 - `sphinx>=8.2,<10` (文档生成引擎)
-- `myst-nb` (Jupyter Notebook 支持)
-- `myst-parser` (MyST Markdown 解析器)
 - Python 3.11+ (运行环境)
+
+mystx 只依赖上面两项。MyST Markdown (`myst-parser`) 与 Notebook (`myst-nb`)
+是可选扩展，按需装在自己的项目里。
 
 ## 🚀 快速开始
 
@@ -112,50 +113,32 @@ mystx 主题提供了丰富的配置选项，让您可以根据项目需求自�
 
 ### 主题选项
 
-mystx 主题支持通过两种方式配置主题选项：
-
-#### 方式一：在 `conf.py` 文件中配置
-
-在 Sphinx 项目的 `conf.py` 文件中，使用 `html_theme_options` 字典配置各种主题选项：
+书籍层选项写在 `conf.py` 的 `html_theme_options` 里，未写的取 `theme.toml` 默认值：
 
 ```python
 html_theme_options = {
-    # 仓库相关配置
-    "repository_url": "https://github.com/yourusername/yourproject",  # 项目仓库地址
-    "use_repository_button": True,  # 在页眉显示指向存储库的小 GitHub 徽标
-    "use_issues_button": True,  # 是否显示问题反馈按钮
-    "use_edit_page_button": True,  # 是否显示编辑页面按钮
-    "path_to_docs": "doc/",  # 文档目录（相对于项目根目录）
-    
-    # 导航相关配置
-    "home_page_in_toc": False,  # 是否在目录中显示首页
-    "show_navbar_depth": 2,  # 导航栏显示的层级深度
-    
-    # 其他配置
+    "book_nav_scope": "book",       # book 全书树 / section 当前章节
+    "book_nav_depth": 3,            # 侧栏初始展开层数
+    "book_content_width": "46rem",  # 正文最大宽度
+    "book_header_buttons": ["download", "fullscreen", "source", "edit", "issue", "repo"],
+    "book_use_sidenotes": False,    # 脚注转边注
+    "book_footer_items": ["author", "copyright", "last-updated"],
 }
 ```
 
-#### 方式二：通过 `_config.toml` 文件配置
+页眉的源码 / 编辑 / issue / 仓库按钮需要仓库坐标（与 pydata-sphinx-theme 的约定一致）：
 
-您也可以在项目根目录创建 `_config.toml` 文件，使用 TOML 格式配置主题选项：
-
-```toml
-[html_theme_options]
-# 仓库相关配置
-repository_url = "https://github.com/yourusername/yourproject"
-use_repository_button = true
-use_issues_button = true
-use_edit_page_button = true
-path_to_docs = "doc/" # 文档目录（相对于项目根目录）
-
-# 导航相关配置
-home_page_in_toc = false # 是否在目录中显示首页
-show_navbar_depth = 2 # 导航栏显示的层级深度
-
-# 其他配置
+```python
+html_context = {
+    "github_user": "xinetzone",
+    "github_repo": "mystx",
+    "github_version": "main",
+    "doc_path": "doc",
+}
 ```
 
-您可以根据实际需求选择性配置上述选项，未配置的选项将使用默认值。
+其余选项（`navbar_*`、`secondary_sidebar_items`、`navigation_depth` 等）直接透传给
+pydata-sphinx-theme。完整清单与默认值见文档站的「选项参考」。
 
 ## 📚 文档
 
