@@ -22,7 +22,6 @@ from typing import Any
 from mystx.fonts import first_installed_family as _first_installed_family
 from mystx.myst_docs import register_docs_directives as _register_docs_directives
 from mystx.parallel import connect_parallel_guard as _connect_parallel_guard
-from mystx.presets import configure_site_fonts as _configure_site_fonts
 from mystx.presets.xinetzone import icon_links as _icon_links
 from mystx.presets.xinetzone import intersphinx_mapping as _intersphinx_mapping
 from mystx.utils import resolve_release as _resolve_release
@@ -30,9 +29,6 @@ from mystx.utils import resolve_site_url as _resolve_site_url
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "doc"))
-
-# 字体注册是副作用，显式调用；字体目录由站点给出
-_configure_site_fonts(ROOT / "doc" / "_static" / "fonts")
 
 # 站点地址：本站严格判定——CI 必须显式给 SITEMAP_URL_BASE（项目型 Pages 带 /mystx/ 前缀）；
 # DEFAULT_CONDITIONAL 只看 GITHUB_ACTIONS 是否存在，会放过未声明的情形，把 localhost 写进线上 sitemap
