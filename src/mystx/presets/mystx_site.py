@@ -10,7 +10,8 @@
 
 边界约定：
 
-* :func:`build_config` 只返回取值，键集合由 :class:`SiteConfig` 固定；
+* :func:`build_config` 只返回取值，键集合与默认值由 :data:`SITE_CONFIG_SPEC`
+  单源声明，``SiteConfig`` 是其类型镜像；
   ``setup`` 钩子随取值一起返回但不混入配置字典；
 * :func:`apply_config` 是站点装配入口：把取值注入给定命名空间并交回
   ``setup``，conf.py 不再需要 ``globals().update`` 与临时变量；
@@ -22,8 +23,9 @@ BibTeX 文件等）仍留在站点侧，避免预设对目录布局与外部链�
 """
 
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any, Literal, NamedTuple, TypedDict, cast
 
 from sphinx.application import Sphinx
 
@@ -53,6 +55,40 @@ DEFAULT_FONT_FAMILIES: tuple[str, ...] = (
     "Noto Color Emoji",
 )
 
+#: 配置值的失效档，语义与 Sphinx ``add_config_value`` 的 ``rebuild`` 参数一致。
+ConfigRebuild = Literal['', 'env', 'epub', 'gettext', 'html', 'applehelp', 'devhelp']
+
+
+@dataclass(frozen=True, slots=True)
+class _BuildContext:
+    """已归一化的构建入参，供各配置键的工厂函数读取。
+
+    入参先在此收敛为不可变形态，配置键只做取值与拷贝，不再重复计算。
+    """
+
+    release: str
+    language: str
+    locale_dirs: tuple[str, ...]
+    gettext_compact: bool
+    extensions: tuple[str, ...]
+    site_url: str | None
+    nitpick_ignore: tuple[tuple[str, str], ...]
+    suppress_warnings: tuple[str, ...]
+
+
+class ConfigSpec(NamedTuple):
+    """一个 Sphinx 配置键的完整声明。
+
+    ``rebuild``、``types``、``description`` 与 Sphinx ``add_config_value``
+    的语义一一对应；预设目前只消费 ``factory``，其余字段供扩展化与校验复用。
+    """
+
+    factory: Callable[[_BuildContext], Any]
+    rebuild: ConfigRebuild
+    types: frozenset[type]
+    description: str
+
+
 #: ``setup`` 钩子签名：Sphinx 在配置读入后调用，返回扩展元数据。
 SetupFunction = Callable[[Sphinx], dict[str, Any]]
 
@@ -79,6 +115,144 @@ class SiteConfig(TypedDict):
     suppress_warnings: list[str]
     numfig: bool
     myst_enable_extensions: list[str]
+
+
+def _constant(value: Any) -> Callable[[_BuildContext], Any]:
+    """把静态默认值包成与计算型默认值一致的工厂形态。
+
+    只用于不可变值；列表/字典默认值必须显式拷贝，避免多次装配共享同一对象。
+    """
+    return lambda _ctx: value
+
+
+#: 预设配置键的唯一声明源：``SiteConfig`` 是它的类型镜像，取值由 ``factory`` 生成。
+#: 键集、默认值、失效档、类型与说明均在此维护，避免两处手写产生漂移。
+SITE_CONFIG_SPEC: dict[str, ConfigSpec] = {
+    "release": ConfigSpec(
+        lambda ctx: ctx.release,
+        "env",
+        frozenset({str}),
+        "站点版本号，写入侧栏与 sitemap。",
+    ),
+    "version": ConfigSpec(
+        lambda ctx: ctx.release,
+        "env",
+        frozenset({str}),
+        "与 release 同源，满足 Sphinx 的双字段约定。",
+    ),
+    "language": ConfigSpec(
+        lambda ctx: ctx.language,
+        "env",
+        frozenset({str}),
+        "文档语言；i18n 在 config-inited 之前读取。",
+    ),
+    "locale_dirs": ConfigSpec(
+        lambda ctx: list(ctx.locale_dirs),
+        "env",
+        frozenset({list, tuple}),
+        "翻译目录列表。",
+    ),
+    "gettext_compact": ConfigSpec(
+        lambda ctx: ctx.gettext_compact,
+        "gettext",
+        frozenset({bool, str}),
+        "是否合并 gettext 目录。",
+    ),
+    "extensions": ConfigSpec(
+        lambda ctx: list(ctx.extensions),
+        "",
+        frozenset({list, tuple}),
+        "扩展清单；集合变更由 CONFIG_EXTENSIONS_CHANGED 单独检测。",
+    ),
+    "copybutton_exclude": ConfigSpec(
+        _constant(DEFAULT_EXT_CONFIG["copybutton_exclude"]),
+        "html",
+        frozenset({str}),
+        "copybutton 不注入按钮的元素选择器。",
+    ),
+    "copybutton_selector": ConfigSpec(
+        _constant(DEFAULT_EXT_CONFIG["copybutton_selector"]),
+        "html",
+        frozenset({str}),
+        "copybutton 注入按钮的代码块选择器。",
+    ),
+    "html_baseurl": ConfigSpec(
+        lambda ctx: ctx.site_url or "",
+        "html",
+        frozenset({str}),
+        "站点根 URL；为空时不启用 sitemap。",
+    ),
+    "sitemap_url_scheme": ConfigSpec(
+        lambda ctx: "{link}" if ctx.site_url else "{lang}{version}{link}",
+        "html",
+        frozenset({str}),
+        "sitemap 链接模板，随站点 URL 是否给定切换。",
+    ),
+    "sitemap_locales": ConfigSpec(
+        lambda _ctx: list(DEFAULT_SITE_CONFIG["sitemap_locales"]),
+        "html",
+        frozenset({list}),
+        "sitemap 收录的语言列表。",
+    ),
+    "graphviz_output_format": ConfigSpec(
+        _constant(DEFAULT_SITE_CONFIG["graphviz_output_format"]),
+        "html",
+        frozenset({str}),
+        "Graphviz 输出格式。",
+    ),
+    "inheritance_graph_attrs": ConfigSpec(
+        lambda _ctx: dict(DEFAULT_SITE_CONFIG["inheritance_graph_attrs"]),
+        "",
+        frozenset({dict}),
+        "继承图布局属性。",
+    ),
+    "tippy_rtd_urls": ConfigSpec(
+        lambda _ctx: list(DEFAULT_SITE_CONFIG["tippy_rtd_urls"]),
+        "html",
+        frozenset({list, tuple}),
+        "tippy 悬浮提示的 intersphinx 来源。",
+    ),
+    "html_theme": ConfigSpec(
+        lambda _ctx: resolve_theme(),
+        "html",
+        frozenset({str}),
+        "主题回退：站点未指定时由预设给出。",
+    ),
+    "nitpick_ignore": ConfigSpec(
+        lambda ctx: [*DEFAULT_SITE_CONFIG["nitpick_ignore"], *ctx.nitpick_ignore],
+        "",
+        frozenset({list, tuple, set}),
+        "交叉引用豁免清单：包内基线加站点增量。",
+    ),
+    "suppress_warnings": ConfigSpec(
+        lambda ctx: [*DEFAULT_SITE_CONFIG["suppress_warnings"], *ctx.suppress_warnings],
+        "env",
+        frozenset({list, tuple}),
+        "告警抑制清单：包内基线加站点增量。",
+    ),
+    "numfig": ConfigSpec(
+        _constant(DEFAULT_BUILD_CONFIG["numfig"]),
+        "env",
+        frozenset({bool}),
+        "图表编号开关。",
+    ),
+    "myst_enable_extensions": ConfigSpec(
+        lambda _ctx: list(DEFAULT_MYST_CONFIG["myst_enable_extensions"]),
+        "env",
+        frozenset({list, tuple}),
+        "MyST 语法扩展清单。",
+    ),
+}
+
+
+def _assert_spec_contract() -> None:
+    """校验 spec 与 ``SiteConfig`` 键集一致，防止单源声明与类型契约漂移。"""
+    declared = set(SITE_CONFIG_SPEC)
+    typed = set(SiteConfig.__annotations__)
+    if declared != typed:
+        missing = sorted(typed - declared)
+        extra = sorted(declared - typed)
+        raise RuntimeError(f"SITE_CONFIG_SPEC 与 SiteConfig 不一致：缺少 {missing}，多出 {extra}")
 
 
 def configure_site_fonts(
@@ -159,28 +333,21 @@ def build_config(
             "parallel_write_safe": True,
         }
 
-    values: SiteConfig = {
-        "release": release,
-        "version": release,
-        "language": language,
-        "locale_dirs": list(locale_dirs),
-        "gettext_compact": gettext_compact,
-        "extensions": extensions,
-        "copybutton_exclude": DEFAULT_EXT_CONFIG["copybutton_exclude"],
-        "copybutton_selector": DEFAULT_EXT_CONFIG["copybutton_selector"],
-        "html_baseurl": site_url or "",
-        "sitemap_url_scheme": "{link}" if site_url else "{lang}{version}{link}",
-        "sitemap_locales": list(DEFAULT_SITE_CONFIG["sitemap_locales"]),
-        "graphviz_output_format": DEFAULT_SITE_CONFIG["graphviz_output_format"],
-        "inheritance_graph_attrs": dict(DEFAULT_SITE_CONFIG["inheritance_graph_attrs"]),
-        "tippy_rtd_urls": list(DEFAULT_SITE_CONFIG["tippy_rtd_urls"]),
-        "html_theme": resolve_theme(),
-        "nitpick_ignore": [*DEFAULT_SITE_CONFIG["nitpick_ignore"], *nitpick_ignore],
-        "suppress_warnings": [*DEFAULT_SITE_CONFIG["suppress_warnings"], *suppress_warnings],
-        "numfig": DEFAULT_BUILD_CONFIG["numfig"],
-        "myst_enable_extensions": list(DEFAULT_MYST_CONFIG["myst_enable_extensions"]),
+    context = _BuildContext(
+        release=release,
+        language=language,
+        locale_dirs=tuple(locale_dirs),
+        gettext_compact=gettext_compact,
+        extensions=tuple(extensions),
+        site_url=site_url,
+        nitpick_ignore=tuple(nitpick_ignore),
+        suppress_warnings=tuple(suppress_warnings),
+    )
+    _assert_spec_contract()
+    values: dict[str, Any] = {
+        name: spec.factory(context) for name, spec in SITE_CONFIG_SPEC.items()
     }
-    return values, setup
+    return cast(SiteConfig, values), setup
 
 
 def apply_config(
@@ -194,7 +361,7 @@ def apply_config(
     再一次性写入，避免中途异常留下半装配的命名空间。
     """
     values, setup = build_config(**options)
-    undeclared = set(values) - set(SiteConfig.__annotations__)
+    undeclared = set(values) - set(SITE_CONFIG_SPEC)
     if undeclared:
         raise RuntimeError(f"预设产出了 SiteConfig 未声明的键：{sorted(undeclared)}")
     namespace.update(values)

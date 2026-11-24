@@ -8,7 +8,7 @@ from mystx.presets import (
     configure_site_fonts,
 )
 from mystx.presets._shared import build_project_meta, build_setup_closure
-from mystx.presets.mystx_site import SiteConfig
+from mystx.presets.mystx_site import SITE_CONFIG_SPEC, SiteConfig
 
 
 def test_minimal_preset_keys_whitelist():
@@ -80,6 +80,20 @@ def test_site_preset_values_match_declared_contract():
     assert set(values) == set(SiteConfig.__annotations__)
     assert "setup" not in values
     assert callable(setup)
+
+
+def test_site_config_spec_matches_typed_dict():
+    """spec 是唯一声明源，SiteConfig 只是它的类型镜像。"""
+    assert set(SITE_CONFIG_SPEC) == set(SiteConfig.__annotations__)
+
+
+def test_site_config_spec_metadata_is_complete():
+    """每个键都带合法失效档、非空类型集合与说明，供扩展化直接复用。"""
+    valid_rebuild = {"", "env", "epub", "gettext", "html", "applehelp", "devhelp"}
+    for name, spec in SITE_CONFIG_SPEC.items():
+        assert spec.rebuild in valid_rebuild, name
+        assert spec.types and all(isinstance(item, type) for item in spec.types), name
+        assert spec.description.strip(), name
 
 
 def test_site_config_type_is_type_checking_only():
