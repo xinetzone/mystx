@@ -27,29 +27,19 @@ mystx 是面向书籍阅读的 Sphinx HTML 主题。它以 `pydata-sphinx-theme
 
 .. note::
 
-   当前版本处于 P1 阶段：全书导航、navbar 中和、正文宽度已可用；页眉按钮与边注尚未实现，
-   相关选项已预留但不会产生效果。
+   当前版本处于 P2 阶段：全书导航、navbar 中和、正文宽度、页眉工具箱已可用；
+   边注尚未实现，相关选项已预留但不会产生效果。
 
 .. toctree::
+   :hidden:
    :maxdepth: 2
-   :caption: 使用指南
 
    guide/index
-
-.. toctree::
-   :maxdepth: 1
-   :caption: 参考
-
    reference/index
-
-.. toctree::
-   :maxdepth: 1
-   :caption: 开发
-
    development/index
 
 .. toctree::
+   :hidden:
    :maxdepth: 1
-   :caption: 其他
 
    changelog
