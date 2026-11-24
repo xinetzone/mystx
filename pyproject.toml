@@ -1,0 +1,88 @@
+[build-system]
+requires = ["scikit-build-core>=0.11", "setuptools-scm>=8.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "mystx"
+dynamic = ["version"]
+description = "mystx - a book-oriented Sphinx theme built on pydata-sphinx-theme"
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.11"
+authors = [{ name = "xinetzone", email = "735613050@qq.com" }]
+keywords = ["mystx", "sphinx", "sphinx-theme", "documentation"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Sphinx :: Theme",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Documentation",
+    "Topic :: Documentation :: Sphinx",
+]
+dependencies = [
+    "sphinx>=8.2,<10",
+    "pydata-sphinx-theme>=0.24,<0.25",
+]
+
+[project.optional-dependencies]
+doc = [
+    "sphinx>=8.2,<10",
+]
+test = [
+    "pytest>=8.0",
+]
+dev = [
+    "pytest>=8.0",
+    "build>=1.2",
+    "ruff>=0.4",
+]
+
+[project.urls]
+Repository = "https://github.com/xinetzone/mystx"
+Documentation = "https://mystx.readthedocs.io/"
+Issues = "https://github.com/xinetzone/mystx/issues"
+
+[project.entry-points."sphinx.html_themes"]
+mystx = "mystx"
+
+[tool.scikit-build]
+minimum-version = "0.11"
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+sdist.cmake = false
+sdist.include = [
+    "src/mystx/theme/**",
+    "README.md",
+    "LICENSE",
+]
+sdist.exclude = [
+    "src/mystx/**/__pycache__/**",
+    "src/mystx/**/*.pyc",
+]
+
+[tool.scikit-build.cmake]
+version = ">=3.15"
+
+[tool.scikit-build.wheel]
+cmake = false
+packages = ["src/mystx"]
+
+[tool.setuptools_scm]
+version_file = "src/mystx/_version.py"
+write_to = "src/mystx/_version.py"
+tag_regex = "^v(?P<version>\\d+\\.\\d+\\.\\d+)$"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra", "--strict-markers", "--strict-config"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+exclude = [".git", "__pycache__", "*.egg-info", "doc/_build"]
+
