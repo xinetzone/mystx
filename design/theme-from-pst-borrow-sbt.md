@@ -310,6 +310,15 @@ CSS、`book.js`、5 个模板、5 个 Python 模块）全部在内。`--no-isola
 切开，跨行时左右边框也能正确复制。`aside.margin` 这类块级留白不受影响，仍在窄屏
 折回正文流。
 
+### 4.14 收尾决定
+
+暂不打 `v0.0.1`：版本号继续由 `setuptools-scm` 从旧 tag 推导（`0.3.9.dev*`）。
+理由是首次发布不必绑在验收上；真要发版时只需 `git tag v0.0.1`，代码不用改。
+
+子模块指针已提交：`xuanspace` → `0a39b9a`，外层 `SpecWeave` → `fb5d2234d`。
+顺手补一个 `gitignore` 漏项：`tests/chaos/src/mystx/_version.py` 由构建生成却没被
+忽略，导致子模块长期显示脏；规则改为 `**/src/mystx/_version.py`。
+
 ## 5. E｜可复用模式
 
 ### P-01 基座与体验层分离
