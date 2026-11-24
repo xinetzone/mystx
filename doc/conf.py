@@ -20,6 +20,7 @@ from pathlib import Path
 
 from mystx.presets.mystx_docs import build_config
 from mystx.presets.mystx_site import build_config as _build_site_config
+from mystx.themes import resolve_theme_options
 from mystx.utils import resolve_site_url as _resolve_site_url
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,6 +54,11 @@ _site_values, _setup = _build_site_config(
     suppress_warnings=SUPPRESS_WARNINGS,
 )
 _profile.update(_site_values)
+# 主题选项补全为「主题默认值 + 本站覆盖」：基主题的 Python 侧只读 html_theme_options，
+# 不读 theme.toml，故默认值必须在配置层就位
+_profile["html_theme_options"] = resolve_theme_options(
+    _profile["html_theme"], _profile["html_theme_options"]
+)
 
 # 站点身份：只有这一个站点，直接写在门面上，不经画像
 project = "mystx"

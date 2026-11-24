@@ -94,26 +94,8 @@ def build_config(*, root: str | Path) -> dict[str, Any]:
         "html_theme_options": {
             # 公告栏
             "announcement": "欢迎使用 mystx 主题！它是现代化文档主题。",
-            # 仓库相关
+            # 仓库地址（其余仓库按钮、布局与页脚取主题默认值）
             "repository_url": "https://github.com/xinetzone/mystx",
-            "use_repository_button": True,
-            "repository_branch": "main",
-            "use_source_button": True,
-            "use_edit_page_button": True,
-            "use_issues_button": True,
-            "path_to_docs": "doc",
-            # 界面布局
-            "secondary_sidebar_items": "page-toc.html",
-            "toc_title": "目录",
-            "use_sidenotes": True,
-            "show_navbar_depth": 1,
-            "max_navbar_depth": 7,
-            "collapse_navbar": False,
-            # 按钮
-            "use_download_button": True,
-            "use_fullscreen_button": True,
-            # 页脚
-            "footer_content_items": "author.html, copyright.html, last-updated.html, extra-footer.html",
             # 图标链接
             "icon_links": [
                 {
