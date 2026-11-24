@@ -1,0 +1,20 @@
+/* mystx 书籍层：单列阅读宽度 + 导航细节 */
+
+:root {
+  --mystx-content-width: 46rem;
+}
+
+@media (min-width: 960px) {
+  .bd-main .bd-content .bd-article-container {
+    max-width: var(--mystx-content-width);
+  }
+}
+
+/* 侧栏当前页：与书籍阅读流一致的左侧强调 */
+.mystx-book-nav .current > a {
+  font-weight: 600;
+}
+
+.mystx-book-nav .bd-sidenav {
+  font-size: 0.95rem;
+}

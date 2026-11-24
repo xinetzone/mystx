@@ -1,0 +1,87 @@
+"""主题选项归一化。
+
+``theme.conf`` 只能存字符串；在 ``builder-inited`` 阶段把书籍层选项转成模板
+期望的类型，并注册侧栏参数函数供模板调用。
+"""
+
+from __future__ import annotations
+
+from typing import Any
+
+from sphinx.application import Sphinx
+from sphinx.util import logging
+
+from .nav import sidebar_kwargs
+
+logger = logging.getLogger(__name__)
+
+_LIST_OPTIONS = ("book_header_buttons", "book_footer_items")
+_INT_OPTIONS = ("book_nav_depth", "navigation_depth")
+_BOOL_OPTIONS = ("book_use_sidenotes",)
+
+
+def _as_list(value: Any) -> list[str]:
+    if isinstance(value, (list, tuple)):
+        return [str(item).strip() for item in value if str(item).strip()]
+    return [item.strip() for item in str(value).split(",") if item.strip()]
+
+
+def _as_bool(value: Any) -> bool:
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _theme_options(app: Sphinx) -> dict[str, Any] | None:
+    builder = getattr(app, "builder", None)
+    options = getattr(builder, "theme_options", None)
+    return options if isinstance(options, dict) else None
+
+
+def normalize_theme_options(app: Sphinx) -> None:
+    """把字符串选项转换为模板可直接使用的类型。"""
+    options = _theme_options(app)
+    if options is None:
+        return
+
+    for key in _LIST_OPTIONS:
+        if key in options:
+            options[key] = _as_list(options[key])
+    for key in _INT_OPTIONS:
+        if key in options:
+            try:
+                options[key] = int(options[key])
+            except (TypeError, ValueError):
+                logger.warning("mystx: invalid integer for %s: %r", key, options[key])
+    for key in _BOOL_OPTIONS:
+        if key in options:
+            options[key] = _as_bool(options[key])
+
+    scope = str(options.get("book_nav_scope", "book"))
+    if scope not in {"book", "section"}:
+        logger.warning("mystx: invalid book_nav_scope %r, falling back to 'book'", scope)
+        options["book_nav_scope"] = "book"
+
+    environment = getattr(getattr(app.builder, "templates", None), "environment", None)
+    if environment is not None:
+        environment.globals["book_sidebar_kwargs"] = sidebar_kwargs
+
+
+def resolve_nav_scope(app: Sphinx, pagename: str, scope: str) -> str:
+    """把 ``section`` 降级为 ``book``：无祖先页面（首页/搜索/索引）无法按章节渲染。"""
+    if scope != "section":
+        return "book"
+    try:
+        from pydata_sphinx_theme.toctree import _get_ancestor_pagename
+
+        ancestor, _ = _get_ancestor_pagename(app, pagename, 1)
+    except Exception:  # pragma: no cover - 上游私有 API 变化时的兜底
+        return "book"
+    return "section" if ancestor else "book"
+
+
+def update_nav_scope(app: Sphinx, pagename: str, templatename: str, context: dict, doctree) -> None:
+    """按页面决定侧栏范围，写入模板上下文。"""
+    options = _theme_options(app) or {}
+    scope = str(options.get("book_nav_scope", context.get("theme_book_nav_scope", "book")))
+    context["mystx_nav_scope"] = resolve_nav_scope(app, pagename, scope)

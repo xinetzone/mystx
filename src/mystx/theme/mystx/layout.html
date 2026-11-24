@@ -1,0 +1,7 @@
+{% extends "pydata_sphinx_theme/layout.html" %}
+
+{# 正文宽度由主题选项注入 CSS 变量，样式表只读变量。 #}
+{% block extrahead %}
+  {{ super() }}
+  <style>:root { --mystx-content-width: {{ theme_book_content_width | default("46rem") }}; }</style>
+{% endblock %}

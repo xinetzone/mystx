@@ -1,0 +1,28 @@
+[theme]
+# 唯一基座：pydata-sphinx-theme。书籍能力由本包 book/ 模块提供。
+inherit = "pydata_sphinx_theme"
+
+# 主侧栏：整栏交给书籍导航组件（唯一命名，避免被父主题同名模板遮蔽）
+sidebars = ["book-nav.html"]
+
+[options]
+# —— 中和基座默认值：不渲染顶部导航区与面包屑 ——
+navbar_start = ""
+navbar_center = ""
+navbar_end = ""
+navbar_persistent = ""
+article_header_start = ""
+
+# —— 复用基座选项 ——
+secondary_sidebar_items = "page-toc"
+navigation_depth = "4"
+show_nav_level = "3"
+collapse_navigation = "False"
+
+# —— 书籍层选项（一个能力一个开关）——
+book_nav_scope = "book"
+book_nav_depth = "3"
+book_header_buttons = "download, fullscreen, source, edit, issue, repo"
+book_use_sidenotes = "False"
+book_content_width = "46rem"
+book_footer_items = "author, copyright, last-updated"

@@ -1,0 +1,14 @@
+{# 全书导航：只改起点与深度，算法仍由 pydata-sphinx-theme 提供。 #}
+{% set kw = book_sidebar_kwargs(
+     mystx_nav_scope | default(theme_book_nav_scope) | default("book"),
+     theme_book_nav_depth | default(3) | int,
+     theme_navigation_depth | default(4) | int) %}
+<nav class="bd-links bd-docs-nav mystx-book-nav" aria-label="{{ _('Section Navigation') }}">
+  {{ generate_toctree_html(
+      kind="sidebar",
+      startdepth=kw.startdepth,
+      show_nav_level=kw.show_nav_level,
+      maxdepth=kw.maxdepth,
+      includehidden=kw.includehidden,
+      titles_only=kw.titles_only) }}
+</nav>
