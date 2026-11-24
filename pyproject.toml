@@ -63,6 +63,9 @@ sdist.include = [
 sdist.exclude = [
     "src/mystx/**/__pycache__/**",
     "src/mystx/**/*.pyc",
+    "tests/chaos/**",
+    "doc/_build/**",
+    ".cowork-temp/**",
 ]
 
 [tool.scikit-build.cmake]
@@ -79,6 +82,7 @@ tag_regex = "^v(?P<version>\\d+\\.\\d+\\.\\d+)$"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+norecursedirs = ["tests/chaos", "tests/unit", "doc/_build", ".cowork-temp"]
 addopts = ["-ra", "--strict-markers", "--strict-config"]
 
 [tool.ruff]
