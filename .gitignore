@@ -158,4 +158,4 @@ _tmp_sphinx/
 _temp/
 
 # setuptools-scm generated version file (do not track)
-src/mystx/_version.py
+**/src/mystx/_version.py
