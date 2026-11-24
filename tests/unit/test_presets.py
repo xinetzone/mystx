@@ -130,32 +130,19 @@ def test_apply_site_config_injects_values_and_returns_setup():
     assert callable(setup)
 
 
-def test_docs_profile_returns_fresh_copies(tmp_path):
-    """站点画像每次装配都是全新对象：扩展就地改写配置不会波及另一次装配。"""
-    from mystx.presets import mystx_docs
+def test_xinetzone_profile_returns_fresh_copies():
+    """个人画像按调用新建：多处装配就地改写互不污染，本地清单偏好保持自持。"""
+    from mystx.presets.xinetzone import icon_links, intersphinx_mapping
 
-    first = mystx_docs.build_config(root=tmp_path)
-    second = mystx_docs.build_config(root=tmp_path)
+    first_links, second_links = icon_links(), icon_links()
+    assert first_links and first_links is not second_links
+    assert first_links[0] is not second_links[0]
+    first_links[0]["name"] = "被改写"
+    assert second_links[0]["name"] != "被改写"
 
-    for key in ("html_theme_options", "extlinks", "autoapi_dirs", "intersphinx_mapping"):
-        assert first[key] is not second[key], key
-    first["html_theme_options"]["announcement"] = "被改写"
-    assert second["html_theme_options"]["announcement"] != "被改写"
-    # 取值表不接收也不写调用方命名空间
-    assert isinstance(first, dict) and "setup" not in first
-
-
-def test_docs_profile_ogp_font_uses_installed_family_only(tmp_path, monkeypatch):
-    """社交卡片只传本机已安装的字体族；全部缺失时不设 font，交给 opengraph 内置字体。"""
-    from mystx.presets import mystx_docs
-
-    monkeypatch.setattr(mystx_docs, "_available_ogp_font", lambda: None)
-    values = mystx_docs.build_config(root=tmp_path)
-    assert "font" not in values["ogp_social_cards"]
-
-    monkeypatch.setattr(mystx_docs, "_available_ogp_font", lambda: "Test CJK")
-    values = mystx_docs.build_config(root=tmp_path)
-    assert values["ogp_social_cards"]["font"] == "Test CJK"
+    first_map, second_map = intersphinx_mapping(), intersphinx_mapping()
+    assert first_map is not second_map
+    assert first_map["python"][1] == "_inv/python.inv"
 
 
 def test_configure_site_fonts_is_explicit_side_effect(tmp_path):

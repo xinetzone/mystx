@@ -20,6 +20,22 @@ DEFAULT_FONT_MODULE = "taolib.fonts"
 DEFAULT_FONT_FUNC = "configure_matplotlib_fonts"
 
 
+def first_installed_family(candidates: Iterable[str]) -> str | None:
+    """返回本机 matplotlib 已索引的首个候选字体族，无法探测或全部缺失时返回 ``None``。
+
+    matplotlib 会对 ``font.family`` 中每个未安装的字体族逐次输出
+    ``findfont: Font family ... not found``；把整串候选直接交给消费方（如
+    sphinxext-opengraph 生成社交卡片），缺字体的机器会逐页刷日志。这里先查
+    matplotlib 已索引的字体，只交出真正可用的一项。
+    """
+    try:
+        from matplotlib import font_manager
+    except ImportError:
+        return None
+    installed = {font.name for font in font_manager.fontManager.ttflist}
+    return next((name for name in candidates if name in installed), None)
+
+
 def configure_optional_matplotlib_fonts(
     font_directory: str | Path,
     families: Iterable[str],

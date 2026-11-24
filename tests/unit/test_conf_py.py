@@ -16,10 +16,7 @@ from mystx.config import (
     DEFAULT_EXT_CONFIG,
     DEFAULT_MYST_CONFIG,
 )
-from mystx.presets.mystx_docs import build_config
-from mystx.presets.mystx_site import build_config as build_site_config
-from mystx.themes import resolve_theme, resolve_theme_options
-from mystx.utils import resolve_site_url
+from mystx.themes import resolve_theme
 
 CONF_PATH = Path(__file__).resolve().parents[2] / "doc" / "conf.py"
 
@@ -39,19 +36,8 @@ def _require_upstream_docs():
 
 
 def _expected_profile(conf):
-    """按 conf.py 的装配顺序重算期望取值：画像 + 站点机制 + 主题选项补全。"""
-    profile = {**build_config(root=CONF_PATH.parents[1])}
-    site_values, _ = build_site_config(
-        site_url=resolve_site_url(require_on_ci=True),
-        optional_extensions=conf.OPTIONAL_EXTENSIONS,
-        nitpick_ignore=conf.NITPICK_IGNORE,
-        suppress_warnings=conf.SUPPRESS_WARNINGS,
-    )
-    profile.update(site_values)
-    profile["html_theme_options"] = resolve_theme_options(
-        profile["html_theme"], profile["html_theme_options"]
-    )
-    return profile
+    """conf.py 自持画像：期望取值即其模块层装配结果（站点机制已并入）。"""
+    return dict(conf._profile)
 
 
 def test_conf_owns_identity_and_exposes_early_keys():
@@ -59,7 +45,6 @@ def test_conf_owns_identity_and_exposes_early_keys():
     conf = _load_conf()
     expected = _expected_profile(conf)
 
-    assert conf.build_config is build_config
     assert callable(conf.setup)
     assert (conf.project, conf.author, conf.copyright) == ("mystx", "xinetzone", "2026, xinetzone")
     assert not {"project", "author", "copyright"} & set(expected)
@@ -86,6 +71,7 @@ def test_conf_keeps_no_inline_mechanism_copies():
     conf._apply_profile(None, config)
 
     for name in (
+        "build_config",
         "register_docs_directives",
         "connect_parallel_guard",
         "resolve_extensions",

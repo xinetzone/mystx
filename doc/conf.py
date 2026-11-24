@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Sphinx 文档配置入口。
 
-本文件自己持有站点身份与站点级装配（可选扩展、sitemap、告警抑制），并负责定位
-仓库根目录、把画像分两段交给 Sphinx；画像取值在 ``mystx.presets.mystx_docs``。
+本文件自己持有站点画像、站点身份与站点级装配（可选扩展、sitemap、告警抑制），
+并负责定位仓库根目录；通用机制仍由 ``mystx.presets.mystx_site`` 装配。
 
 Sphinx 的契约是「conf.py 的模块命名空间即配置」：``sphinx.config`` 先 ``exec``
 本文件，再以该命名空间构造 ``Config``。但只有少数键必须在那个时刻就位——
@@ -15,11 +15,16 @@ Sphinx 的契约是「conf.py 的模块命名空间即配置」：``sphinx.confi
 都在其后，因此读到的是最终值。
 """
 
+import os
 import sys
 from pathlib import Path
+from typing import Any
 
-from mystx.presets.mystx_docs import build_config
+from mystx.fonts import first_installed_family as _first_installed_family
+from mystx.presets import configure_site_fonts as _configure_site_fonts
 from mystx.presets.mystx_site import build_config as _build_site_config
+from mystx.presets.xinetzone import icon_links as _icon_links
+from mystx.presets.xinetzone import intersphinx_mapping as _intersphinx_mapping
 from mystx.themes import resolve_theme_options
 from mystx.utils import resolve_site_url as _resolve_site_url
 
@@ -42,8 +47,60 @@ NITPICK_IGNORE = (("py:class", "invoke.Collection"),)
 # epub 扫描 _static/switcher.json 的误报
 SUPPRESS_WARNINGS = ("epub.unknown_project_files",)
 
-# 画像先落、站点机制后覆盖，与原先「两次 update」的优先级一致
-_profile = build_config(root=ROOT)
+# 社交卡片按序尝试的字体族：取构建机上第一个已安装者，全部缺失时回退
+# sphinxext-opengraph 内置的 Roboto Flex
+_OGP_FONT_CANDIDATES = (
+    "Maple Mono NF CN",
+    "SimHei",
+    "Microsoft YaHei",
+    "Noto Sans CJK SC",
+    "WenQuanYi Zen Hei",
+)
+_ogp_social_cards: dict[str, Any] = {
+    "site_url": "mystx.readthedocs.io",
+    "image": "_static/images/logo.jpg",
+    "line_colors": "#4078c0",
+}
+if (_ogp_font := _first_installed_family(_OGP_FONT_CANDIDATES)) is not None:
+    _ogp_social_cards["font"] = _ogp_font
+
+# 站点画像：本站的全部取值（主题选项、OGP、文档工具），机制另由 mystx_site 装配
+_profile: dict[str, Any] = {
+    "ogp_site_url": "https://mystx.readthedocs.io/zh-cn/latest/",
+    "ogp_social_cards": _ogp_social_cards,
+    "html_theme_options": {
+        # 公告栏
+        "announcement": "欢迎使用 mystx 主题！它是现代化文档主题。",
+        # 仓库地址（其余仓库按钮、布局与页脚取主题默认值）
+        "repository_url": "https://github.com/xinetzone/mystx",
+        # 图标链接（作者个人账号，取值在 mystx.presets.xinetzone）
+        "icon_links": _icon_links(),
+        # 交互启动按钮
+        "launch_buttons": {
+            "binderhub_url": "https://mybinder.org",
+            "colab_url": "https://colab.research.google.com/",
+            "deepnote_url": "https://deepnote.com/",
+            "notebook_interface": "jupyterlab",
+            "jupyterhub_url": "https://datahub.berkeley.edu",
+        },
+    },
+    "autoapi_dirs": [str(ROOT / "src")],
+    "autoapi_root": "autoapi",
+    "autoapi_generate_api_docs": True,
+    "bibtex_bibfiles": ["refs.bib"],
+    # 作者个人的 intersphinx 源表（含本地清单缓存偏好）
+    "intersphinx_mapping": _intersphinx_mapping(),
+    "extlinks": {
+        "daobook": ("https://daobook.github.io/%s", "Daobook %s"),
+        "xinetzone": ("https://xinetzone.github.io/%s", "xinetzone %s"),
+    },
+    "nitpicky": os.environ.get("SPHINX_NITPICK", "").lower() in {"1", "true", "yes"},
+}
+
+# 字体注册是副作用，显式调用；字体目录由站点给出
+_configure_site_fonts(ROOT / "doc" / "_static" / "fonts")
+
+# 站点机制后覆盖，与原先「两次 update」的优先级一致
 # 非 RTD 由 mystx 生成 sitemap；CI 须显式给 SITEMAP_URL_BASE（项目型 Pages 带 /mystx/ 前缀）。
 # 这里用站点自己的严格判定：DEFAULT_CONDITIONAL 只看 GITHUB_ACTIONS 是否存在，
 # 会放过「CI 未声明 SITEMAP_URL_BASE」的情形，把 localhost 写进线上 sitemap。

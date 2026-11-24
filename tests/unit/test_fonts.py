@@ -1,9 +1,12 @@
-"""mystx.fonts 的单元测试：三重守卫与静默降级语义。"""
+"""mystx.fonts 的单元测试：三重守卫、静默降级与字体族探测语义。"""
 import importlib.machinery
 import sys
 import types
+from types import SimpleNamespace
 
-from mystx.fonts import configure_optional_matplotlib_fonts
+import pytest
+
+from mystx.fonts import configure_optional_matplotlib_fonts, first_installed_family
 
 
 def _install_fake(monkeypatch, name: str, configure) -> types.ModuleType:
@@ -51,3 +54,16 @@ def test_returns_false_when_backend_raises(tmp_path, monkeypatch):
     _install_fake(monkeypatch, "boom_font_backend", _boom)
 
     assert configure_optional_matplotlib_fonts(tmp_path, ("A",), module="boom_font_backend") is False
+
+
+def test_first_installed_family_picks_first_available_candidate(monkeypatch):
+    """候选按序取本机已索引的第一个；全部缺失时返回 None，交给消费方内置字体。"""
+    font_manager = pytest.importorskip("matplotlib.font_manager")
+    monkeypatch.setattr(
+        font_manager.fontManager,
+        "ttflist",
+        [SimpleNamespace(name="Second"), SimpleNamespace(name="First")],
+    )
+
+    assert first_installed_family(("Missing", "First", "Second")) == "First"
+    assert first_installed_family(("Missing",)) is None
