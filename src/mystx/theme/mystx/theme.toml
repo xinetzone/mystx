@@ -12,6 +12,7 @@ navbar_center = ""
 navbar_end = ""
 navbar_persistent = ""
 article_header_start = ""
+article_header_end = "book-header-buttons"
 
 # —— 复用基座选项 ——
 secondary_sidebar_items = "page-toc"

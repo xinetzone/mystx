@@ -1,4 +1,4 @@
-/* mystx 书籍层：单列阅读宽度 + 导航细节 */
+/* mystx 书籍层：单列阅读宽度 + 导航细节 + 页眉工具箱 */
 
 :root {
   --mystx-content-width: 46rem;
@@ -17,4 +17,38 @@
 
 .mystx-book-nav .bd-sidenav {
   font-size: 0.95rem;
+}
+
+/* 页眉工具箱 */
+.book-header-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.book-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--pst-color-border);
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--pst-color-text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.book-button:hover,
+.book-button:focus-visible {
+  color: var(--pst-color-primary);
+  border-color: var(--pst-color-primary);
+  text-decoration: none;
+}
+
+.book-button:focus-visible {
+  outline: 2px solid var(--pst-color-primary);
+  outline-offset: 2px;
 }

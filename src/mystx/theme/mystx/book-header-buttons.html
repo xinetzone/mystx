@@ -1,0 +1,23 @@
+{# 页眉工具箱：按钮数据由 book/buttons.py 在 html-page-context 生成。 #}
+{% if book_buttons %}
+<div class="book-header-buttons" role="group" aria-label="{{ _('Page tools') }}">
+  {%- for button in book_buttons %}
+  {%- if button.type == "download" %}
+  <a class="book-button" href="{{ pathto('_sources/' + sourcename, 1) }}" download
+     title="{{ button.tooltip }}" aria-label="{{ button.label }}">
+    <i class="{{ button.icon }}" aria-hidden="true"></i>
+  </a>
+  {%- elif button.type == "javascript" %}
+  <button class="book-button" type="button" onclick="{{ button.javascript }}"
+          title="{{ button.tooltip }}" aria-label="{{ button.label }}">
+    <i class="{{ button.icon }}" aria-hidden="true"></i>
+  </button>
+  {%- else %}
+  <a class="book-button" href="{{ button.url }}" target="_blank" rel="noopener noreferrer"
+     title="{{ button.tooltip }}" aria-label="{{ button.label }}">
+    <i class="{{ button.icon }}" aria-hidden="true"></i>
+  </a>
+  {%- endif %}
+  {%- endfor %}
+</div>
+{% endif %}

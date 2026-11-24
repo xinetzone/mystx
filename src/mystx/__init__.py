@@ -11,7 +11,7 @@ from pathlib import Path
 from sphinx.application import Sphinx
 from sphinx.util.typing import ExtensionMetadata
 
-from .book.options import normalize_theme_options, update_nav_scope
+from .book.options import normalize_theme_options, update_page_context
 
 try:  # setuptools-scm 在构建时写入；源码树内可能缺失
     from ._version import __version__
@@ -31,8 +31,9 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     theme_dir = Path(__file__).parent / "theme" / "mystx"
     app.add_html_theme("mystx", str(theme_dir))
     app.add_css_file("css/book.css")
+    app.add_js_file("js/book.js")
     app.connect("builder-inited", normalize_theme_options, priority=400)
-    app.connect("html-page-context", update_nav_scope)
+    app.connect("html-page-context", update_page_context)
     return {
         "version": __version__,
         "parallel_read_safe": True,

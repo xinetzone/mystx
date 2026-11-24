@@ -11,6 +11,7 @@ from typing import Any
 from sphinx.application import Sphinx
 from sphinx.util import logging
 
+from .buttons import build_buttons
 from .nav import sidebar_kwargs
 
 logger = logging.getLogger(__name__)
@@ -80,8 +81,13 @@ def resolve_nav_scope(app: Sphinx, pagename: str, scope: str) -> str:
     return "section" if ancestor else "book"
 
 
-def update_nav_scope(app: Sphinx, pagename: str, templatename: str, context: dict, doctree) -> None:
-    """按页面决定侧栏范围，写入模板上下文。"""
+def update_page_context(app: Sphinx, pagename: str, templatename: str, context: dict, doctree) -> None:
+    """按页面决定侧栏范围与页眉按钮，写入模板上下文。"""
     options = _theme_options(app) or {}
     scope = str(options.get("book_nav_scope", context.get("theme_book_nav_scope", "book")))
     context["mystx_nav_scope"] = resolve_nav_scope(app, pagename, scope)
+
+    names = options.get("book_header_buttons") or context.get("theme_book_header_buttons") or []
+    if isinstance(names, str):
+        names = [item.strip() for item in names.split(",") if item.strip()]
+    context["book_buttons"] = build_buttons(pagename, context, list(names))
