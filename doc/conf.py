@@ -13,6 +13,7 @@ extensions = ["mystx"]
 html_theme = "mystx"
 html_title = "mystx"
 html_static_path = []
+html_last_updated_fmt = "%Y-%m-%d"
 exclude_patterns = ["_build"]
 
 # 站点只覆盖需要显式表达的值；其余取 theme.toml 默认。

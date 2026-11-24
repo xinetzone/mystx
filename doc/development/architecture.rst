@@ -26,9 +26,10 @@ mystx 不复制父主题的 ``layout.html``，只在必要处覆盖，并通过�
      - 归一化 ``book_*`` 选项；校验 ``book_nav_scope``；把侧栏参数函数注入 Jinja
    * - ``html-page-context``
      - 解析导航范围（``section`` 无祖先时回退 ``book``）；生成页眉按钮数据；
-       检测页面是否含边注，决定是否让出右侧目录栏
+       生成页脚条目；检测页面是否含边注，决定是否让出右侧目录栏
    * - 模板渲染
-     - ``layout.html`` 注入宽度变量；``book-nav.html`` 调用 ``generate_toctree_html``
+     - ``layout.html`` 注入宽度变量并接管页脚；``book-nav.html`` 调用
+       ``generate_toctree_html``
    * - ``post-transform``
      - ``FootnoteToSidenote`` （优先级 1，仅 html）把脚注换成边注节点
 
@@ -42,14 +43,16 @@ mystx 不复制父主题的 ``layout.html``，只在必要处覆盖，并通过�
    ├── book/
    │   ├── nav.py               侧栏参数纯函数
    │   ├── buttons.py           页眉按钮数据与 URL 规则
+   │   ├── footer.py            页脚条目数据
    │   ├── options.py           选项归一化、逐页 scope、按钮注入、边注页面检测
    │   └── sidenotes.py         边注节点 + 脚注变换 + {margin} 指令
    └── theme/mystx/
        ├── theme.toml           inherit + 默认选项 + sidebars
-       ├── layout.html          覆盖 extrahead 与 body_tag
+       ├── layout.html          覆盖 extrahead、body_tag 与 footer
        ├── book-nav.html        侧栏组件
        ├── book-header-buttons.html  页眉工具箱
-       └── static/              css/book.css、css/sidenotes.css、js/book.js
+       ├── book-footer.html     内容页脚
+       └── static/              css/{book,sidenotes,notebook}.css、js/book.js
 
 为什么组件要单独命名
 --------------------

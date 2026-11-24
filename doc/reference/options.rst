@@ -38,7 +38,7 @@
    * - ``book_footer_items``
      - list[str]
      - ``author, copyright, last-updated``
-     - 预留
+     - 按序渲染；置空回退基座页脚
 
 改过默认值的基座选项
 --------------------
@@ -83,6 +83,10 @@
 
 ``book_use_sidenotes`` 只影响脚注：``{margin}`` 指令与相关样式始终可用，
 因为它是块级排版能力，与脚注是否转边注无关。
+
+``book_footer_items`` 为空列表时，mystx 不渲染自己的页脚，回退
+pydata-sphinx-theme 的 ``footer_start`` / ``footer_center`` / ``footer_end``。
+非空时这三个基座选项不生效，避免两套页脚同时出现。
 
 版本耦合
 --------

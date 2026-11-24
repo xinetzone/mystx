@@ -51,7 +51,7 @@
    * - ``book_footer_items``
      - list
      - 3 项
-     - 内容页脚组件（P4 预留）
+     - 内容页脚条目；置空则回退 pydata-sphinx-theme 的页脚
 
 列表选项既可以写字符串（逗号分隔），也可以写列表：
 
@@ -102,6 +102,23 @@ GitLab / Bitbucket 同理，换成对应的 ``gitlab_*`` / ``bitbucket_*`` 键�
 宽屏（``>=1400px``）下含边注的页面会隐藏右侧页内目录，把这块区域让给边注；
 窄屏下边注默认收起，点编号展开。块级内容用 ``{margin}`` 指令，它不受该开关影响。
 细节见 :doc:`sidenotes`。
+
+页脚
+----
+
+``book_footer_items`` 按顺序渲染，支持 ``author`` / ``copyright`` /
+``last-updated``：
+
+.. code-block:: python
+
+   html_theme_options = {
+       "book_footer_items": ["copyright", "last-updated"],
+   }
+
+``author`` 与 ``copyright`` 缺省时取 ``conf.py`` 的同名字段；``last-updated`` 需要
+``html_last_updated_fmt``。数据缺失的条目自动跳过，不报错。置空列表则整体回退
+pydata-sphinx-theme 的原生页脚，``footer_start`` / ``footer_center`` /
+``footer_end`` 随之恢复生效。
 
 继承自基座的选项
 ----------------

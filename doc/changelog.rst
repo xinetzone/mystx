@@ -12,9 +12,13 @@
 - 页眉工具箱：下载、全屏、仓库、编辑、源码、issue（GitHub / GitLab / Bitbucket）。
 - 边注：``book_use_sidenotes`` 把脚注搬到右侧留白，``{-}`` 前缀转为无编号
   margin note；新增 ``{margin}`` 块级指令；含边注的页面在宽屏自动让出页内目录。
+- 内容页脚：``book_footer_items`` 支持 ``author`` / ``copyright`` /
+  ``last-updated``；置空则回退基座页脚。
+- Notebook 样式：``div.cell`` 的间距、长输出滚动、``tag_margin`` /
+  ``tag_full-width`` 复用留白列；纯 CSS，不引入 myst-nb 依赖。
 - 打包：``scikit-build-core`` + ``setuptools-scm``，``py3-none-any``。
 
 尚未实现
 --------
 
-- 内容页脚组件（P4）
+- 无（P0–P4 全部落地；后续为维护与基座升级）

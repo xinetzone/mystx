@@ -27,14 +27,17 @@
      - 8 项测试通过；开关可回退；边注页面自动让出右侧目录栏
    * - P4
      - 页脚组件、Notebook 样式、视觉打磨
-     - 待开始
-     - 4 类页面快照稳定
+     - 已完成
+     - 7 项页脚测试；Notebook 样式为纯 CSS，不引入依赖
 
 已知限制
 --------
 
-- ``book_footer_items`` 已预留但未生效（P4）。
+- 页脚只覆盖内容页脚（``book_footer_items``）；顶部 ``footer_start`` 一类基座选项
+  在页脚接管时不再生效，需要时把 ``book_footer_items`` 置空回退。
 - 页眉按钮仅支持 GitHub / GitLab / Bitbucket 三类仓库坐标。
 - 未做浏览器矩阵与读屏实测；当前验证以构建断言为主。
 - 顶部导航默认清空；如需站点式导航，需自行放回 ``navbar_*``。
 - 宽屏边注会让出右侧页内目录；同一段落建议不超过两条边注。
+- Notebook 样式按 myst-nb 的类名（``div.cell`` / ``tag_margin`` / ``tag_full-width``）
+  编写，未安装 myst-nb 时样式不生效，也不影响构建。
