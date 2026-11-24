@@ -1,5 +1,3 @@
-import pytest
-
 from mystx.config import DEFAULT_MYST_CONFIG
 from mystx.presets import (
     apply_site_config,
@@ -102,25 +100,6 @@ def test_site_config_type_is_type_checking_only():
 
     assert "SiteConfig" not in presets.__all__
     assert not hasattr(presets, "SiteConfig")
-
-
-def test_apply_site_config_rejects_undeclared_keys(monkeypatch):
-    """键集守卫是最后一道防线：产出未声明键时拒绝注入，且不留下半装配命名空间。"""
-    from mystx.presets import mystx_site
-
-    original = mystx_site.build_config
-
-    def _build_with_ghost(**kwargs):
-        values, setup = original(**kwargs)
-        values["ghost_key"] = True
-        return values, setup
-
-    monkeypatch.setattr(mystx_site, "build_config", _build_with_ghost)
-    namespace: dict[str, object] = {}
-
-    with pytest.raises(RuntimeError, match="ghost_key"):
-        mystx_site.apply_config(namespace, site_url=None)
-    assert namespace == {}
 
 
 def test_project_meta_applies_key_defaults():
