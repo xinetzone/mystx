@@ -36,7 +36,7 @@ def test_github_urls():
         github_repo="docs",
         github_version="main",
     )
-    by_label = {b["label"]: b["url"] for b in build_buttons("guide/setup", context, FLAGS) if "url" in b}
+    by_label = {b["label"]: b["href"] for b in build_buttons("guide/setup", context, FLAGS) if "href" in b}
     assert by_label["Source repository"] == "https://github.com/acme/docs"
     assert by_label["Suggest edit"] == "https://github.com/acme/docs/edit/main/doc/guide/setup.rst"
     assert by_label["View source"] == "https://github.com/acme/docs/blob/main/doc/guide/setup.rst?plain=1"
@@ -46,7 +46,7 @@ def test_github_urls():
 def test_gitlab_uses_dash_paths():
     context = base_context()
     context.update(gitlab_user="acme", gitlab_repo="docs", gitlab_version="main")
-    by_label = {b["label"]: b["url"] for b in build_buttons("guide/setup", context, FLAGS) if "url" in b}
+    by_label = {b["label"]: b["href"] for b in build_buttons("guide/setup", context, FLAGS) if "href" in b}
     assert by_label["Suggest edit"] == "https://gitlab.com/acme/docs/-/edit/main/doc/guide/setup.rst"
     assert by_label["View source"] == "https://gitlab.com/acme/docs/-/blob/main/doc/guide/setup.rst?plain=1"
 
@@ -54,7 +54,7 @@ def test_gitlab_uses_dash_paths():
 def test_bitbucket_source_has_no_plain_query():
     context = base_context()
     context.update(bitbucket_user="acme", bitbucket_repo="docs", bitbucket_version="main")
-    by_label = {b["label"]: b["url"] for b in build_buttons("guide/setup", context, FLAGS) if "url" in b}
+    by_label = {b["label"]: b["href"] for b in build_buttons("guide/setup", context, FLAGS) if "href" in b}
     assert by_label["View source"] == "https://bitbucket.org/acme/docs/src/main/doc/guide/setup.rst"
 
 
@@ -62,7 +62,7 @@ def test_custom_provider_base():
     context = base_context()
     context.update(github_user="acme", github_repo="docs", github_version="dev", github_url="https://ghe.example.com")
     buttons = build_buttons("index", context, ["repo"])
-    assert buttons[0]["url"] == "https://ghe.example.com/acme/docs"
+    assert buttons[0]["href"] == "https://ghe.example.com/acme/docs"
 
 
 def test_order_follows_configuration():

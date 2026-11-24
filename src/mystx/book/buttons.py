@@ -1,7 +1,7 @@
 """页眉工具箱：把配置项翻译成按钮数据，模板只负责渲染。
 
-按钮是数据，不是模板。URL 规则集中在本模块，可单测；模板按 ``type`` 选择
-链接或脚本。
+按钮是数据，不是模板。URL 规则、图标与"链接还是脚本"都集中在本模块，可单测；
+模板只有一个循环：有 ``javascript`` 就输出 ``<button>``，否则输出 ``<a>``。
 """
 
 from __future__ import annotations
@@ -85,6 +85,8 @@ def build_buttons(
                     "type": "download",
                     "label": "Download this page",
                     "icon": _ICONS["download"],
+                    "href": f"_sources/{context['sourcename']}",
+                    "download": True,
                     "tooltip": "Download this page",
                 }
             )
@@ -133,6 +135,6 @@ def _repo_button(
         "type": "link",
         "label": label,
         "icon": icon,
-        "url": url,
+        "href": url,
         "tooltip": label,
     }

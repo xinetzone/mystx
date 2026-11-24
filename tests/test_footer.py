@@ -74,13 +74,13 @@ def test_footer_renders_items(tmp_path):
     html = build_site(tmp_path, options={"book_footer_items": ["author", "copyright", "last-updated"]})
     assert "book-footer__author" in html
     assert "book-footer__copyright" in html
-    assert "book-footer__updated" in html
+    assert "book-footer__last-updated" in html
     assert "xinetzone" in html
 
 
 def test_footer_order_comes_from_config(tmp_path):
     html = build_site(tmp_path, options={"book_footer_items": ["last-updated", "author"]})
-    assert html.index("book-footer__updated") < html.index("book-footer__author")
+    assert html.index("book-footer__last-updated") < html.index("book-footer__author")
 
 
 def test_empty_footer_falls_back_to_base(tmp_path):

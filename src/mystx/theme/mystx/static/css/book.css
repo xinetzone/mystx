@@ -67,7 +67,7 @@
   margin: 0;
 }
 
-.book-footer__updated {
+.book-footer__last-updated {
   margin-left: auto;
 }
 
@@ -82,7 +82,7 @@
     gap: 0.25rem;
   }
 
-  .book-footer__updated {
+  .book-footer__last-updated {
     margin-left: 0;
   }
 }

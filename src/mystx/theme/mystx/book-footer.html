@@ -1,12 +1,7 @@
 {# 内容页脚：条目与顺序由 book/footer.py 决定，这里只按 type 输出。 #}
+{%- set prefixes = {"author": _("By"), "copyright": "©", "last-updated": _("Last updated on")} %}
 <div class="bd-footer__inner bd-page-width book-footer">
-  {% for item in book_footer %}
-    {% if item.type == "author" %}
-      <p class="book-footer__item book-footer__author">{% trans author=item.text %}By {{ author }}{% endtrans %}</p>
-    {% elif item.type == "copyright" %}
-      <p class="book-footer__item book-footer__copyright">© {{ item.text }}</p>
-    {% elif item.type == "last-updated" %}
-      <p class="book-footer__item book-footer__updated">{% trans updated=item.text %}Last updated on {{ updated }}{% endtrans %}</p>
-    {% endif %}
-  {% endfor %}
+  {%- for item in book_footer %}
+  <p class="book-footer__item book-footer__{{ item.type }}">{{ prefixes.get(item.type, "") }} {{ item.text }}</p>
+  {%- endfor %}
 </div>

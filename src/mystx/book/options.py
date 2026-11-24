@@ -18,6 +18,11 @@ from .nav import sidebar_kwargs
 
 logger = logging.getLogger(__name__)
 
+
+def _sidebar_kwargs_dict(*args: Any) -> dict[str, Any]:
+    """模板用的包装：把 dataclass 展开成可 ``**kw`` 的字典。"""
+    return sidebar_kwargs(*args).to_kwargs()
+
 _LIST_OPTIONS = ("book_header_buttons", "book_footer_items")
 _INT_OPTIONS = ("book_nav_depth", "navigation_depth")
 _BOOL_OPTIONS = ("book_use_sidenotes",)
@@ -81,7 +86,7 @@ def normalize_theme_options(app: Sphinx) -> None:
 
     environment = getattr(getattr(app.builder, "templates", None), "environment", None)
     if environment is not None:
-        environment.globals["book_sidebar_kwargs"] = sidebar_kwargs
+        environment.globals["book_sidebar_kwargs"] = _sidebar_kwargs_dict
 
 
 def resolve_nav_scope(app: Sphinx, pagename: str, scope: str) -> str:
