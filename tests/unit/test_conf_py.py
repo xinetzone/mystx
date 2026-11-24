@@ -36,21 +36,23 @@ def _require_upstream_docs():
         pytest.skip("本机 myst-parser < 5.1，缺少 SyntaxExampleDocsDirective")
 
 
-def test_conf_exposes_early_keys_and_defers_the_rest():
-    """早读键在模块层可见；其余键由 config-inited 监听器整体下发，一个不漏。"""
+def test_conf_owns_identity_and_exposes_early_keys():
+    """身份字段由 conf.py 直接持有；早读键取自画像；其余键由监听器整体下发。"""
     conf = _load_conf()
     expected, _ = build_config(root=CONF_PATH.parents[1])
 
     assert conf.build_config is build_config
     assert callable(conf.setup)
+    assert (conf.project, conf.author, conf.copyright) == ("mystx", "xinetzone", "2026, xinetzone")
+    assert not {"project", "author", "copyright"} & set(expected)
     # 早读键必须在模块命名空间里，取值与画像一致
-    for name in conf._EARLY_KEYS:
+    for name in conf._EXPLICIT_KEYS:
         assert getattr(conf, name) == expected[name], name
 
     config = SimpleNamespace()
     conf._apply_profile(None, config)
     applied = vars(config)
-    assert set(applied) == set(expected) - set(conf._EARLY_KEYS)
+    assert set(applied) == set(expected) - set(conf._EXPLICIT_KEYS)
     for name, value in applied.items():
         assert value == expected[name], name
     # 延迟下发的键不在模块层留第二份，避免两处取值漂移
@@ -101,6 +103,6 @@ def test_conf_setup_registers_config_inited_docs_directives_and_parallel_guard()
     listener = app.connect.call_args_list[0].args[1]
     listener(app, config)
     expected, _ = build_config(root=CONF_PATH.parents[1])
-    assert set(vars(config)) == set(expected) - set(conf._EARLY_KEYS)
+    assert set(vars(config)) == set(expected) - set(conf._EXPLICIT_KEYS)
     assert meta["version"] == conf.release
     assert meta["parallel_read_safe"] is True

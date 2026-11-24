@@ -2,9 +2,11 @@
 
 边界：
 
-* 本模块是**具体站点**的画像（项目身份、主题选项、外部链接），不是库的通用
+* 本模块是**具体站点**的画像（主题选项、外部链接、构建参数），不是库的通用
   默认值；通用机制在 :mod:`mystx.presets.mystx_site`；
 * 根目录由调用方传入——``conf.py`` 知道自己在仓库里的位置，安装后的包不知道；
+* 站点身份（``project`` / ``author`` / ``copyright``）不在这里：它属于站点门面，
+  由 ``conf.py`` 直接持有，画像只管可复用的取值与装配顺序；
 * :func:`build_config` 只产出取值表与 ``setup`` 钩子，不接收命名空间：写入
   ``conf.py`` 是站点自己的契约（Sphinx 以 conf.py 的模块命名空间构造
   ``Config``）。
@@ -40,12 +42,9 @@ def build_config(*, root: str | Path) -> tuple[dict[str, Any], SetupFunction]:
     """
     root = Path(root)
     values: dict[str, Any] = {
-        "project": "mystx",
-        "author": "xinetzone",
-        "copyright": "2026, xinetzone",
         # README.md 面向仓库读者，站点根入口为 index.md
         "exclude_patterns": ["_build", "Thumbs.db", ".DS_Store", "README.md"],
-        "html_static_path": ["_static"],
+        "html_static_path": ["_static"],  # 包含自定义静态文件（如样式表或脚本文件）的路径列表
         "html_css_files": ["local.css", "font.css"],
         "html_last_updated_fmt": "%Y-%m-%d, %H:%M:%S",
         "templates_path": ["_templates"],
