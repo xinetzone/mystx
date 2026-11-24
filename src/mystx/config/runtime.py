@@ -12,7 +12,7 @@ from sphinx.config import Config
 from sphinx.errors import ExtensionError
 from sphinx.util import logging
 
-from ..themes import BOOK_THEME_NAMES
+from ..themes import BOOK_THEME_NAMES, DEFAULT_BOOK_THEME_OPTIONS
 from ..utils import deep_merge
 from ..version_switcher import sphinx_setup as version_switcher_setup
 from .defaults import BOOK_THEME_OPTION_DEFAULTS
@@ -96,15 +96,22 @@ class ConfigManager:
 
 
 def apply_book_theme_option_defaults(config: Config) -> None:
-    """为书系主题补齐结构性 ``html_theme_options`` 默认项。
+    """为书系主题补齐 ``html_theme_options`` 默认项。
+
+    ``mystx`` 主题的 Python 侧消费者（书系模板按钮、旁注开关等）只读
+    ``config.html_theme_options``，不读 ``theme.toml``；模板侧才做两源合并。
+    因此对 ``mystx`` 站点补全完整主题默认值，站点 conf.py 只需声明覆盖项。
+    其他书系主题仅补 ``BOOK_THEME_OPTION_DEFAULTS``（消除 pydata 0.16+ 在
+    ``builder-inited`` 注入顶栏搜索按钮导致的双搜索框），不改变第三方站点行为。
 
     ``setdefault`` 语义：键缺失时才注入，绝不覆盖用户在 conf.py 或
     ``_config.toml`` 中的显式声明；非书系主题直接返回。
     """
     if config.html_theme not in BOOK_THEME_NAMES:
         return
+    defaults = DEFAULT_BOOK_THEME_OPTIONS if config.html_theme == "mystx" else BOOK_THEME_OPTION_DEFAULTS
     options = getattr(config, "html_theme_options", None) or {}
-    for key, value in BOOK_THEME_OPTION_DEFAULTS.items():
+    for key, value in defaults.items():
         options.setdefault(key, value)
     config.html_theme_options = options
 

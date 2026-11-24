@@ -6,6 +6,8 @@
 >
 > 结论先行：Sphinx 的配置系统本质是**「声明四元组 + 三源惰性合并 + 分类失效」**；
 > mystx 预设已实现「装配与钩子分离」与声明单源，缺口在**取值类型断言、失效档位的实际消费**两项。
+> 本站 `doc/conf.py` 现已逐项显式声明取值；唯一交给 `config-inited` 的是
+> `html_theme_options` 的主题默认值补全（见「本站装配现状」）。
 
 ## 研究范围与溯源
 
@@ -76,7 +78,7 @@
 - **现象**：类型不符只 warning 一次；`list→tuple`、`list/tuple/set→frozenset` 自动转换；共享非平凡基类即视为兼容。
 - **根因**：`check_confval_types` 定位为兼容性守门而非契约执行（`sphinx/config.py:777-851`）。
 - **影响**：mystx 的 `SiteConfig` 是 `TypedDict`，运行时零校验；与 Sphinx 的宽松策略叠加后，错误取值会一路带到构建期才以怪异形式暴露。
-- **建议**：在 `assemble_config` 现有「键集断言」之外补「取值类型断言」，复用 `frozenset`/`ENUM` 的表达能力，注入前抛 `TypeError`。
+- **建议**：在 `assemble_site_config` 现有「键集断言」之外补「取值类型断言」，复用 `frozenset`/`ENUM` 的表达能力，注入前抛 `TypeError`。
 
 ### I-4 conf.py 是脚本而非声明文件，命名空间与工作目录都被改写
 
@@ -102,7 +104,7 @@
 | 三源惰性合并  | 同一键有 CLI、文件、默认三种来源   | ①override 优先 ②文件次之 ③默认兜底 ④首次访问固化 ⑤未知名告警                                                     | 应用配置中心、CI 参数注入              |
 | 分类失效指纹  | 需要增量构建               | ①每个键归入失效类别 ②按类别 `filter` ③对子集做稳定哈希 ④哈希不符即全量重建                                               | 任何构建缓存或产物缓存                 |
 | 别名双向同步  | 同一语义存在历史名与新名         | ①`__setattr__` 识别旧名/新名 ②同步写另一侧 ③默认值引用新名                                                     | 兼容期 API 迁移                  |
-| 装配与钩子分离 | 需一次注入大量配置又保留扩展钩子     | ①纯函数产出 values ②`setup` 钩子单独返回 ③调用方分两路装配 ④写入前做键集断言                                           | 任何预设或模板型配置层                 |
+| 装配与钩子分离 | 需一次注入大量配置又保留扩展钩子     | ①纯函数产出 values ②`setup` 钩子单独返回 ③调用方分两路装配 ④写入前做键集断言                                           | 任何预设或模板型配置层（本站已改为逐项显式声明，见「本站装配现状」） |
 
 ### 反模式
 
@@ -116,8 +118,8 @@
 
 | 优先级 | Sphinx 接口                                                          | 语义要点                                                        | mystx 落点                                                                                       |
 | --- | ------------------------------------------------------------------ | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| P0  | `app.add_config_value(name, default, rebuild, types, description)` | 声明即契约：默认值/失效档/类型/描述四元组                                      | 现有 `SiteConfig` 为手写 `TypedDict` 加手写 values，缺失效档与类型；建议引入 `SITE_CONFIG_SPEC` 单源，由 spec 生成 values |
-| P0  | `check_confval_types` 的宽松策略（反向使用）                                  | 类型不符仅 warning                                               | 在 `assemble_config` 键集断言之外补取值类型断言，把 warning 级问题前移为注入前异常                                           |
+| P0  | `app.add_config_value(name, default, rebuild, types, description)` | 声明即契约：默认值/失效档/类型/描述四元组                                      | 已由 `SITE_CONFIG_SPEC` 单源承载，取值按其 `default` 生成；`SiteConfig` 仅作类型镜像 |
+| P0  | `check_confval_types` 的宽松策略（反向使用）                                  | 类型不符仅 warning                                               | 在 `assemble_site_config` 键集断言之外补取值类型断言，把 warning 级问题前移为注入前异常                                           |
 | P1  | `_ConfigRebuild` 类别加 `Config.filter`                               | `env/html/''` 三档决定增量边界                                      | 为每个预设键标注档位；未注册键在文档中声明需 fresh-env                                                               |
 | P1  | `Config.__getattr__` 三源优先级                                         | override > conf.py > default                                | 预设可提供 `resolve(namespace, overrides)`，保证 CI 的 `-D` 覆盖仍优先于预设注入值                                 |
 | P1  | `Config.__setattr__` 别名同步                                          | `copyright` 与 `project_copyright`、`master_doc` 与 `root_doc` | 预设不必同时写两个名字，文档注明由 Sphinx 同步                                                                    |
@@ -125,10 +127,27 @@
 | P2  | `Builder.get_builder_config('<name>_<option>')`                    | builder 变体回退查找                                              | 多 builder 变体（html/dirhtml）复用该约定，不另造前缀                                                          |
 | P2  | `is_serializable` 加 `__getstate__` 守卫                              | 不可序列化值不进入环境缓存                                               | 预设侧加「禁止注入 callable/type/module」自检，前置拦截反模式 4                                                    |
 
+## 本站装配现状（2026-11-24）
+
+上游结论落到本站后的形态，与「预设批量装配」不同：
+
+| 维度 | 现状 | 依据 |
+| --- | --- | --- |
+| 取值声明 | `doc/conf.py` 逐项显式赋值（四十余项） | 配置即文档：每条取值直接可读可改，不经中间字典 |
+| 主题选项 | `html_theme_options` 只写本站覆盖项，主题默认值由 `mystx` 扩展在 `config-inited` 以 `setdefault` 补齐 | 书系主题 Python 侧只读配置层，`theme.toml` 默认值不会自动到达；站点无需抄写 |
+| 早读键 | `extensions`、`language` / `locale_dirs` / `gettext_compact` | 扩展加载与 i18n 初始化早于 `config-inited`（R-20），必须在模块层就位 |
+| 装配钩子 | `setup` 只注册文档指令与并行读守卫，返回扩展元数据 | 不再连接 `config-inited`；`config-inited` 由 `mystx` 扩展自身承担 |
+| 预设接口 | `mystx.presets.assemble_site_config` 保留 | 供其他站点批量装配；本站不再调用 |
+
+由此产生两项约定：
+
+1. 本站改动上述任一配置键，不会触发环境级失效——纯 `conf.py` 变量未注册 `_Opt`，需清理构建目录或 `-E` 重建（对应 I-2）。
+2. 新增配置键时须同步写入 `conf.py`；`tests/unit/test_conf_py.py` 以 `SITE_CONFIG_SPEC` 为基准断言无遗漏。
+
 ## 落地优先级
 
 1. **P0-a**：`SITE_CONFIG_SPEC` 单源化（默认值、类型、失效档、描述），`build_config` 由 spec 生成取值，`SiteConfig` 与 spec 保持一致并有测试兜底。**已落地**：`src/mystx/presets/mystx_site.py` 的 `SITE_CONFIG_SPEC` 与导入期执行一次的 `_check_spec_contract()`。
-2. **P0-b**：`assemble_config` 增加取值类型断言（键集契约已在导入期校验）。
+2. **P0-b**：`assemble_site_config` 增加取值类型断言（键集契约已在导入期校验）。
 3. **P1**：预设键标注 rebuild 档位；conf.py 相关文档补充「哪些键改动需 `--fresh-env`」。
 4. **P2**：`config_fingerprint()` 与序列化卫生检查。
 

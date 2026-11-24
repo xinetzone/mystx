@@ -1,12 +1,11 @@
-"""doc/conf.py 的萃取契约测试：确认它消费包内预设而非自留机制副本。
+"""doc/conf.py 的装配契约测试：确认站点取值显式声明，只剩主题默认值靠事件补齐。
 
-本文件只做「装配面」断言，不启动 Sphinx 构建：目标是把 conf.py 与
-``mystx`` 包之间的复用关系固化为机检门禁，避免日后又长回一份内联实现。
+本文件只做「装配面」断言，不启动 Sphinx 构建：目标是把 conf.py 与 ``mystx``
+包之间的复用关系固化为机检门禁，避免日后又长回一份隐式注入实现。
 """
 
 import importlib.util
 from pathlib import Path
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -16,9 +15,8 @@ from mystx.config import (
     DEFAULT_EXT_CONFIG,
     DEFAULT_MYST_CONFIG,
 )
-from mystx.presets import assemble_site_config
-from mystx.themes import resolve_theme
-from mystx.utils import resolve_site_url
+from mystx.presets.mystx_site import SITE_CONFIG_SPEC
+from mystx.themes import BOOK_THEME_NAMES
 
 CONF_PATH = Path(__file__).resolve().parents[2] / "doc" / "conf.py"
 
@@ -37,68 +35,50 @@ def _require_upstream_docs():
         pytest.skip("本机 myst-parser < 5.1，缺少 SyntaxExampleDocsDirective")
 
 
-def _expected_profile(conf):
-    """按统一入口的装配顺序重算期望取值：机制 + 画像 + 主题选项补全。"""
-    values, _ = assemble_site_config(
-        profile=conf._profile,
-        site_url=resolve_site_url(require_on_ci=True),
-        optional_extensions=conf.OPTIONAL_EXTENSIONS,
-        nitpick_ignore=conf.NITPICK_IGNORE,
-        suppress_warnings=conf.SUPPRESS_WARNINGS,
-    )
-    return dict(values)
-
-
-def test_conf_exposes_early_keys_and_defers_rest():
-    """身份字段由门面自持；早读键取自统一入口；其余键由监听器整体下发。"""
+def test_conf_declares_identity_and_early_keys():
+    """身份与早读键直接写在模块层，取值明确可读。"""
     conf = _load_conf()
-    expected = _expected_profile(conf)
 
-    assert callable(conf.setup)
     assert (conf.project, conf.author, conf.copyright) == ("mystx", "xinetzone", "2026, xinetzone")
-    assert not {"project", "author", "copyright"} & set(conf._profile)
-    # 早读键必须在模块命名空间里，取值与统一入口一致
-    for name in conf._EXPLICIT_KEYS:
-        assert getattr(conf, name) == expected[name], name
-
-    config = SimpleNamespace()
-    conf._apply_profile(None, config)
-    applied = vars(config)
-    assert set(applied) == set(expected) - set(conf._EXPLICIT_KEYS)
-    for name, value in applied.items():
-        assert value == expected[name], name
-    # 延迟下发的键不在模块层留第二份，避免两处取值漂移
-    assert not set(applied) & set(vars(conf))
-    assert "mystx.ext.gallery" in conf.extensions
-    assert ("py:class", "invoke.Collection") in applied["nitpick_ignore"]
+    # 早读键必须在模块层就位
+    assert conf.extensions[0] == "mystx"
+    assert conf.language == "zh_CN"
+    assert conf.locale_dirs == ["../locales/"]
+    assert conf.gettext_compact is False
+    assert conf.version == conf.release
 
 
-def test_conf_keeps_no_inline_mechanism_copies():
-    """机制已迁入预设：conf.py 命名空间不再暴露实现符号，取值仍与包内同源。"""
+def test_conf_covers_every_site_config_key():
+    """机制声明过的键在 conf.py 都有同名取值：不存在依赖注入的缺口。"""
     conf = _load_conf()
-    config = SimpleNamespace()
-    conf._apply_profile(None, config)
 
-    for name in (
-        "build_config",
-        "assemble_site_config",
-        "register_docs_directives",
-        "connect_parallel_guard",
-        "resolve_extensions",
-        "configure_site_fonts",
-    ):
-        assert not hasattr(conf, name)
-    # 装配是单次调用，命名空间里不应残留中间变量或 update 痕迹
-    assert not hasattr(conf, "conf")
-    assert not hasattr(conf, "_site")
-    assert config.html_theme == resolve_theme()
-    assert config.numfig == DEFAULT_BUILD_CONFIG["numfig"]
-    assert config.myst_enable_extensions == DEFAULT_MYST_CONFIG["myst_enable_extensions"]
-    assert config.copybutton_exclude == DEFAULT_EXT_CONFIG["copybutton_exclude"]
-    assert config.copybutton_selector == DEFAULT_EXT_CONFIG["copybutton_selector"]
+    missing = sorted(set(SITE_CONFIG_SPEC) - set(dir(conf)))
+    assert not missing, f"conf.py 缺少取值: {missing}"
+    # 事件注入的实现痕迹已移除
+    for name in ("_values", "_apply_profile", "_EXPLICIT_KEYS", "assemble_site_config"):
+        assert not hasattr(conf, name), name
 
 
-def test_conf_setup_registers_config_inited_docs_directives_and_parallel_guard():
+def test_conf_values_match_package_defaults():
+    """与包内默认值同源的键取值一致；配置层不另立第二套默认值。"""
+    conf = _load_conf()
+
+    assert conf.html_theme in BOOK_THEME_NAMES
+    assert conf.numfig == DEFAULT_BUILD_CONFIG["numfig"]
+    assert conf.myst_enable_extensions == DEFAULT_MYST_CONFIG["myst_enable_extensions"]
+    assert conf.copybutton_exclude == DEFAULT_EXT_CONFIG["copybutton_exclude"]
+    assert conf.copybutton_selector == DEFAULT_EXT_CONFIG["copybutton_selector"]
+    # 站点层只声明覆盖项；主题默认值由 mystx 在 config-inited 补齐
+    assert set(conf.html_theme_options) == {
+        "announcement",
+        "repository_url",
+        "icon_links",
+        "launch_buttons",
+    }
+    assert conf.html_theme_options["icon_links"] == conf._icon_links()
+
+
+def test_conf_setup_registers_docs_directives_and_parallel_guard():
     _require_upstream_docs()
     conf = _load_conf()
     app = MagicMock()
@@ -108,14 +88,8 @@ def test_conf_setup_registers_config_inited_docs_directives_and_parallel_guard()
     registered = [call.args[0] for call in app.add_directive.call_args_list]
     assert "myst-config" in registered
     assert "myst-example" in registered
+    # 只连接并行守卫；不再有 config-inited 补写
     events = [call.args[0] for call in app.connect.call_args_list]
-    assert events == ["config-inited", "env-before-read-docs"]
-    assert app.connect.call_args_list[0].kwargs["priority"] == 0
-    # 注册到 Sphinx 的正是下发剩余取值的那个监听器
-    config = SimpleNamespace()
-    listener = app.connect.call_args_list[0].args[1]
-    listener(app, config)
-    expected = _expected_profile(conf)
-    assert set(vars(config)) == set(expected) - set(conf._EXPLICIT_KEYS)
+    assert events == ["env-before-read-docs"]
     assert meta["version"] == conf.release
     assert meta["parallel_read_safe"] is True
