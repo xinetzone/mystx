@@ -31,12 +31,12 @@
 [install-badge]: https://img.shields.io/pypi/dw/mystx?label=pypi%20installs
 [install-link]: https://pypistats.org/packages/mystx
 
-**MySTX** 是基于 Sphinx Book Theme 的现代化、可定制的 Sphinx HTML 主题，为技术文档提供优雅美观的展示效果。它结合了现代Web设计理念与优秀的阅读体验，使您的文档既专业又易于阅读。
+**MySTX** 是基于 pydata-sphinx-theme 的书籍化 Sphinx HTML 主题，借鉴 sphinx-book-theme 的阅读体验（全书导航、页眉工具箱、边注），为技术文档提供连续阅读的排版。
 
 ## ✨ 特性
 
-- 🎨 基于 Sphinx Book Theme 的现代化设计风格
-- 🛠️ 灵活的主题配置系统，支持从 TOML 文件加载主题配置选项
+- 🎨 基于 pydata-sphinx-theme 的基座 + 书籍化阅读层
+- 🛠️ 6 个书籍层选项 + pydata 原生选项，取值集中在 theme.toml
 - 📝 完善的 MyST Markdown 和 Jupyter Notebook 支持
 - 🚀 简单易用的主题注册和配置应用流程
 - 📚 丰富的可选扩展，用于增强文档功能
@@ -71,11 +71,11 @@ pip install -ve .[dev]
 
 ### 核心依赖
 
-- `sphinx-book-theme>=1.1.4` (主题继承)
-- `sphinx>=8.0.0` (文档生成引擎)
+- `pydata-sphinx-theme>=0.24,<0.25` (主题基座)
+- `sphinx>=8.2,<10` (文档生成引擎)
 - `myst-nb` (Jupyter Notebook 支持)
 - `myst-parser` (MyST Markdown 解析器)
-- Python 3.14+ (运行环境)
+- Python 3.11+ (运行环境)
 
 ## 🚀 快速开始
 
