@@ -108,6 +108,7 @@ def update_page_context(app: Sphinx, pagename: str, templatename: str, context: 
     scope = str(options.get("book_nav_scope", context.get("theme_book_nav_scope", "book")))
     context["mystx_nav_scope"] = resolve_nav_scope(app, pagename, scope)
     context["mystx_has_margin"] = page_has_margin(doctree)
+    context["mystx_body_class"] = body_classes(context, context["mystx_has_margin"])
 
     names = options.get("book_header_buttons") or context.get("theme_book_header_buttons") or []
     if isinstance(names, str):
@@ -130,6 +131,18 @@ def _footer_source(app: Sphinx, context: dict) -> dict[str, Any]:
         if not source.get(key):
             source[key] = getattr(config, key, None)
     return source
+
+
+def body_classes(context: dict, has_margin: bool) -> str:
+    """``<body>`` 上的布局类名，由页面自身结构决定。
+
+    ``mystx-no-toc``：页面没有页内标题（分区首页、搜索页）时基座不渲染右侧
+    目录栏，正文容器限宽后会在左右各留一截空白；左对齐才能贴着侧栏起排。
+    """
+    classes = ["mystx-has-margin"] if has_margin else []
+    if not context.get("display_toc"):
+        classes.append("mystx-no-toc")
+    return " ".join(classes)
 
 
 def page_has_margin(doctree) -> bool:

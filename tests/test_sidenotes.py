@@ -115,8 +115,8 @@ def test_nested_reference_keeps_narrow_copy(tmp_path):
 
 def test_margin_content_flags_body_class(tmp_path):
     out = build(tmp_path, options=DEFAULT_OPTIONS)
-    assert 'class="mystx-has-margin"' in read(out, "index.html")
-    assert 'class="mystx-has-margin"' in read(out, "block.html")
+    assert "mystx-has-margin" in read(out, "index.html")
+    assert "mystx-has-margin" in read(out, "block.html")
     assert "mystx-has-margin" not in read(out, "quiet.html")
 
 

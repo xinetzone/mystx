@@ -10,6 +10,14 @@
   }
 }
 
+/* 页面没有页内标题（分区首页、搜索页）时基座不渲染右侧目录栏，
+   正文限宽后被居中，左侧会留出一整条空白；改成从侧栏右侧起排。 */
+@media (min-width: 960px) {
+  .mystx-no-toc .bd-main .bd-content {
+    justify-content: flex-start;
+  }
+}
+
 /* 侧栏当前页：与书籍阅读流一致的左侧强调 */
 .mystx-book-nav .current > a {
   font-weight: 600;

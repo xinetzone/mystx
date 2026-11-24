@@ -89,6 +89,13 @@ def test_navbar_is_neutralized(tmp_path):
     assert "navbar-nav" not in html
 
 
+def test_no_toc_page_is_marked_for_left_alignment(tmp_path):
+    out = build_site(tmp_path)
+    html = open(f"{out}/guide/index.html", encoding="utf-8").read()
+    # 分区首页只有目录，没有页内标题：基座不渲染右侧目录栏
+    assert 'class="mystx-no-toc"' in html
+
+
 def test_css_and_content_width_are_injected(tmp_path):
     out = build_site(tmp_path)
     html = open(f"{out}/index.html", encoding="utf-8").read()

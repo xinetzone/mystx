@@ -8,7 +8,7 @@
 
 {# 含边注的页面挂上 body class，宽屏才能把右侧目录栏让给留白列。 #}
 {% block body_tag %}
-  <body data-default-mode="{{ default_mode }}"{% if mystx_has_margin %} class="mystx-has-margin"{% endif %}>
+  <body data-default-mode="{{ default_mode }}"{% if mystx_body_class %} class="{{ mystx_body_class }}"{% endif %}>
 {%- endblock %}
 
 {# 页脚：book_footer_items 非空时接管；置空则回退基座的原生页脚。 #}

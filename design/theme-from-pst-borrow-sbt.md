@@ -319,6 +319,23 @@ CSS、`book.js`、5 个模板、5 个 Python 模块）全部在内。`--no-isola
 顺手补一个 `gitignore` 漏项：`tests/chaos/src/mystx/_version.py` 由构建生成却没被
 忽略，导致子模块长期显示脏；规则改为 `**/src/mystx/_version.py`。
 
+### 4.15 分区首页的大片空白
+
+现象：`guide/index.html` 这类分区首页左侧有一条约 100px 的空条，右侧整块空白。
+
+定位（实测 `getBoundingClientRect`，视口 1280）：`.bd-content` 宽 949，正文容器宽
+736（`book_content_width` 的 46rem 上限），基座 `.bd-content` 是
+`justify-content: center`，于是两侧各分到约 107px 空白。右侧那条空白本该站页内
+目录，但分区首页只有 toctree、没有页内标题，`display_toc` 为假，基座整块不渲染
+`.bd-sidebar-secondary`，于是左右两处空白同时出现，看起来像排版坏了。
+
+处置：页面结构决定布局类名（`body_classes()`），模板只输出。`display_toc` 为假时
+给 `<body>` 加 `mystx-no-toc`，CSS 在 `>=960px` 把该类页面的 `.bd-content` 改成
+`justify-content: flex-start`，正文贴着侧栏起排；有目录的页面完全不变。
+
+取舍：没有把限宽改成按视口伸缩。行宽上限是书籍阅读的核心约束，宁可留白也不拉长行。
+也没用 `:has()` 选择器，避免老浏览器静默退化。
+
 ## 5. E｜可复用模式
 
 ### P-01 基座与体验层分离
