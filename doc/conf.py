@@ -19,6 +19,5 @@ exclude_patterns = ["_build"]
 # 站点只覆盖需要显式表达的值；其余取 theme.toml 默认。
 html_theme_options = {
     "book_nav_scope": "book",
-    "book_nav_depth": 3,
     "book_use_sidenotes": True,
 }

@@ -21,8 +21,8 @@
      - ``book`` / ``section``；非法值回退 ``book`` 并告警
    * - ``book_nav_depth``
      - int
-     - ``3``
-     - 小于 1 时按 1 处理
+     - ``1``
+     - 小于 1 时按 1 处理；默认只展开顶层
    * - ``book_content_width``
      - str
      - ``"46rem"``

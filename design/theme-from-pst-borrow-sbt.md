@@ -118,7 +118,7 @@ mystx（单继承）
 | 选项 | 类型 | 默认 | 作用 |
 |---|---|---|---|
 | `book_nav_scope` | str：`book` / `section` | `"book"` | 侧栏渲染全书树还是当前章节子树 |
-| `book_nav_depth` | int | `3` | 全书树初始展开层数 |
+| `book_nav_depth` | int | `1` | 全书树初始展开层数；只展开顶层，当前章节自动展开 |
 | `book_header_buttons` | list[str] | `["download", "fullscreen", "source", "edit", "issue", "repo"]` | 页眉按钮及顺序 |
 | `book_use_sidenotes` | bool | `False` | 脚注转边注总开关 |
 | `book_content_width` | str | `"46rem"` | 正文最大宽度（CSS 变量） |
@@ -376,3 +376,15 @@ CSS、`book.js`、5 个模板、5 个 Python 模块）全部在内。`--no-isola
 | Q3 | 是否提供 `book_nav_scope="section"` 兼容站点式导航 | 提供；默认 `book` |
 
 > 首个版本 tag 已定为 `v0.0.1`（§1 版本起点、§4.8 构建规则、§6 验收同步）。
+
+### 4.16 侧栏默认只展开顶层
+
+原来 `book_nav_depth = 3`，PST 的 `show_nav_level` 会把 `li.toctree-l0..2` 的
+`<details>` 全部标 `open`，于是每章的子目录一开始就摊开。
+
+改成 `1`：只有 `toctree-l0` 会被强制展开，而真实层级从 `toctree-l1` 起，
+等价于不额外展开任何层级，只剩 PST 的 `_set_current_chain()` 生效——当前页所在的
+章节链自动打开，读者仍能看出自己在哪；其他章节一律折叠，点箭头才展开。
+
+`doc/conf.py` 里还写着 `book_nav_depth: 3`，会盖掉主题默认值，同批删掉。
+`show_nav_level`（基座选项）一并置 1：mystx 的侧栏不用它，留着 3 只会误导。

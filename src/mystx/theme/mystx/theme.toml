@@ -17,12 +17,12 @@ article_header_end = "book-header-buttons"
 # —— 复用基座选项 ——
 secondary_sidebar_items = "page-toc"
 navigation_depth = "4"
-show_nav_level = "3"
+show_nav_level = "1"
 collapse_navigation = "False"
 
 # —— 书籍层选项（一个能力一个开关）——
 book_nav_scope = "book"
-book_nav_depth = "3"
+book_nav_depth = "1"
 book_header_buttons = "download, fullscreen, source, edit, issue, repo"
 book_use_sidenotes = "False"
 book_content_width = "46rem"

@@ -119,7 +119,7 @@ mystx 主题提供了丰富的配置选项，让您可以根据项目需求自�
 ```python
 html_theme_options = {
     "book_nav_scope": "book",       # book 全书树 / section 当前章节
-    "book_nav_depth": 3,            # 侧栏初始展开层数
+    "book_nav_depth": 1,            # 侧栏初始展开层数（1 = 只展开顶层）
     "book_content_width": "46rem",  # 正文最大宽度
     "book_header_buttons": ["download", "fullscreen", "source", "edit", "issue", "repo"],
     "book_use_sidenotes": False,    # 脚注转边注

@@ -89,6 +89,15 @@ def test_navbar_is_neutralized(tmp_path):
     assert "navbar-nav" not in html
 
 
+def test_sidebar_collapses_other_chapters(tmp_path):
+    out = build_site(tmp_path)
+    html = open(f"{out}/guide/setup.html", encoding="utf-8").read()
+    nav = html[html.index("mystx-book-nav") : html.index("</nav>")]
+    # 默认只展开顶层：当前章节打开，其余章节折叠
+    assert nav.count('open="open"') == 1
+    assert "<details open" not in nav[nav.index(">API<") :]
+
+
 def test_no_toc_page_is_marked_for_left_alignment(tmp_path):
     out = build_site(tmp_path)
     html = open(f"{out}/guide/index.html", encoding="utf-8").read()

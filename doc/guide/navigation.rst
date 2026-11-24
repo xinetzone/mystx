@@ -53,7 +53,8 @@ mystx 的侧栏仍然使用 pydata-sphinx-theme 的 toctree 算法，只改两�
 展开深度
 --------
 
-- ``book_nav_depth`` 控制“初始展开到第几层”，默认 3。
+- ``book_nav_depth`` 控制“初始展开到第几层”，默认 1：只显示顶层章节，其余折叠；
+  当前页所在的那一章会自动展开，否则读者看不出自己在哪。
 - ``navigation_depth`` （基座选项）控制“最多渲染到第几层”，默认 4。
 - 两者关系：``book_nav_depth <= navigation_depth`` 时才会看到预期的展开效果。
 
