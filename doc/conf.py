@@ -8,6 +8,9 @@
 扩展在 ``config-inited`` 阶段按 ``setdefault`` 补齐。原因是书系主题的 Python
 侧只读配置层，站点没有理由重复抄写一份主题默认值。
 
+三处取值随构建机而变，不是字面量：站点地址（CI 必填 ``SITEMAP_URL_BASE``）、
+版本号（分发包元数据或 ``MYSTX_VERSION``）、社交卡片字体（本机已装的 CJK 族）。
+
 ``setup`` 只负责两件机制性工作：注册 mystx 的文档指令、连接并行读守卫，并
 声明本扩展并行安全。
 
@@ -15,7 +18,6 @@
 选择逐项显式声明，便于直接看出每条配置的实际取值。
 """
 
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -28,7 +30,6 @@ from mystx.utils import resolve_release as _resolve_release
 from mystx.utils import resolve_site_url as _resolve_site_url
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "doc"))
 
 # 站点地址：本站严格判定——CI 必须显式给 SITEMAP_URL_BASE（项目型 Pages 带 /mystx/ 前缀）；
 # DEFAULT_CONDITIONAL 只看 GITHUB_ACTIONS 是否存在，会放过未声明的情形，把 localhost 写进线上 sitemap
@@ -103,10 +104,21 @@ comments_config = {
     "utterances": {"repo": "xinetzone/mystx", "optional": "config"},
 }
 
-# sitemap：仅在站点地址确定时启用
+# 站点对外呈现：sitemap 与社交卡片
+# sitemap 仅在站点地址为真值时启用；本地兜底地址（127.0.0.1）也是真值，
+# 故本地构建同样按「已定址」处理
 html_baseurl = _site_url or ""
 sitemap_url_scheme = "{link}" if _site_url else "{lang}{version}{link}"
 sitemap_locales = [None]
+# 社交卡片；字体取包内默认的 CJK 回退链（见 mystx.fonts），只传本机已装族
+ogp_site_url = "https://mystx.readthedocs.io/zh-cn/latest/"
+ogp_social_cards: dict[str, Any] = {
+    "site_url": "mystx.readthedocs.io",
+    "image": "_static/images/logo.jpg",
+    "line_colors": "#4078c0",
+}
+if (_ogp_font := _first_installed_family()) is not None:
+    ogp_social_cards["font"] = _ogp_font
 
 # 告警与交叉引用豁免：前四条为上游实现导致的本站噪声，末条为 invoke 类型缺陷
 nitpick_ignore = [
@@ -140,17 +152,6 @@ myst_enable_extensions = [
     "replacements",
     "substitution",
 ]
-
-# Open Graph：站点地址与社交卡片
-ogp_site_url = "https://mystx.readthedocs.io/zh-cn/latest/"
-# 社交卡片；字体取包内默认的 CJK 回退链（见 mystx.fonts），只传本机已装族
-ogp_social_cards: dict[str, Any] = {
-    "site_url": "mystx.readthedocs.io",
-    "image": "_static/images/logo.jpg",
-    "line_colors": "#4078c0",
-}
-if (_ogp_font := _first_installed_family()) is not None:
-    ogp_social_cards["font"] = _ogp_font
 
 # 扩展清单：Sphinx 在 config-inited 之前加载，必须在模块层可见
 extensions = [
