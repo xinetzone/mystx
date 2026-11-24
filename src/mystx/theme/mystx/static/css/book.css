@@ -52,3 +52,37 @@
   outline: 2px solid var(--pst-color-primary);
   outline-offset: 2px;
 }
+
+/* 内容页脚：条目数据来自 book_footer_items */
+.book-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 1.5rem;
+  font-size: 0.85rem;
+  color: var(--pst-color-text-muted);
+}
+
+.book-footer__item {
+  margin: 0;
+}
+
+.book-footer__updated {
+  margin-left: auto;
+}
+
+.book-footer a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+@media (max-width: 767.98px) {
+  .book-footer {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .book-footer__updated {
+    margin-left: 0;
+  }
+}

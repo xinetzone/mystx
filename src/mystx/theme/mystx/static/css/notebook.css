@@ -1,0 +1,58 @@
+/* Notebook（myst-nb）单元格：只在页面里真有 div.cell 时生效，不引入依赖 */
+
+.bd-article div.cell {
+  margin: 1.25rem 0;
+}
+
+.bd-article div.cell div.cell_input,
+.bd-article div.cell div.cell_output {
+  border-radius: 0.375rem;
+}
+
+/* 长输出横向滚动，而不是撑破正文列 */
+.bd-article div.cell div.cell_output {
+  overflow-x: auto;
+}
+
+.bd-article div.cell div.cell_output img,
+.bd-article div.cell div.cell_output svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 相邻两个单元格不要双倍间距 */
+.bd-article div.cell + div.cell {
+  margin-top: 0.75rem;
+}
+
+/* 标签驱动的排版：margin 单元格与全宽单元格 */
+@media (min-width: 1400px) {
+  .mystx-has-margin .bd-article div.cell.tag_margin {
+    float: right;
+    clear: right;
+    width: var(--mystx-margin-width);
+    margin: 0 calc(-1 * var(--mystx-margin-column)) 1rem 0;
+    font-size: 0.875em;
+  }
+
+  .mystx-has-margin .bd-article div.cell.tag_full-width,
+  .mystx-has-margin .bd-article div.cell.tag_full_width {
+    width: calc(100% + var(--mystx-margin-column));
+    max-width: none;
+  }
+}
+
+/* 窄屏：margin 单元格回到正文流，全宽单元格不越界 */
+@media (max-width: 1399.98px) {
+  .bd-article div.cell.tag_margin {
+    margin: 1rem 0;
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--pst-color-border);
+  }
+
+  .bd-article div.cell.tag_full-width,
+  .bd-article div.cell.tag_full_width {
+    width: auto;
+    max-width: 100%;
+  }
+}

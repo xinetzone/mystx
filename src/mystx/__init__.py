@@ -33,6 +33,7 @@ def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_html_theme("mystx", str(theme_dir))
     app.add_css_file("css/book.css")
     app.add_css_file("css/sidenotes.css")
+    app.add_css_file("css/notebook.css")
     app.add_js_file("js/book.js")
     app.connect("builder-inited", normalize_theme_options, priority=400)
     app.connect("html-page-context", update_page_context)

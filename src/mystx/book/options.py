@@ -13,6 +13,7 @@ from sphinx.application import Sphinx
 from sphinx.util import logging
 
 from .buttons import build_buttons
+from .footer import build_footer
 from .nav import sidebar_kwargs
 
 logger = logging.getLogger(__name__)
@@ -20,8 +21,8 @@ logger = logging.getLogger(__name__)
 _LIST_OPTIONS = ("book_header_buttons", "book_footer_items")
 _INT_OPTIONS = ("book_nav_depth", "navigation_depth")
 _BOOL_OPTIONS = ("book_use_sidenotes",)
-#: 会让正文内容落到右侧留白的节点类名
-_MARGIN_CLASSES = frozenset({"sidenote", "marginnote", "margin"})
+#: 会让正文内容落到右侧留白的节点类名（含 myst-nb 单元格标签）
+_MARGIN_CLASSES = frozenset({"sidenote", "marginnote", "margin", "tag_margin", "tag_full-width", "tag_full_width"})
 
 
 def _as_list(value: Any) -> list[str]:
@@ -107,6 +108,23 @@ def update_page_context(app: Sphinx, pagename: str, templatename: str, context: 
     if isinstance(names, str):
         names = [item.strip() for item in names.split(",") if item.strip()]
     context["book_buttons"] = build_buttons(pagename, context, list(names))
+
+    footer_names = options.get("book_footer_items")
+    if footer_names is None:
+        footer_names = context.get("theme_book_footer_items") or []
+    if isinstance(footer_names, str):
+        footer_names = [item.strip() for item in footer_names.split(",") if item.strip()]
+    context["book_footer"] = build_footer(_footer_source(app, context), list(footer_names))
+
+
+def _footer_source(app: Sphinx, context: dict) -> dict[str, Any]:
+    """页脚数据源：模板上下文优先，缺失时回退 conf.py 的同名字段。"""
+    source = dict(context)
+    config = app.config
+    for key in ("author", "copyright"):
+        if not source.get(key):
+            source[key] = getattr(config, key, None)
+    return source
 
 
 def page_has_margin(doctree) -> bool:
