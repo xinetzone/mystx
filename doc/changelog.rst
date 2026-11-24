@@ -12,6 +12,7 @@
 - 页眉工具箱：下载、全屏、仓库、编辑、源码、issue（GitHub / GitLab / Bitbucket）。
 - 边注：``book_use_sidenotes`` 把脚注搬到右侧留白，``{-}`` 前缀转为无编号
   margin note；新增 ``{margin}`` 块级指令；含边注的页面在宽屏自动让出页内目录。
+  窄屏开关是普通复选框，可 Tab 到达、Space 展开，焦点框画在可见编号上。
 - 内容页脚：``book_footer_items`` 支持 ``author`` / ``copyright`` /
   ``last-updated``；置空则回退基座页脚。
 - Notebook 样式：``div.cell`` 的间距、长输出滚动、``tag_margin`` /

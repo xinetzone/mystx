@@ -44,8 +44,15 @@ def _anchor(node: nodes.Element) -> str:
 
 
 def visit_sidenote_node(translator: Any, node: nodes.Element) -> None:
-    """把行内边注渲染成「标签 + 复选开关」的无脚本结构。"""
+    """把行内边注渲染成「复选开关 + 标签」的无脚本结构。
+
+    输入框必须排在标签之前：键盘用户用 Tab 聚焦它时，``input:focus-visible
+    + label`` 才能给可见的编号画焦点框。
+    """
     anchor = _anchor(node)
+    translator.body.append(
+        f'<input type="checkbox" id="{anchor}" name="{anchor}" class="margin-toggle">'
+    )
     if anchor.startswith("marginnote-"):
         translator.body.append(f'<label for="{anchor}" class="margin-toggle marginnote-label">')
     else:
@@ -57,10 +64,7 @@ def depart_sidenote_node(translator: Any, node: nodes.Element) -> None:
     anchor = _anchor(node)
     if anchor.startswith("sidenote-"):
         translator.body.append("</span>\n\n")
-    translator.body.append("</label>")
-    translator.body.append(
-        f'<input type="checkbox" id="{anchor}" name="{anchor}" class="margin-toggle">'
-    )
+    translator.body.append("</label>\n\n")
 
 
 class SideNoteNode(nodes.Element):

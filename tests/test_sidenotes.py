@@ -2,12 +2,17 @@
 
 from __future__ import annotations
 
+import pathlib
+import re
 from io import StringIO
 from textwrap import dedent
 
 import pytest
 from sphinx.application import Sphinx
 from sphinx.util.docutils import docutils_namespace
+
+#: 主题样式源文件（不经构建即可断言）
+CSS = pathlib.Path(__file__).parents[1] / "src/mystx/theme/mystx/static/css/sidenotes.css"
 
 PAGES = {
     "index.rst": """
@@ -134,3 +139,22 @@ def test_switch_off_keeps_plain_footnotes(tmp_path, options):
     assert "margin-toggle" not in html
     assert "footnote-list" in html
     assert "mystx-has-margin" not in html
+
+
+def test_toggle_input_precedes_label(tmp_path):
+    """开关必须排在标签前：键盘焦点靠 ``input:focus-visible + label`` 落到编号上。"""
+    html = article(read(build(tmp_path, options=DEFAULT_OPTIONS), "index.html"))
+    assert re.search(
+        r'<input type="checkbox" id="sidenote-role-1"[^>]*class="margin-toggle">'
+        r'<label for="sidenote-role-1"',
+        html,
+    )
+
+
+def test_toggle_stays_focusable():
+    """``display: none`` 的复选框无法用 Tab 到达，边注对键盘用户就消失了。"""
+    css = pathlib.Path(CSS).read_text(encoding="utf-8")
+    block = css[css.index("input.margin-toggle {") : css.index("}", css.index("input.margin-toggle {"))]
+    assert "display: none" not in block
+    assert "clip-path" in block
+    assert "input.margin-toggle:focus-visible + label.margin-toggle" in css

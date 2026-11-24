@@ -78,8 +78,33 @@ label.margin-toggle sup {
   user-select: none;
 }
 
+/* 开关本体不占版面，但必须保持可聚焦：display:none 会让键盘用户彻底打不开边注 */
 input.margin-toggle {
-  display: none;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 键盘焦点回到可见的编号上；鼠标点击不触发 */
+input.margin-toggle:focus-visible + label.margin-toggle {
+  outline: 2px solid var(--pst-color-primary);
+  outline-offset: 2px;
+  border-radius: 0.2rem;
+}
+
+/* 不支持 :focus-visible 的旧引擎退回 :focus，至少不会没有焦点提示 */
+@supports not selector(:focus-visible) {
+  input.margin-toggle:focus + label.margin-toggle {
+    outline: 2px solid var(--pst-color-primary);
+    outline-offset: 2px;
+    border-radius: 0.2rem;
+  }
 }
 
 /* 窄屏：正文里的边注默认收起，点编号展开 */
@@ -105,8 +130,8 @@ input.margin-toggle {
 
   /* 展开态保持行内：改成块级会把紧跟其后的标点挤到独立一行。
      行内色块跨行时用 box-decoration-break 复制左右边框与内边距。 */
-  input.margin-toggle:checked + .sidenote,
-  input.margin-toggle:checked + .marginnote {
+  input.margin-toggle:checked + label.margin-toggle + .sidenote,
+  input.margin-toggle:checked + label.margin-toggle + .marginnote {
     display: inline;
     margin: 0 0.1em;
     padding: 0.05em 0.45em;
