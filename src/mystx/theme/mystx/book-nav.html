@@ -3,12 +3,14 @@
      mystx_nav_scope | default(theme_book_nav_scope) | default("book"),
      theme_book_nav_depth | default(3) | int,
      theme_navigation_depth | default(4) | int) %}
+{% set collapse = (theme_collapse_navigation | default("False") | string | lower) == "true" %}
 <nav class="bd-links bd-docs-nav mystx-book-nav" aria-label="{{ _('Section Navigation') }}">
   {{ generate_toctree_html(
       kind="sidebar",
       startdepth=kw.startdepth,
       show_nav_level=kw.show_nav_level,
       maxdepth=kw.maxdepth,
+      collapse=collapse,
       includehidden=kw.includehidden,
       titles_only=kw.titles_only) }}
 </nav>
