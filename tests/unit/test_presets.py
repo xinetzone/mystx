@@ -134,10 +134,10 @@ def test_docs_profile_returns_fresh_copies(tmp_path):
     """站点画像每次装配都是全新对象：扩展就地改写配置不会波及另一次装配。"""
     from mystx.presets import mystx_docs
 
-    first, _ = mystx_docs.build_config(root=tmp_path)
-    second, _ = mystx_docs.build_config(root=tmp_path)
+    first = mystx_docs.build_config(root=tmp_path)
+    second = mystx_docs.build_config(root=tmp_path)
 
-    for key in ("html_theme_options", "extensions", "html_static_path", "intersphinx_mapping"):
+    for key in ("html_theme_options", "extlinks", "autoapi_dirs", "intersphinx_mapping"):
         assert first[key] is not second[key], key
     first["html_theme_options"]["announcement"] = "被改写"
     assert second["html_theme_options"]["announcement"] != "被改写"
@@ -150,11 +150,11 @@ def test_docs_profile_ogp_font_uses_installed_family_only(tmp_path, monkeypatch)
     from mystx.presets import mystx_docs
 
     monkeypatch.setattr(mystx_docs, "_available_ogp_font", lambda: None)
-    values, _ = mystx_docs.build_config(root=tmp_path)
+    values = mystx_docs.build_config(root=tmp_path)
     assert "font" not in values["ogp_social_cards"]
 
     monkeypatch.setattr(mystx_docs, "_available_ogp_font", lambda: "Test CJK")
-    values, _ = mystx_docs.build_config(root=tmp_path)
+    values = mystx_docs.build_config(root=tmp_path)
     assert values["ogp_social_cards"]["font"] == "Test CJK"
 
 

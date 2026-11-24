@@ -98,14 +98,12 @@ def test_switcher_json_url_is_relative(monkeypatch):
 def test_repo_conf_points_at_local_manifest():
     """仓库文档站的数据源必须是相对路径，否则 CI（阻断出网）的构建期校验必然 warning。
 
-    取值由 ``doc/conf.py`` 在 ``config-inited`` 阶段下发，故此处补齐该阶段后再断言。
+    该取值由 ``doc/conf.py`` 直接持有（模块级），不经画像下发。
     """
     import runpy
 
     site = runpy.run_path(str(_REPO_ROOT / "doc" / "conf.py"))
-    config = SimpleNamespace()
-    site["_apply_profile"](None, config)
-    url = config.version_switcher_json_url
+    url = site["version_switcher_json_url"]
     assert url == "_static/switcher.json", "文档站配置未把切换清单指向本地文件"
     assert (_REPO_ROOT / "doc" / url).is_file(), f"相对路径未指向真实文件：{url}"
 

@@ -17,7 +17,9 @@ from mystx.config import (
     DEFAULT_MYST_CONFIG,
 )
 from mystx.presets.mystx_docs import build_config
+from mystx.presets.mystx_site import build_config as build_site_config
 from mystx.themes import resolve_theme
+from mystx.utils import resolve_site_url
 
 CONF_PATH = Path(__file__).resolve().parents[2] / "doc" / "conf.py"
 
@@ -36,10 +38,22 @@ def _require_upstream_docs():
         pytest.skip("本机 myst-parser < 5.1，缺少 SyntaxExampleDocsDirective")
 
 
+def _expected_profile(conf):
+    """按 conf.py 的装配顺序重算期望取值：画像先落、站点机制后覆盖。"""
+    values = build_config(root=CONF_PATH.parents[1])
+    site_values, _ = build_site_config(
+        site_url=resolve_site_url(require_on_ci=True),
+        optional_extensions=conf.OPTIONAL_EXTENSIONS,
+        nitpick_ignore=conf.NITPICK_IGNORE,
+        suppress_warnings=conf.SUPPRESS_WARNINGS,
+    )
+    return {**values, **site_values}
+
+
 def test_conf_owns_identity_and_exposes_early_keys():
     """身份字段由 conf.py 直接持有；早读键取自画像；其余键由监听器整体下发。"""
     conf = _load_conf()
-    expected, _ = build_config(root=CONF_PATH.parents[1])
+    expected = _expected_profile(conf)
 
     assert conf.build_config is build_config
     assert callable(conf.setup)
@@ -102,7 +116,7 @@ def test_conf_setup_registers_config_inited_docs_directives_and_parallel_guard()
     config = SimpleNamespace()
     listener = app.connect.call_args_list[0].args[1]
     listener(app, config)
-    expected, _ = build_config(root=CONF_PATH.parents[1])
+    expected = _expected_profile(conf)
     assert set(vars(config)) == set(expected) - set(conf._EXPLICIT_KEYS)
     assert meta["version"] == conf.release
     assert meta["parallel_read_safe"] is True

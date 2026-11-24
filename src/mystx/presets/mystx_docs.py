@@ -2,12 +2,14 @@
 
 边界：
 
-* 本模块是**具体站点**的画像（主题选项、外部链接、构建参数），不是库的通用
-  默认值；通用机制在 :mod:`mystx.presets.mystx_site`；
+* 本模块是**具体站点**的画像（主题选项、外部链接、OGP 与文档工具取值），不是
+  库的通用默认值；通用机制与站点装配在 :mod:`mystx.presets.mystx_site`，装配
+  调用由 ``conf.py`` 发起；
 * 根目录由调用方传入——``conf.py`` 知道自己在仓库里的位置，安装后的包不知道；
-* 站点身份（``project`` / ``author`` / ``copyright``）不在这里：它属于站点门面，
-  由 ``conf.py`` 直接持有，画像只管可复用的取值与装配顺序；
-* :func:`build_config` 只产出取值表与 ``setup`` 钩子，不接收命名空间：写入
+* 站点身份与品牌资源（``project`` / ``author`` / ``copyright`` / ``html_title`` /
+  ``html_logo`` / ``html_favicon``）不在这里：它们属于站点门面，由 ``conf.py``
+  直接持有，画像只管可复用的取值；
+* :func:`build_config` 只产出取值表，不接收命名空间、不持有 ``setup``：写入
   ``conf.py`` 是站点自己的契约（Sphinx 以 conf.py 的模块命名空间构造
   ``Config``）。
 
@@ -15,9 +17,9 @@
 （加载扩展）与 ``language`` / ``locale_dirs`` / ``gettext_compact``（i18n 在
 ``config-inited`` 之前初始化）。
 
-本模块只服务这一个站点，每个取值都只用一次，因此不设模块级常量：一律写在
-:func:`build_config` 的构造处。每次调用都得到全新对象，扩展就地改写字典或
-列表时不会波及同进程的另一份装配。
+本模块只服务这一个站点，每个取值都只用一次，因此不设模块级常量：取值写在
+:func:`build_config` 及其局部辅助函数的构造处。每次调用都得到全新对象，扩展
+就地改写字典或列表时不会波及同进程的另一份装配。
 """
 
 import os
@@ -25,9 +27,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from ..utils import resolve_site_url
-from .mystx_site import SetupFunction, configure_site_fonts
-from .mystx_site import build_config as build_site_config
+from .mystx_site import configure_site_fonts
 
 #: 社交卡片按序尝试的字体族：取构建机上第一个已安装者，全部缺失时回退
 #: sphinxext-opengraph 内置的 Roboto Flex。
@@ -58,44 +58,39 @@ def _available_ogp_font(
     return next((name for name in candidates if name in installed), None)
 
 
-def build_config(*, root: str | Path) -> tuple[dict[str, Any], SetupFunction]:
-    """返回本项目文档站的取值表与 ``setup`` 钩子，不写调用方命名空间。
+def _ogp_values() -> dict[str, Any]:
+    """本站的 Open Graph 取值：站点地址与社交卡片参数。
+
+    卡片字体只取本机真正安装的族；全部缺失时不设 ``font``，交给 opengraph
+    内置字体，避免 matplotlib 逐页生成卡片时对每个缺失族输出 findfont 告警。
+    """
+    social_cards: dict[str, Any] = {
+        "site_url": "mystx.readthedocs.io",
+        "image": "_static/images/logo.jpg",
+        "line_colors": "#4078c0",
+    }
+    if (ogp_font := _available_ogp_font()) is not None:
+        social_cards["font"] = ogp_font
+    return {
+        "ogp_site_url": "https://mystx.readthedocs.io/zh-cn/latest/",
+        "ogp_social_cards": social_cards,
+    }
+
+
+def build_config(*, root: str | Path) -> dict[str, Any]:
+    """返回本项目文档站的取值表，不写调用方命名空间、不持有 ``setup``。
 
     ``root`` 是仓库根目录：``autoapi_dirs`` 与字体目录都相对它定位，避免包内
     猜测站点布局。取值全部在函数内新建，调用方或扩展就地改写时不会影响另一次
     装配。
 
-    写入命名空间由 ``conf.py`` 负责：Sphinx 先 ``exec`` conf.py，再以其模块
-    命名空间构造 ``Config``（``sphinx.config.eval_config_file``），注入点是
-    站点自己的契约，库只产出取值。唯一副作用是注册站点字体。
+    站点机制（扩展清单、sitemap、并行守卫）由 ``conf.py`` 调用
+    :func:`mystx.presets.mystx_site.build_config` 装配后合并；本函数只产出
+    画像取值。唯一副作用是注册站点字体。
     """
     root = Path(root)
-    ogp_social_cards: dict[str, Any] = {
-        "site_url": "mystx.readthedocs.io",
-        "image": "_static/images/logo.jpg",
-        "line_colors": "#4078c0",
-    }
-    # 只指定本机真正安装的字体族；缺字体时留空，交给 opengraph 内置字体，
-    # 避免 matplotlib 在逐页生成卡片时对每个缺失族输出 findfont 告警
-    if (ogp_font := _available_ogp_font()) is not None:
-        ogp_social_cards["font"] = ogp_font
     values: dict[str, Any] = {
-        "exclude_patterns": ["_build", "Thumbs.db", ".DS_Store"],
-        "html_static_path": ["_static"],  # 包含自定义静态文件（如样式表或脚本文件）的路径列表
-        "html_last_updated_fmt": "%Y-%m-%d, %H:%M:%S",
-        "templates_path": ["_templates"],
-        "html_title": "Sphinx mystx Theme",
-        "html_logo": "_static/images/logo.jpg",
-        "html_favicon": "_static/images/favicon.jpg",
-        "html_copy_source": True,
-        # 用相对路径读本地清单：绝对 URL 会让 pydata 在构建期发请求校验，CI 阻网恒失败
-        "version_switcher_json_url": "_static/switcher.json",
-        "comments_config": {
-            "hypothesis": True,
-            "utterances": {"repo": "xinetzone/mystx", "optional": "config"},
-        },
-        "ogp_site_url": "https://mystx.readthedocs.io/zh-cn/latest/",
-        "ogp_social_cards": ogp_social_cards,
+        **_ogp_values(),
         "html_theme_options": {
             # 公告栏
             "announcement": "欢迎使用 mystx 主题！它是现代化文档主题。",
@@ -184,27 +179,4 @@ def build_config(*, root: str | Path) -> tuple[dict[str, Any], SetupFunction]:
 
     # 字体注册是副作用，显式调用；字体目录由站点给出，预设不假设布局
     configure_site_fonts(root / "doc" / "_static" / "fonts")
-
-    # 非 RTD 由 mystx 生成 sitemap；CI 须显式给 SITEMAP_URL_BASE（项目型 Pages 带 /mystx/ 前缀）。
-    # 这里用站点自己的严格判定：DEFAULT_CONDITIONAL 只看 GITHUB_ACTIONS 是否存在，
-    # 会放过「CI 未声明 SITEMAP_URL_BASE」的情形，把 localhost 写进线上 sitemap。
-    site_values, setup = build_site_config(
-        site_url=resolve_site_url(require_on_ci=True),
-        optional_extensions=(
-            # 站点增量：包内可选清单（默认剔除 sitemap 与 mermaid）之外，本站另需 8 项
-            "sphinx.ext.viewcode",
-            "sphinx_comments",
-            "mystx.ext.gallery",
-            "sphinxcontrib.bibtex",
-            "autoapi.extension",
-            "sphinx_examples",
-            "sphinx_pyscript",
-            "mystx.ext.github_readme_stats",
-        ),
-        # 上游通用噪声由预设下放，这里只追加本站增量
-        nitpick_ignore=(("py:class", "invoke.Collection"),),
-        # epub 扫描 _static/switcher.json 的误报
-        suppress_warnings=("epub.unknown_project_files",),
-    )
-    # 通用站点键先落、机制取值后覆盖，与原先「两次 update」的优先级一致
-    return {**values, **site_values}, setup
+    return values
