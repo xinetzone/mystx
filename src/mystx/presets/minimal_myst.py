@@ -19,8 +19,7 @@ def build_config(override: dict[str, Any] | None = None) -> dict[str, Any]:
     * ``extensions_required`` / ``extensions_optional``
     * ``config_override`` 其余任意 Sphinx 配置覆盖
     """
-    override = override or {}
-    params = dict(override)
+    params = dict(override or {})
 
     extensions = resolve_extensions(
         required=params.get("extensions_required", ("myst_parser",)),
@@ -36,9 +35,6 @@ def build_config(override: dict[str, Any] | None = None) -> dict[str, Any]:
     params["html_theme_options"] = theme_options
     params["extensions"] = extensions
     project_meta = build_project_meta(params)
-    project_meta["extensions"] = extensions
-    project_meta["html_theme"] = theme
-    project_meta["html_theme_options"] = theme_options
 
     base = build_base_config(params)
     merged = deep_merge(base, project_meta)
