@@ -1,9 +1,12 @@
+import pytest
+
 from mystx.config import DEFAULT_MYST_CONFIG
 from mystx.presets import (
     apply_site_config,
     build_minimal_myst_config,
     build_mystx_site_config,
     configure_site_fonts,
+    mystx_site,
 )
 from mystx.presets._shared import build_project_meta, build_setup_closure
 from mystx.presets.mystx_site import SITE_CONFIG_SPEC, SiteConfig
@@ -173,3 +176,84 @@ def test_site_preset_skips_missing_optional_extensions():
     )
 
     assert "no_such_ext_xyz" not in values["extensions"]
+
+
+def test_site_config_spec_mutable_defaults_are_fresh():
+    """spec 中的可变默认值必须由工厂返回新对象：两次装配不共享容器，就地修改不互相污染。"""
+    first, _ = build_mystx_site_config(site_url=None)
+    second, _ = build_mystx_site_config(site_url=None)
+
+    mutable_keys = (
+        "locale_dirs",
+        "inheritance_graph_attrs",
+        "nitpick_ignore",
+        "suppress_warnings",
+        "sitemap_locales",
+        "tippy_rtd_urls",
+        "myst_enable_extensions",
+    )
+    for key in mutable_keys:
+        assert first[key] is not second[key], key
+
+    first["locale_dirs"].append("probe-locale")
+    assert first["locale_dirs"] != second["locale_dirs"]
+    first["inheritance_graph_attrs"]["__probe__"] = True
+    assert first["inheritance_graph_attrs"] != second["inheritance_graph_attrs"]
+
+
+def test_site_config_spec_key_order_is_stable():
+    """spec 的键序即配置注入顺序，需显式锁定：顺序漂移会改变 Sphinx 读入次序。"""
+    assert list(SITE_CONFIG_SPEC) == [
+        "release",
+        "version",
+        "language",
+        "locale_dirs",
+        "gettext_compact",
+        "extensions",
+        "copybutton_exclude",
+        "copybutton_selector",
+        "html_baseurl",
+        "sitemap_url_scheme",
+        "sitemap_locales",
+        "graphviz_output_format",
+        "inheritance_graph_attrs",
+        "tippy_rtd_urls",
+        "html_theme",
+        "nitpick_ignore",
+        "suppress_warnings",
+        "numfig",
+        "myst_enable_extensions",
+    ]
+
+
+def test_spec_contract_rejects_mismatched_keys():
+    """键集契约由纯函数守护：缺键或多键都抛 RuntimeError，并在消息中列出缺失键与多余键。"""
+    with pytest.raises(RuntimeError) as missing:
+        mystx_site._check_spec_contract(("a", "b"), ("a", "b", "c"))
+    message = str(missing.value)
+    assert "缺少的键 ['c']" in message
+    assert "多余的键 []" in message
+
+    with pytest.raises(RuntimeError) as extra:
+        mystx_site._check_spec_contract(("a", "b", "d"), ("a", "b"))
+    message = str(extra.value)
+    assert "缺少的键 []" in message
+    assert "多余的键 ['d']" in message
+
+    with pytest.raises(RuntimeError) as both:
+        mystx_site._check_spec_contract(("a", "b", "d"), ("a", "b", "c"))
+    message = str(both.value)
+    assert "缺少的键 ['c']" in message
+    assert "多余的键 ['d']" in message
+
+    mystx_site._check_spec_contract(("a", "b"), ("a", "b"))
+
+
+def test_site_config_static_defaults_are_shared_immutables():
+    """静态默认值按值共享即可：两次装配取值相等且都是不可变类型，无需拷贝。"""
+    first, _ = build_mystx_site_config(site_url=None)
+    second, _ = build_mystx_site_config(site_url=None)
+
+    for key in ("copybutton_exclude", "graphviz_output_format", "numfig"):
+        assert first[key] == second[key], key
+        assert isinstance(first[key], (str, bool)), key
