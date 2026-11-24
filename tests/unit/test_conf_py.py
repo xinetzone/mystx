@@ -16,7 +16,9 @@ from mystx.config import (
     DEFAULT_EXT_CONFIG,
     DEFAULT_MYST_CONFIG,
 )
+from mystx.presets import assemble_site_config
 from mystx.themes import resolve_theme
+from mystx.utils import resolve_site_url
 
 CONF_PATH = Path(__file__).resolve().parents[2] / "doc" / "conf.py"
 
@@ -36,19 +38,26 @@ def _require_upstream_docs():
 
 
 def _expected_profile(conf):
-    """conf.py 自持画像：期望取值即其模块层装配结果（站点机制已并入）。"""
-    return dict(conf._profile)
+    """按统一入口的装配顺序重算期望取值：机制 + 画像 + 主题选项补全。"""
+    values, _ = assemble_site_config(
+        profile=conf._profile,
+        site_url=resolve_site_url(require_on_ci=True),
+        optional_extensions=conf.OPTIONAL_EXTENSIONS,
+        nitpick_ignore=conf.NITPICK_IGNORE,
+        suppress_warnings=conf.SUPPRESS_WARNINGS,
+    )
+    return dict(values)
 
 
-def test_conf_owns_identity_and_exposes_early_keys():
-    """身份字段由 conf.py 直接持有；早读键取自画像；其余键由监听器整体下发。"""
+def test_conf_exposes_early_keys_and_defers_rest():
+    """身份字段由门面自持；早读键取自统一入口；其余键由监听器整体下发。"""
     conf = _load_conf()
     expected = _expected_profile(conf)
 
     assert callable(conf.setup)
     assert (conf.project, conf.author, conf.copyright) == ("mystx", "xinetzone", "2026, xinetzone")
-    assert not {"project", "author", "copyright"} & set(expected)
-    # 早读键必须在模块命名空间里，取值与画像一致
+    assert not {"project", "author", "copyright"} & set(conf._profile)
+    # 早读键必须在模块命名空间里，取值与统一入口一致
     for name in conf._EXPLICIT_KEYS:
         assert getattr(conf, name) == expected[name], name
 
@@ -72,10 +81,10 @@ def test_conf_keeps_no_inline_mechanism_copies():
 
     for name in (
         "build_config",
+        "assemble_site_config",
         "register_docs_directives",
         "connect_parallel_guard",
         "resolve_extensions",
-        "apply_site_config",
         "configure_site_fonts",
     ):
         assert not hasattr(conf, name)
@@ -102,7 +111,7 @@ def test_conf_setup_registers_config_inited_docs_directives_and_parallel_guard()
     events = [call.args[0] for call in app.connect.call_args_list]
     assert events == ["config-inited", "env-before-read-docs"]
     assert app.connect.call_args_list[0].kwargs["priority"] == 0
-    # 注册到 Sphinx 的正是下发剩余画像的那个监听器
+    # 注册到 Sphinx 的正是下发剩余取值的那个监听器
     config = SimpleNamespace()
     listener = app.connect.call_args_list[0].args[1]
     listener(app, config)

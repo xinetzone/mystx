@@ -2,7 +2,7 @@ import pytest
 
 from mystx.config import DEFAULT_MYST_CONFIG
 from mystx.presets import (
-    apply_site_config,
+    assemble_site_config,
     build_minimal_myst_config,
     build_mystx_site_config,
     configure_site_fonts,
@@ -120,14 +120,28 @@ def test_project_meta_fills_none_theme_options():
     assert meta["html_theme_options"] == {}
 
 
-def test_apply_site_config_injects_values_and_returns_setup():
-    """单次调用完成装配：键集合与 SiteConfig 一致，钩子不落进命名空间。"""
-    namespace: dict[str, object] = {}
-    setup = apply_site_config(namespace, site_url=None)
+def test_assemble_site_config_returns_values_and_setup():
+    """统一入口返回 (values, setup)：无画像时键集合与 SiteConfig 一致。"""
+    values, setup = assemble_site_config(site_url=None)
 
-    assert set(namespace) == set(SiteConfig.__annotations__)
-    assert "setup" not in namespace
+    assert set(values) == set(SiteConfig.__annotations__)
+    assert "setup" not in values
     assert callable(setup)
+
+
+def test_assemble_site_config_merges_profile_and_theme_options():
+    """画像先落、机制后覆盖；主题选项补全为主题默认值 + 站点覆盖。"""
+    profile = {
+        "language": "en",
+        "extlinks": {"p": ("https://e/%s", "p %s")},
+        "html_theme_options": {"path_to_docs": "docs"},
+    }
+    values, _ = assemble_site_config(profile=profile, site_url=None)
+
+    assert values["language"] == "zh_CN"
+    assert values["extlinks"] == profile["extlinks"]
+    assert values["html_theme_options"]["path_to_docs"] == "docs"
+    assert values["html_theme_options"]["use_repository_button"] is True
 
 
 def test_xinetzone_profile_returns_fresh_copies():

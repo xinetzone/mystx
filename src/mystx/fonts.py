@@ -20,7 +20,21 @@ DEFAULT_FONT_MODULE = "taolib.fonts"
 DEFAULT_FONT_FUNC = "configure_matplotlib_fonts"
 
 
-def first_installed_family(candidates: Iterable[str]) -> str | None:
+#: 构建期绘图的 CJK 字体回退链：按序取构建机上第一个已安装者。
+#: 主要供 sphinxext-opengraph 生成社交卡片；全部缺失时由消费方回退自身
+#: 内置字体（opengraph 为 Roboto Flex）。
+DEFAULT_CJK_FONT_CANDIDATES: tuple[str, ...] = (
+    "Maple Mono NF CN",
+    "SimHei",
+    "Microsoft YaHei",
+    "Noto Sans CJK SC",
+    "WenQuanYi Zen Hei",
+)
+
+
+def first_installed_family(
+    candidates: Iterable[str] = DEFAULT_CJK_FONT_CANDIDATES,
+) -> str | None:
     """返回本机 matplotlib 已索引的首个候选字体族，无法探测或全部缺失时返回 ``None``。
 
     matplotlib 会对 ``font.family`` 中每个未安装的字体族逐次输出

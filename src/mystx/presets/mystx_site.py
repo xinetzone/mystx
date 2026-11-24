@@ -15,8 +15,8 @@
   ``setup`` 钩子随取值一起返回但不混入配置字典；
 * :class:`ConfigSpec` 的 ``rebuild`` / ``types`` / ``description`` 是声明元数据，
   当前运行期不参与取值，仅用于单源维护与后续扩展化；
-* :func:`apply_config` 是站点装配入口：把取值注入给定命名空间并交回
-  ``setup``，conf.py 不再需要 ``globals().update`` 与临时变量；
+* :func:`assemble_config` 是站点装配入口：合并机制取值与站点画像、补全主题
+  选项后返回 ``(values, setup)``，不写任何命名空间；
 * 字体注册是副作用，独立为 :func:`configure_site_fonts`，由站点显式调用并
   给出目录，预设不假设 ``root/doc/_static`` 布局。
 
@@ -24,7 +24,7 @@
 BibTeX 文件等）仍留在站点侧，避免预设对目录布局与外部链接做假设。
 """
 
-from collections.abc import Callable, Iterable, Mapping, MutableMapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, NamedTuple, TypedDict, cast
@@ -41,7 +41,7 @@ from ..extensions import DEFAULT_OPTIONAL_EXTENSIONS, resolve_extensions
 from ..fonts import configure_optional_matplotlib_fonts
 from ..myst_docs import register_docs_directives
 from ..parallel import ParallelSafeOverrides, connect_parallel_guard
-from ..themes import resolve_theme
+from ..themes import resolve_theme, resolve_theme_options
 from ..utils import resolve_release
 
 #: 包内清单中默认不给完整站点的扩展：sitemap 改由 ``site_url`` 条件决定；
@@ -255,19 +255,30 @@ def build_config(
     return cast(SiteConfig, values), setup
 
 
-def apply_config(
-    namespace: MutableMapping[str, Any],
-    /,
+def assemble_config(
+    *,
+    profile: Mapping[str, Any] | None = None,
     **options: Any,
-) -> SetupFunction:
-    """把站点取值注入 ``namespace``，返回 ``setup`` 钩子。
+) -> tuple[SiteConfig, SetupFunction]:
+    """组装站点最终取值：机制 + 站点画像 + 主题选项补全，返回 ``(values, setup)``。
 
-    ``options`` 与 :func:`build_config` 完全一致。取值先在局部完整组装，再一次性
-    写入，避免中途异常留下半装配的命名空间。
+    站点装配的唯一入口：``options`` 与 :func:`build_config` 完全一致；
+    ``profile`` 是站点自有取值（主题选项、OGP、外部链接等）。先落画像、再被
+    机制取值覆盖，与「画像先落、机制后覆盖」的既有优先级一致。合并后按选定
+    主题补全 ``html_theme_options``——基主题的 Python 侧只读该配置项，不读
+    ``theme.toml``，故默认值必须在配置层就位。
+
+    本函数不写任何命名空间：Sphinx 以 conf.py 的模块命名空间构造 ``Config``，
+    早读键与其余键分别何时可见由站点自己决定。
     """
     values, setup = build_config(**options)
-    namespace.update(values)
-    return setup
+    merged: dict[str, Any] = {**(profile or {}), **values}
+    if "html_theme_options" in merged:
+        merged["html_theme_options"] = resolve_theme_options(
+            merged["html_theme"],
+            merged["html_theme_options"],
+        )
+    return cast(SiteConfig, merged), setup
 
 
 # 键集契约在导入期校验一次：声明漂移于最早时机暴露，取值路径不再重复检查。

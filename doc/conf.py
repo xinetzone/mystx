@@ -1,18 +1,16 @@
 #!/usr/bin/env python3
 """Sphinx 文档配置入口。
 
-本文件自己持有站点画像、站点身份与站点级装配（可选扩展、sitemap、告警抑制），
-并负责定位仓库根目录；通用机制仍由 ``mystx.presets.mystx_site`` 装配。
+本文件自己持有站点画像、站点身份与站点级装配参数（可选扩展、告警抑制），并
+负责定位仓库根目录；机制与画像的合并由 ``mystx.presets.assemble_site_config``
+一次完成。
 
 Sphinx 的契约是「conf.py 的模块命名空间即配置」：``sphinx.config`` 先 ``exec``
-本文件，再以该命名空间构造 ``Config``。但只有少数键必须在那个时刻就位——
-``extensions`` 用于加载扩展，``language`` / ``locale_dirs`` / ``gettext_compact``
-用于初始化 i18n，都发生在 ``config-inited`` 之前；``version`` / ``release``
-一并显式给出，让侧栏与页脚元数据一眼可见。
-
-其余键在 ``setup`` 注册的 ``config-inited`` 监听器里统一下发：该事件晚于扩展
-加载、早于构建器创建与源文件扫描，核心校验（优先级 790-800）与各扩展的处理
-都在其后，因此读到的是最终值。
+本文件，再以该命名空间构造 ``Config``。只有少数键必须在那个时刻就位——
+``extensions``（加载扩展）与 ``language`` / ``locale_dirs`` / ``gettext_compact``
+（i18n 初始化）早于 ``config-inited``；``version`` / ``release`` 一并显式给出，
+让侧栏与页脚元数据一眼可见。其余键在 ``setup`` 注册的 ``config-inited`` 监听器
+里统一下发：该事件早于核心校验与各扩展的消费，因此读到的是最终值。
 """
 
 import os
@@ -21,11 +19,10 @@ from pathlib import Path
 from typing import Any
 
 from mystx.fonts import first_installed_family as _first_installed_family
+from mystx.presets import assemble_site_config as _assemble_site_config
 from mystx.presets import configure_site_fonts as _configure_site_fonts
-from mystx.presets.mystx_site import build_config as _build_site_config
 from mystx.presets.xinetzone import icon_links as _icon_links
 from mystx.presets.xinetzone import intersphinx_mapping as _intersphinx_mapping
-from mystx.themes import resolve_theme_options
 from mystx.utils import resolve_site_url as _resolve_site_url
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,21 +44,13 @@ NITPICK_IGNORE = (("py:class", "invoke.Collection"),)
 # epub 扫描 _static/switcher.json 的误报
 SUPPRESS_WARNINGS = ("epub.unknown_project_files",)
 
-# 社交卡片按序尝试的字体族：取构建机上第一个已安装者，全部缺失时回退
-# sphinxext-opengraph 内置的 Roboto Flex
-_OGP_FONT_CANDIDATES = (
-    "Maple Mono NF CN",
-    "SimHei",
-    "Microsoft YaHei",
-    "Noto Sans CJK SC",
-    "WenQuanYi Zen Hei",
-)
+# 社交卡片参数；字体取包内默认的 CJK 回退链（见 mystx.fonts），只传本机已装族
 _ogp_social_cards: dict[str, Any] = {
     "site_url": "mystx.readthedocs.io",
     "image": "_static/images/logo.jpg",
     "line_colors": "#4078c0",
 }
-if (_ogp_font := _first_installed_family(_OGP_FONT_CANDIDATES)) is not None:
+if (_ogp_font := _first_installed_family()) is not None:
     _ogp_social_cards["font"] = _ogp_font
 
 # 站点画像：本站的全部取值（主题选项、OGP、文档工具），机制另由 mystx_site 装配
@@ -100,21 +89,16 @@ _profile: dict[str, Any] = {
 # 字体注册是副作用，显式调用；字体目录由站点给出
 _configure_site_fonts(ROOT / "doc" / "_static" / "fonts")
 
-# 站点机制后覆盖，与原先「两次 update」的优先级一致
+# 统一入口：机制取值（扩展、sitemap、默认值下放）与本站画像合并后一次返回。
 # 非 RTD 由 mystx 生成 sitemap；CI 须显式给 SITEMAP_URL_BASE（项目型 Pages 带 /mystx/ 前缀）。
 # 这里用站点自己的严格判定：DEFAULT_CONDITIONAL 只看 GITHUB_ACTIONS 是否存在，
 # 会放过「CI 未声明 SITEMAP_URL_BASE」的情形，把 localhost 写进线上 sitemap。
-_site_values, _setup = _build_site_config(
+_values, _setup = _assemble_site_config(
+    profile=_profile,
     site_url=_resolve_site_url(require_on_ci=True),
     optional_extensions=OPTIONAL_EXTENSIONS,
     nitpick_ignore=NITPICK_IGNORE,
     suppress_warnings=SUPPRESS_WARNINGS,
-)
-_profile.update(_site_values)
-# 主题选项补全为「主题默认值 + 本站覆盖」：基主题的 Python 侧只读 html_theme_options，
-# 不读 theme.toml，故默认值必须在配置层就位
-_profile["html_theme_options"] = resolve_theme_options(
-    _profile["html_theme"], _profile["html_theme_options"]
 )
 
 # 站点身份：只有这一个站点，直接写在门面上，不经画像
@@ -141,21 +125,21 @@ comments_config = {
     "utterances": {"repo": "xinetzone/mystx", "optional": "config"},
 }
 
-# 早读键：Sphinx 在 config-inited 之前就要用，必须在模块层可见
-extensions = _profile["extensions"]
-language = _profile["language"]
-locale_dirs = _profile["locale_dirs"]
-gettext_compact = _profile["gettext_compact"]
-version = _profile["version"]
-release = _profile["release"]
+# 早读键：Sphinx 在 config-inited 之前就要用，必须在模块层可见。
+# 常量直接声明（测试断言其与机制取值一致，漂移即失败）；动态项取自统一入口。
+extensions = _values["extensions"]
+language = "zh_CN"
+locale_dirs = ["../locales/"]
+gettext_compact = False
+version = release = _values["release"]
 
-# 画像中由本文件显式给出同名取值的键；不在画像里的（如品牌与构建参数）无需列入
+# 由本文件显式给出同名取值的键；其余键在 config-inited 阶段统一下发
 _EXPLICIT_KEYS = frozenset({"extensions", "language", "locale_dirs", "gettext_compact", "version", "release"})
 
 
 def _apply_profile(app, config):
-    """把画像中未显式给出的键写入 ``config``（config-inited 阶段，先于任何消费者）。"""
-    for name, value in _profile.items():
+    """把最终取值中未显式给出的键写入 ``config``（config-inited 阶段，先于任何消费者）。"""
+    for name, value in _values.items():
         if name not in _EXPLICIT_KEYS:
             setattr(config, name, value)
 

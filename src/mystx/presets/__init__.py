@@ -7,10 +7,10 @@
     from mystx.presets import build_minimal_myst_config
     globals().update(build_minimal_myst_config({"project": "notes", "author": "me"}))
 
-完整站点返回 ``(values, setup)``，由 ``apply_site_config`` 单次注入::
+完整站点由 ``assemble_site_config`` 一次组装，返回 ``(values, setup)``，写入时机交给站点::
 
-    from mystx.presets import apply_site_config
-    setup = apply_site_config(globals(), site_url="https://example.com/docs/")
+    from mystx.presets import assemble_site_config
+    values, setup = assemble_site_config(profile={...}, site_url="https://example.com/docs/")
 
 ``SiteConfig`` 只对类型检查器可见（``if TYPE_CHECKING``）；运行时请从
 ``mystx.presets.mystx_site`` 导入——门面不建同名第二定义，以免 autoapi 重复目标。
@@ -18,7 +18,7 @@
 预设定位：
   - build_minimal_myst_config（来自 presets.minimal_myst）：仅 myst_parser + 双 MyST 兼容钩子，适合个人轻量笔记
   - build_mystx_site_config（来自 presets.mystx_site）：完整文档站机制（扩展装配、默认值下放、主题回退），返回 (SiteConfig, setup)
-  - apply_site_config（来自 presets.mystx_site）：把站点取值注入给定命名空间并交回 setup，conf.py 的唯一装配入口
+  - assemble_site_config（来自 presets.mystx_site）：机制 + 站点画像合并并补全主题选项，conf.py 的唯一装配入口
   - configure_site_fonts（来自 presets.mystx_site）：字体注册副作用，由站点显式调用
   - presets.xinetzone：作者个人的社交链接与 intersphinx 源偏好，不从门面导出，
     供作者各文档站引用；本站画像本身在 ``doc/conf.py``
@@ -29,7 +29,7 @@
 from typing import TYPE_CHECKING
 
 from .minimal_myst import build_config as build_minimal_myst_config
-from .mystx_site import apply_config as apply_site_config
+from .mystx_site import assemble_config as assemble_site_config
 from .mystx_site import build_config as build_mystx_site_config
 from .mystx_site import configure_site_fonts
 
@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from .mystx_site import SiteConfig as SiteConfig
 
 __all__ = [
-    "apply_site_config",
+    "assemble_site_config",
     "build_minimal_myst_config",
     "build_mystx_site_config",
     "configure_site_fonts",
