@@ -295,6 +295,21 @@ P4 的两处收缩：
 `theme.toml`），文件数从 144 降到 76；`pyproject` 的 `norecursedirs` 也排除
 `tests/chaos` 与 `tests/unit`，裸跑 `pytest` 只收主题的 34 项测试。
 
+### 4.13 两处收尾修正（第 8 条关单 + 窄屏边注）
+
+**第 8 条已补齐。** 从 `dist/*.tar.gz` 解包到空目录，用 `python -m build --wheel
+--no-isolation` 重建：构建成功，产出 `py3-none-any` wheel，14 个必需资源（3 个
+CSS、`book.js`、5 个模板、5 个 Python 模块）全部在内。`--no-isolation` 不下载
+任何构建依赖，等价于"断网自足"。剩下只有版本号一项：仓库里有 `v0.1.1`–`v0.3.8`
+共 13 个旧 tag，`setuptools-scm` 因此推出 `0.3.9.dev130+g7e4e203`；打 `v0.0.1`
+后才会是 `0.0.1`，这一步需要人拍板。
+
+**窄屏边注展开不再挤掉标点。** 原先展开态写 `display: block`，导致引用点之后的
+句号被推到独立一行，段落读起来断成两截（截图对比过：一张图上孤零零一个"。"）。
+改成行内色块（`display: inline` + `box-decoration-break: clone`），段落流不再被
+切开，跨行时左右边框也能正确复制。`aside.margin` 这类块级留白不受影响，仍在窄屏
+折回正文流。
+
 ## 5. E｜可复用模式
 
 ### P-01 基座与体验层分离

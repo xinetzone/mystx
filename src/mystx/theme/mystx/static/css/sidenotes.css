@@ -103,14 +103,18 @@ input.margin-toggle {
     margin-left: 0.15em;
   }
 
+  /* 展开态保持行内：改成块级会把紧跟其后的标点挤到独立一行。
+     行内色块跨行时用 box-decoration-break 复制左右边框与内边距。 */
   input.margin-toggle:checked + .sidenote,
   input.margin-toggle:checked + .marginnote {
-    display: block;
-    float: none;
-    width: auto;
-    margin: 0.75rem 0;
-    padding-left: 0.75rem;
+    display: inline;
+    margin: 0 0.1em;
+    padding: 0.05em 0.45em;
     border-left: 3px solid var(--pst-color-border);
+    border-radius: 0 0.2rem 0.2rem 0;
+    background: var(--pst-color-surface);
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
     font-size: 0.95em;
     color: var(--pst-color-text-muted);
   }
