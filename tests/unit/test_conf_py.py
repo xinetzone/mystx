@@ -15,7 +15,7 @@ from mystx.config import (
     DEFAULT_MYST_CONFIG,
     DEFAULT_SITE_CONFIG,
 )
-from mystx.presets.mystx_docs import configure
+from mystx.presets.mystx_docs import build_config
 from mystx.themes import resolve_theme
 
 CONF_PATH = Path(__file__).resolve().parents[2] / "doc" / "conf.py"
@@ -38,8 +38,12 @@ def _require_upstream_docs():
 def test_conf_consumes_site_preset():
     conf = _load_conf()
 
-    assert conf.configure is configure
+    assert conf.build_config is build_config
     assert callable(conf.setup)
+    # 画像每新增一个键，conf.py 必须显式赋值，否则此处失败
+    expected, _ = build_config(root=CONF_PATH.parents[1])
+    missing = set(expected) - set(vars(conf))
+    assert not missing, f"conf.py 未显式赋值：{sorted(missing)}"
     assert conf.release and conf.version == conf.release
     assert "mystx.ext.gallery" in conf.extensions
     assert ("py:class", "invoke.Collection") in conf.nitpick_ignore

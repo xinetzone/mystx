@@ -5,8 +5,9 @@
 * 本模块是**具体站点**的画像（项目身份、主题选项、外部链接），不是库的通用
   默认值；通用机制在 :mod:`mystx.presets.mystx_site`；
 * 根目录由调用方传入——``conf.py`` 知道自己在仓库里的位置，安装后的包不知道；
-* :func:`configure` 仍遵守 ``mystx_site`` 的约定：取值注入命名空间，``setup``
-  钩子单独返回。
+* :func:`build_config` 只产出取值表与 ``setup`` 钩子，不接收命名空间：写入
+  ``conf.py`` 是站点自己的契约（Sphinx 以 conf.py 的模块命名空间构造
+  ``Config``）。
 
 仍由 Sphinx 时机约束、不能交给延迟合并的项只有 ``language`` /
 ``locale_dirs`` / ``gettext_compact``——i18n 在 ``config-inited`` 之前初始化。
@@ -14,12 +15,12 @@
 
 import copy
 import os
-from collections.abc import MutableMapping
 from pathlib import Path
 from typing import Any
 
 from ..utils import resolve_site_url
-from .mystx_site import SetupFunction, apply_config, configure_site_fonts
+from .mystx_site import SetupFunction, configure_site_fonts
+from .mystx_site import build_config as build_site_config
 
 PROJECT = "mystx"
 AUTHOR = "xinetzone"
@@ -149,11 +150,16 @@ NITPICK_IGNORE = (("py:class", "invoke.Collection"),)
 SUPPRESS_WARNINGS = ("epub.unknown_project_files",)
 
 
-def configure(namespace: MutableMapping[str, Any], *, root: str | Path) -> SetupFunction:
-    """把本项目文档站的全部取值注入 ``namespace``，返回 ``setup`` 钩子。
+def build_config(*, root: str | Path) -> tuple[dict[str, Any], SetupFunction]:
+    """返回本项目文档站的取值表与 ``setup`` 钩子，不写调用方命名空间。
 
     ``root`` 是仓库根目录：``autoapi_dirs`` 与字体目录都相对它定位，避免包内
-    猜测站点布局。
+    猜测站点布局。取值整体深拷贝后返回，扩展就地改写字典/列表时不会污染模块
+    常量或同进程的另一份装配。
+
+    写入命名空间由 ``conf.py`` 负责：Sphinx 先 ``exec`` conf.py，再以其模块
+    命名空间构造 ``Config``（``sphinx.config.eval_config_file``），注入点是
+    站点自己的契约，库只产出取值。唯一副作用是注册站点字体。
     """
     root = Path(root)
     # 先整体构造取值表（可引用模块常量），再对整表深拷贝一次：扩展会就地改写
@@ -184,7 +190,6 @@ def configure(namespace: MutableMapping[str, Any], *, root: str | Path) -> Setup
         "extlinks": EXTLINKS,
         "nitpicky": os.environ.get("SPHINX_NITPICK", "").lower() in {"1", "true", "yes"},
     }
-    namespace.update(copy.deepcopy(values))
 
     # 字体注册是副作用，显式调用；字体目录由站点给出，预设不假设布局
     configure_site_fonts(root / "doc" / "_static" / "fonts")
@@ -192,10 +197,11 @@ def configure(namespace: MutableMapping[str, Any], *, root: str | Path) -> Setup
     # 非 RTD 由 mystx 生成 sitemap；CI 须显式给 SITEMAP_URL_BASE（项目型 Pages 带 /mystx/ 前缀）。
     # 这里用站点自己的严格判定：DEFAULT_CONDITIONAL 只看 GITHUB_ACTIONS 是否存在，
     # 会放过「CI 未声明 SITEMAP_URL_BASE」的情形，把 localhost 写进线上 sitemap。
-    return apply_config(
-        namespace,
+    site_values, setup = build_site_config(
         site_url=resolve_site_url(require_on_ci=True),
         optional_extensions=OPTIONAL_EXTENSIONS,
         nitpick_ignore=NITPICK_IGNORE,
         suppress_warnings=SUPPRESS_WARNINGS,
     )
+    # 通用站点键先落、机制取值后覆盖，与原先「两次 update」的优先级一致
+    return {**copy.deepcopy(values), **site_values}, setup
