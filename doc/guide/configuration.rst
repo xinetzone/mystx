@@ -43,7 +43,7 @@
    * - ``book_header_buttons``
      - list
      - 6 个按钮
-     - 页眉按钮及顺序（P2 实现，当前无效）
+     - 页眉按钮及顺序；无仓库信息时仅保留下载与全屏
    * - ``book_use_sidenotes``
      - bool
      - ``False``
@@ -51,7 +51,7 @@
    * - ``book_footer_items``
      - list
      - 3 项
-     - 内容页脚组件（后续实现）
+     - 内容页脚组件（P4 预留）
 
 列表选项既可以写字符串（逗号分隔），也可以写列表：
 
@@ -61,6 +61,32 @@
        "book_header_buttons": "download, source, edit",
        # 等价于 ["download", "source", "edit"]
    }
+
+页眉工具箱
+----------
+
+``book_header_buttons`` 按列表顺序渲染，支持六个值：
+
+- ``download``：下载当前页源文件（需 ``html_copy_source``）
+- ``fullscreen``：全屏切换（主题自带脚本）
+- ``repo``：仓库首页
+- ``edit``：在线编辑
+- ``source``：查看源文件
+- ``issue``：新建 issue
+
+后四项需要 ``html_context`` 提供仓库坐标（与 pydata-sphinx-theme 的编辑链接约定一致）：
+
+.. code-block:: python
+
+   html_context = {
+       "github_user": "xinetzone",
+       "github_repo": "mystx",
+       "github_version": "main",
+       "doc_path": "doc",
+   }
+
+GitLab / Bitbucket 同理，换成对应的 ``gitlab_*`` / ``bitbucket_*`` 键。坐标不完整时，
+这四项自动不渲染，不报错。
 
 继承自基座的选项
 ----------------

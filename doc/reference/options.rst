@@ -30,7 +30,7 @@
    * - ``book_header_buttons``
      - list[str]
      - ``download, fullscreen, source, edit, issue, repo``
-     - P2 实现；当前预留
+     - 按序渲染；缺仓库坐标时只保留下载与全屏
    * - ``book_use_sidenotes``
      - bool
      - ``False``

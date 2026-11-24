@@ -25,7 +25,7 @@ mystx 不复制父主题的 ``layout.html``，只在必要处覆盖，并通过�
    * - ``builder-inited``
      - 归一化 ``book_*`` 选项；校验 ``book_nav_scope``；把侧栏参数函数注入 Jinja
    * - ``html-page-context``
-     - 按当前页解析导航范围（``section`` 无祖先时回退 ``book``）
+     - 解析导航范围（``section`` 无祖先时回退 ``book``）；生成页眉按钮数据
    * - 模板渲染
      - ``layout.html`` 注入宽度变量；``book-nav.html`` 调用 ``generate_toctree_html``
 
@@ -38,12 +38,14 @@ mystx 不复制父主题的 ``layout.html``，只在必要处覆盖，并通过�
    ├── __init__.py              setup()：主题注册 + 事件连接
    ├── book/
    │   ├── nav.py               侧栏参数纯函数
-   │   └── options.py           选项归一化与逐页 scope
+   │   ├── buttons.py           页眉按钮数据与 URL 规则
+   │   └── options.py           选项归一化、逐页 scope、按钮注入
    └── theme/mystx/
        ├── theme.toml           inherit + 默认选项 + sidebars
        ├── layout.html          只覆盖 extrahead
        ├── book-nav.html        侧栏组件
-       └── static/css/book.css  阅读宽度与导航细节
+       ├── book-header-buttons.html  页眉工具箱
+       └── static/              css/book.css、js/book.js
 
 为什么组件要单独命名
 --------------------

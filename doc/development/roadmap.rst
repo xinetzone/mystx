@@ -19,8 +19,8 @@
      - 10 项测试通过
    * - P2
      - 页眉工具箱（下载/全屏/源码/编辑/issue/仓库）
-     - 待开始
-     - URL 规则单测；无仓库信息时区段消失
+     - 已完成
+     - 6 个按钮数据驱动；缺仓库坐标时自动降级
    * - P3
      - 脚注转边注 + ``margin`` 指令
      - 待开始
@@ -33,6 +33,7 @@
 已知限制
 --------
 
-- ``book_header_buttons``、``book_use_sidenotes``、``book_footer_items`` 已预留但未生效。
+- ``book_use_sidenotes``、``book_footer_items`` 已预留但未生效。
+- 页眉按钮仅支持 GitHub / GitLab / Bitbucket 三类仓库坐标。
 - 未做浏览器矩阵与读屏实测；当前验证以构建断言为主。
 - 顶部导航默认清空；如需站点式导航，需自行放回 ``navbar_*``。
