@@ -10,3 +10,4 @@
    configuration
    navigation
    sidenotes
+   markdown

@@ -8,7 +8,8 @@ project = "mystx"
 author = "xinetzone"
 copyright = "2026, xinetzone"
 
-extensions = ["mystx"]
+extensions = ["mystx", "myst_parser"]
+myst_enable_extensions = ["colon_fence", "deflist", "tasklist"]
 
 html_theme = "mystx"
 html_title = "mystx"

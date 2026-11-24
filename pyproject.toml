@@ -33,6 +33,7 @@ dependencies = [
 [project.optional-dependencies]
 doc = [
     "sphinx>=8.2,<10",
+    "myst-parser>=5.2",
 ]
 test = [
     "pytest>=8.0",
@@ -41,6 +42,7 @@ dev = [
     "pytest>=8.0",
     "build>=1.2",
     "ruff>=0.4",
+    "myst-parser>=5.2",
 ]
 
 [project.urls]

@@ -16,6 +16,8 @@
   ``last-updated``；置空则回退基座页脚。
 - Notebook 样式：``div.cell`` 的间距、长输出滚动、``tag_margin`` /
   ``tag_full-width`` 复用留白列；纯 CSS，不引入 myst-nb 依赖。
+- MyST 兼容：``myst-parser>=5.2`` 下 Markdown 源文件可用全部主题能力（边注、
+  ``{margin}``、全书侧栏）；主题自身仍不依赖 ``myst-parser``。
 - 打包：``scikit-build-core`` + ``setuptools-scm``，``py3-none-any``。
 
 尚未实现

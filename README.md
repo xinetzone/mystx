@@ -54,7 +54,7 @@ pip install mystx
 
 ### 安装文档扩展
 
-如果需要使用文档扩展功能，可以安装可选依赖：
+如果需要使用文档扩展功能，可以安装可选依赖（带上 `myst-parser`）：
 
 ```bash
 pip install "mystx[doc]"
@@ -76,8 +76,8 @@ pip install -ve .[dev]
 - `sphinx>=8.2,<10` (文档生成引擎)
 - Python 3.11+ (运行环境)
 
-mystx 只依赖上面两项。MyST Markdown (`myst-parser`) 与 Notebook (`myst-nb`)
-是可选扩展，按需装在自己的项目里。
+mystx 只依赖上面两项。MyST Markdown (`myst-parser>=5.2`) 与 Notebook (`myst-nb`)
+是可选扩展，按需装在自己的项目里；`mystx[doc]` 已经包含 `myst-parser`。
 
 ## 🚀 快速开始
 

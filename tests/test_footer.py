@@ -6,6 +6,7 @@ from io import StringIO
 from textwrap import dedent
 
 from sphinx.application import Sphinx
+from sphinx.util.docutils import docutils_namespace
 
 from mystx.book.footer import build_footer
 
@@ -56,17 +57,18 @@ def build_site(tmp_path, *, options: dict) -> str:
         f"html_theme_options = {options!r}\n",
         encoding="utf-8",
     )
-    app = Sphinx(
-        srcdir=str(src),
-        confdir=str(src),
-        outdir=str(tmp_path / "out"),
-        doctreedir=str(tmp_path / "doctrees"),
-        buildername="html",
-        warning=StringIO(),
-        freshenv=True,
-        warningiserror=True,
-    )
-    app.build()
+    with docutils_namespace():
+        app = Sphinx(
+            srcdir=str(src),
+            confdir=str(src),
+            outdir=str(tmp_path / "out"),
+            doctreedir=str(tmp_path / "doctrees"),
+            buildername="html",
+            warning=StringIO(),
+            freshenv=True,
+            warningiserror=True,
+        )
+        app.build()
     return (tmp_path / "out" / "index.html").read_text(encoding="utf-8")
 
 

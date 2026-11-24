@@ -7,6 +7,7 @@ from textwrap import dedent
 
 import pytest
 from sphinx.application import Sphinx
+from sphinx.util.docutils import docutils_namespace
 
 PAGES = {
     "index.rst": """
@@ -59,17 +60,18 @@ def build(tmp_path, *, options: dict | None = None) -> str:
     )
 
     warning = StringIO()
-    app = Sphinx(
-        srcdir=str(src),
-        confdir=str(src),
-        outdir=str(tmp_path / "out"),
-        doctreedir=str(tmp_path / "doctrees"),
-        buildername="html",
-        warning=warning,
-        freshenv=True,
-        warningiserror=True,
-    )
-    app.build()
+    with docutils_namespace():
+        app = Sphinx(
+            srcdir=str(src),
+            confdir=str(src),
+            outdir=str(tmp_path / "out"),
+            doctreedir=str(tmp_path / "doctrees"),
+            buildername="html",
+            warning=warning,
+            freshenv=True,
+            warningiserror=True,
+        )
+        app.build()
     return (tmp_path / "out").as_posix()
 
 
