@@ -25,9 +25,12 @@ mystx 不复制父主题的 ``layout.html``，只在必要处覆盖，并通过�
    * - ``builder-inited``
      - 归一化 ``book_*`` 选项；校验 ``book_nav_scope``；把侧栏参数函数注入 Jinja
    * - ``html-page-context``
-     - 解析导航范围（``section`` 无祖先时回退 ``book``）；生成页眉按钮数据
+     - 解析导航范围（``section`` 无祖先时回退 ``book``）；生成页眉按钮数据；
+       检测页面是否含边注，决定是否让出右侧目录栏
    * - 模板渲染
      - ``layout.html`` 注入宽度变量；``book-nav.html`` 调用 ``generate_toctree_html``
+   * - ``post-transform``
+     - ``FootnoteToSidenote`` （优先级 1，仅 html）把脚注换成边注节点
 
 源码布局
 --------
@@ -39,13 +42,14 @@ mystx 不复制父主题的 ``layout.html``，只在必要处覆盖，并通过�
    ├── book/
    │   ├── nav.py               侧栏参数纯函数
    │   ├── buttons.py           页眉按钮数据与 URL 规则
-   │   └── options.py           选项归一化、逐页 scope、按钮注入
+   │   ├── options.py           选项归一化、逐页 scope、按钮注入、边注页面检测
+   │   └── sidenotes.py         边注节点 + 脚注变换 + {margin} 指令
    └── theme/mystx/
        ├── theme.toml           inherit + 默认选项 + sidebars
-       ├── layout.html          只覆盖 extrahead
+       ├── layout.html          覆盖 extrahead 与 body_tag
        ├── book-nav.html        侧栏组件
        ├── book-header-buttons.html  页眉工具箱
-       └── static/              css/book.css、js/book.js
+       └── static/              css/book.css、css/sidenotes.css、js/book.js
 
 为什么组件要单独命名
 --------------------
@@ -64,3 +68,23 @@ mystx 用逐页 scope 解析补上这一点。
 
 mystx 不依赖 sphinx-book-theme，也不继承它。后续能力按“数据协议 / 模板 /
 Python 变换 / 样式”四件移植，并在 ``NOTICE`` 中保留归属。
+
+边注层借鉴了 sphinx-book-theme 的 ``SideNoteNode`` / ``HandleFootnoteTransform`` /
+``Margin`` 三个对象（BSD-3-Clause），但在 mystx 里重写并做了三处收紧：
+
+- 引用找不到对应脚注、或脚注没有正文时跳过该条，不抛异常；
+- 多条引用指向同一条脚注时各得一份副本，不会把内容搬空；
+- ``{margin}`` 指令与样式常驻，开关只控制脚注变换。
+
+边注布局
+--------
+
+宽屏下边注要占用正文右侧的留白，而这块区域通常属于右侧目录栏。mystx 的处理：
+
+1. ``html-page-context`` 检查 doctree 中是否存在 ``sidenote`` / ``marginnote`` /
+   ``margin`` 类节点，命中时给 ``<body>`` 加 ``mystx-has-margin``；
+2. 只有这类页面在 ``>=1400px`` 时隐藏右侧目录栏，并让正文容器宽出留白列；
+3. 边注以浮动 + 负右边距进入留白列，``clear: right`` 防止连续边注重叠；
+4. 窄屏隐藏浮动内容，改为 ``label`` + ``input[type=checkbox]`` 点击展开。
+
+因此同一站点里，含边注的页面不显示页内目录，纯正文页面不变。

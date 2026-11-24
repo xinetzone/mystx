@@ -34,7 +34,7 @@
    * - ``book_use_sidenotes``
      - bool
      - ``False``
-     - P3 实现；当前预留
+     - 脚注转边注/ margin note；关闭时脚注保持原生
    * - ``book_footer_items``
      - list[str]
      - ``author, copyright, last-updated``
@@ -80,6 +80,9 @@
 
 ``book_nav_scope`` 的校验发生在 ``builder-inited``：非 ``book`` / ``section``
 的取值会被改回 ``book``，避免模板层抛异常。
+
+``book_use_sidenotes`` 只影响脚注：``{margin}`` 指令与相关样式始终可用，
+因为它是块级排版能力，与脚注是否转边注无关。
 
 版本耦合
 --------

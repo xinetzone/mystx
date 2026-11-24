@@ -47,7 +47,7 @@
    * - ``book_use_sidenotes``
      - bool
      - ``False``
-     - 脚注转边注（P3 实现，当前无效）
+     - 脚注转边注；正文以 ``{-}`` 开头时转为无编号 margin note
    * - ``book_footer_items``
      - list
      - 3 项
@@ -87,6 +87,21 @@
 
 GitLab / Bitbucket 同理，换成对应的 ``gitlab_*`` / ``bitbucket_*`` 键。坐标不完整时，
 这四项自动不渲染，不报错。
+
+边注
+----
+
+``book_use_sidenotes`` 打开后，所有脚注都被搬到引用点右侧的留白：
+
+.. code-block:: python
+
+   html_theme_options = {
+       "book_use_sidenotes": True,
+   }
+
+宽屏（``>=1400px``）下含边注的页面会隐藏右侧页内目录，把这块区域让给边注；
+窄屏下边注默认收起，点编号展开。块级内容用 ``{margin}`` 指令，它不受该开关影响。
+细节见 :doc:`sidenotes`。
 
 继承自基座的选项
 ----------------

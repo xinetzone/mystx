@@ -19,4 +19,5 @@ exclude_patterns = ["_build"]
 html_theme_options = {
     "book_nav_scope": "book",
     "book_nav_depth": 3,
+    "book_use_sidenotes": True,
 }
