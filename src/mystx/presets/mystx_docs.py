@@ -42,8 +42,7 @@ def build_config(*, root: str | Path) -> tuple[dict[str, Any], SetupFunction]:
     """
     root = Path(root)
     values: dict[str, Any] = {
-        # README.md 面向仓库读者，站点根入口为 index.md
-        "exclude_patterns": ["_build", "Thumbs.db", ".DS_Store", "README.md"],
+        "exclude_patterns": ["_build", "Thumbs.db", ".DS_Store"],
         "html_static_path": ["_static"],  # 包含自定义静态文件（如样式表或脚本文件）的路径列表
         "html_last_updated_fmt": "%Y-%m-%d, %H:%M:%S",
         "templates_path": ["_templates"],
