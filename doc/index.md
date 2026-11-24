@@ -12,6 +12,7 @@
 | `ext/` | mystx 自带扩展的使用文档（指令、选项、示例） | [ext/index.md](ext/index.md) |
 | `gallery/` | 相关项目与插件画廊（DaoBook、Executable Books、Sphinx 扩展等） | [gallery/index.md](gallery/index.md) |
 | `tests/` | 交互式演示（Jupyter Notebook / Thebe） | [tests/index.md](tests/index.md) |
+| `dev/` | 构建机制与配置层源码研究（Sphinx conf.py 可复用接口） | [dev/sphinx-conf.md](dev/sphinx-conf.md) |
 | `autoapi/` | mystx 包的 API 参考（由 autoapi 自动生成） | 构建后自动产出 |
 
 ## 阅读路径
@@ -24,6 +25,7 @@
 | 配置站点取值与主题选项（仓库按钮、导航深度、页脚等） | [`conf.py`](conf.py) + [README 配置指南](https://github.com/xinetzone/mystx#%EF%B8%8F-配置指南) |
 | 在文档里嵌入 GitHub 统计卡片 | [ext/github-readme-stats/index.md](ext/github-readme-stats/index.md) |
 | 在线试写 MyST 并实时预览 | [ext/live-preview/index.md](ext/live-preview/index.md) |
+| 设计或改造配置预设 | [dev/sphinx-conf.md](dev/sphinx-conf.md) |
 | 查 mystx 包的 Python API | 构建产物 `autoapi/`（由 `conf.py` 中 `autoapi.extension` 生成） |
 | 看 Sphinx 生态相关项目 | [gallery/index.md](gallery/index.md) |
 
@@ -47,4 +49,5 @@
 ext/index
 gallery/index
 tests/index
+dev/sphinx-conf
 ```
