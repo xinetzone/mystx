@@ -15,7 +15,6 @@ from typing import Any
 
 from docutils import nodes
 from docutils.parsers.rst.directives.body import Sidebar
-
 from sphinx import addnodes
 from sphinx.application import Sphinx
 from sphinx.transforms.post_transforms import SphinxPostTransform

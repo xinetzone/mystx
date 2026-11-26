@@ -91,5 +91,11 @@ addopts = ["-ra", "--strict-markers", "--strict-config"]
 [tool.ruff]
 line-length = 120
 target-version = "py311"
-exclude = [".git", "__pycache__", "*.egg-info", "doc/_build"]
+# tests/unit 为旧包存档测试面（pytest norecursedirs 已排除），不参与现行 lint 契约
+exclude = [".git", "__pycache__", "*.egg-info", "doc/_build", "tests/unit"]
+
+[tool.ruff.lint]
+# 规则集显式钉选：不依赖 ruff 默认集合，避免上游版本扩大默认规则导致 main 意外变红
+# （2026-11 ruff 0.16.3 默认集扩张曾致 38 条违规）；与 .github/workflows/lint.yml 注释契约一致
+select = ["E", "W", "F", "I", "UP"]
 
