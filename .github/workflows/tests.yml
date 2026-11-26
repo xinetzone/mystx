@@ -20,17 +20,19 @@ jobs:
         with:
           python-version: "3.14"
       - name: Install package with test and doc extras
-        # doc 额外依赖是 tests/unit/test_doc_parallel_extensions_p1.py 的硬前置：
-        # 该用例会加载 16 个可选扩展并校验 parallel_*_safe
+        # doc extra 提供 myst-parser：tests/test_myst.py 用 importorskip
+        # 软依赖，装了才会真正执行 Markdown 主题路径的 4 个用例
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[test,doc]"
       - name: Run tests with coverage gate
-        # 门禁下限 85%：2026-11-23 结构优化后本地实测 86%（117 passed，792 语句 / 107 未覆盖），
-        # 允许 8 条语句的波动（≈1 点）。再上调前需先补低覆盖模块
-        # （wakatime 25%、stats/top_langs 62%、_core 76%）
+        # 现行测试面为 tests/ 根下 7 个主题测试文件；tests/unit 与
+        # tests/chaos 是旧包存档，pyproject 的 norecursedirs 已排除，
+        # 裸 pytest 经 testpaths 自动锁定现行测试面，禁止显式传存档路径。
+        # 门禁下限 90%：2026-11-26 本地实测 94%（346 语句 / 21 未覆盖），
+        # 留 4 点波动余量；再上调前需先补 options/sidenotes 的未覆盖分支。
         run: |
-          python -m pytest tests/unit \
+          python -m pytest \
             --cov=mystx \
             --cov-report=term-missing \
-            --cov-fail-under=85
+            --cov-fail-under=90
